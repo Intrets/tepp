@@ -1,5 +1,13 @@
 ﻿cmake_minimum_required (VERSION 3.16)
 
-project(tepp LANGUAGES CXX)
+set(MODULE_NAME tepp)
 
-add_library(tepp tepp.cpp include/tepp/tepp.h)
+project(${MODULE_NAME} LANGUAGES CXX)
+
+add_library(${MODULE_NAME} tepp.cpp include/tepp/tepp.h)
+
+target_include_directories(${MODULE_NAME} PUBLIC include)
+target_include_directories(${MODULE_NAME} PRIVATE include/${MODULE_NAME})
+
+target_compile_features(${MODULE_NAME} PUBLIC cxx_std_17)
+

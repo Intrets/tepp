@@ -1,6 +1,6 @@
 #include "tests/Tests.h"
 
-#include "Everything.h"
+#include "tepp.h"
 #include <type_traits>
 
 #define TRUE2(X, Y) static_assert(te::##X##_v<##Y##>)
