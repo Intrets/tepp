@@ -20,42 +20,45 @@ namespace te
 	template<class... Ts>
 	struct list;
 
-	template<class E, class F>
-	struct prepend;
-
-	template<class E>
-	struct prepend<E, void>
+	namespace detail
 	{
-		using val = list<E>;
-	};
+		template<class E, class F>
+		struct prepend;
 
-	template<class E, class... Args>
-	struct prepend<E, list<Args...>>
-	{
-		using val = list<E, Args...>;
-	};
+		template<class E>
+		struct prepend<E, void>
+		{
+			using val = list<E>;
+		};
 
-	template<class E, class F>
-	using prepend_t = typename prepend<E, F>::val;
+		template<class E, class... Args>
+		struct prepend<E, list<Args...>>
+		{
+			using val = list<E, Args...>;
+		};
+
+		template<class E, class F>
+		using prepend_t = typename prepend<E, F>::val;
 
 
-	template<class E, class F>
-	struct append;
+		template<class E, class F>
+		struct append;
 
-	template<class E>
-	struct append<E, void>
-	{
-		using val = list<E>;
-	};
+		template<class E>
+		struct append<E, void>
+		{
+			using val = list<E>;
+		};
 
-	template<class E, class... Args>
-	struct append<E, list<Args...>>
-	{
-		using val = list<Args..., E>;
-	};
+		template<class E, class... Args>
+		struct append<E, list<Args...>>
+		{
+			using val = list<Args..., E>;
+		};
 
-	template<class E, class F>
-	using append_t = typename append<E, F>::val;
+		template<class E, class F>
+		using append_t = typename append<E, F>::val;
+	}
 
 
 	template<class... Ts>
@@ -65,10 +68,10 @@ namespace te
 		static constexpr int size = 0;
 
 		template<class E>
-		using prepend_t = typename prepend_t<E, list<Ts...>>;
+		using prepend_t = typename detail::prepend_t<E, list<Ts...>>;
 
 		template<class E>
-		using append_t = typename append_t<E, list<Ts...>>;
+		using append_t = typename detail::append_t<E, list<Ts...>>;
 	};
 
 	template<class Head, class... Tail>
@@ -80,10 +83,10 @@ namespace te
 		using tail = typename list<Tail...>;
 
 		template<class E>
-		using prepend_t = typename prepend_t<E, list<Head, Tail...>>;
+		using prepend_t = typename detail::prepend_t<E, list<Head, Tail...>>;
 
 		template<class E>
-		using append_t = typename append_t<E, list<Head, Tail...>>;
+		using append_t = typename detail::append_t<E, list<Head, Tail...>>;
 	};
 
 
@@ -275,7 +278,7 @@ namespace te
 			}
 			else {
 				using head_stripped_ref = std::remove_reference_t<L::head>;
-				head_stripped_ref::run<F, typename L::tail, Args...>(e, f, args...);
+				head_stripped_ref::template run<F, typename L::tail, Args...>(e, f, args...);
 			}
 		}
 	};
