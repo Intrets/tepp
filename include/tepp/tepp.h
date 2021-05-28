@@ -74,6 +74,28 @@ namespace te
 		using append_t = typename detail::append_t<E, list<Ts...>>;
 	};
 
+	template<class L, class = void>
+	struct remove_ref_and_const;
+
+	template<class L>
+	struct remove_ref_and_const<L, std::enable_if_t<L::is_empty>>
+	{
+		using type = L;
+	};
+
+	template<class A, class... Args>
+	struct remove_ref_and_const<list<A, Args...>, void>
+	{
+		using type = typename detail::prepend_t<
+			std::remove_reference_t<std::remove_const_t<A>>,
+			typename remove_ref_and_const<list<Args...>>::type
+		>;
+	};
+
+	template<class L>
+	using remove_ref_and_const_t = typename remove_ref_and_const<L>::type;
+
+
 	template<class Head, class... Tail>
 	struct list<Head, Tail...>
 	{
@@ -262,24 +284,7 @@ namespace te
 	template<class T>
 	using member_function_base_class_t = typename deconstruct_fun<T>::base_class;
 
+	template<class T>
+	inline constexpr bool is_any_fun_v = is_c_fun_v<T>::value || is_lambda_fun_v<T> || is_member_fun_v<T> || is_std_fun_v<T>;
 
-	struct Loop
-	{
-		template<class E, class F>
-		static inline void run(E& e, F f) {
-			using A = te::reverse_t<te::arguments_list_t<F>>;
-			Loop::run<E, F, A>(e, f);
-		}
-
-		template<class E, class F, class L, class... Args>
-		static inline void run(E& e, F f, Args... args) {
-			if constexpr (L::is_empty) {
-				f(args...);
-			}
-			else {
-				using head_stripped_ref = std::remove_reference_t<L::head>;
-				head_stripped_ref::template run<F, typename L::tail, Args...>(e, f, args...);
-			}
-		}
-	};
 }
