@@ -87,7 +87,7 @@ namespace te
 	struct remove_ref_and_const<list<A, Args...>, void>
 	{
 		using type = typename detail::prepend_t<
-			std::remove_reference_t<std::remove_const_t<A>>,
+			std::remove_const_t<std::remove_reference_t<A>>,
 			typename remove_ref_and_const<list<Args...>>::type
 		>;
 	};
