@@ -111,6 +111,9 @@ namespace te
 		using append_t = typename detail::append_t<E, list<Head, Tail...>>;
 	};
 
+	template<class T>
+	concept is_list = requires { T::is_empty; T::size; };
+
 
 	namespace detail
 	{
@@ -147,6 +150,7 @@ namespace te
 	namespace detail
 	{
 		template<class L, class T>
+		requires is_list<L>
 		struct contains
 		{
 			constexpr static bool val() {
@@ -157,7 +161,7 @@ namespace te
 					return true;
 				}
 				else {
-					return contains<L::tail, T>::val();
+					return detail::contains<L::tail, T>::val();
 				}
 			}
 		};
