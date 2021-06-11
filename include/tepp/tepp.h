@@ -102,7 +102,7 @@ namespace te
 		static constexpr bool is_empty = false;
 		static constexpr int size = 1 + sizeof...(Tail);
 		using head = Head;
-		using tail = typename list<Tail...>;
+		using tail = typename te::list<Tail...>;
 
 		template<class E>
 		using prepend_t = typename detail::prepend_t<E, list<Head, Tail...>>;
@@ -132,7 +132,7 @@ namespace te
 			using value = typename reverse<
 				I - 1,
 				typename L::tail,
-				typename prepend_t<typename L::head, R>
+				typename te::detail::prepend_t<typename L::head, R>
 			>::value;
 		};
 	}
@@ -157,11 +157,11 @@ namespace te
 				if constexpr (L::is_empty) {
 					return false;
 				}
-				else if constexpr (std::is_same_v<T, L::head>) {
+				else if constexpr (std::is_same_v<T, typename L::head>) {
 					return true;
 				}
 				else {
-					return detail::contains<L::tail, T>::val();
+					return detail::contains<typename L::tail, T>::val();
 				}
 			}
 		};
@@ -289,6 +289,6 @@ namespace te
 	using member_function_base_class_t = typename deconstruct_fun<T>::base_class;
 
 	template<class T>
-	inline constexpr bool is_any_fun_v = is_c_fun_v<T>::value || is_lambda_fun_v<T> || is_member_fun_v<T> || is_std_fun_v<T>;
+	inline constexpr bool is_any_fun_v = is_c_fun_v<T> || is_lambda_fun_v<T> || is_member_fun_v<T> || is_std_fun_v<T>;
 
 }
