@@ -5,18 +5,6 @@
 
 namespace te
 {
-	struct ctype_base
-	{
-		static inline size_t t = 1;
-	};
-
-	template<class T>
-	struct ctype : ctype_base
-	{
-		static inline size_t val = t++;
-	};
-
-
 	template<class... Ts>
 	struct list;
 
@@ -74,28 +62,6 @@ namespace te
 		using append_t = typename detail::append_t<E, list<Ts...>>;
 	};
 
-	template<class L, class = void>
-	struct remove_ref_and_const;
-
-	template<class L>
-	struct remove_ref_and_const<L, std::enable_if_t<L::is_empty>>
-	{
-		using type = L;
-	};
-
-	template<class A, class... Args>
-	struct remove_ref_and_const<list<A, Args...>, void>
-	{
-		using type = typename detail::prepend_t<
-			std::remove_const_t<std::remove_reference_t<A>>,
-			typename remove_ref_and_const<list<Args...>>::type
-		>;
-	};
-
-	template<class L>
-	using remove_ref_and_const_t = typename remove_ref_and_const<L>::type;
-
-
 	template<class Head, class... Tail>
 	struct list<Head, Tail...>
 	{
@@ -113,6 +79,18 @@ namespace te
 
 	template<class T>
 	concept is_list = requires { T::is_empty; T::size; };
+
+	template<template<class> class F, class L>
+	struct map;
+
+	template<template<class> class F, class... Ls>
+	struct map<F, te::list<Ls...>>
+	{
+		using type = te::list<F<Ls>...>;
+	};
+
+	template<template<class> class F, class L>
+	using map_t = typename map<F, L>::type;
 
 
 	namespace detail
@@ -147,28 +125,11 @@ namespace te
 	using reverse_t = typename reverse<T>::value;
 
 
-	namespace detail
-	{
-		template<class L, class T>
-		requires is_list<L>
-		struct contains
-		{
-			constexpr static bool val() {
-				if constexpr (L::is_empty) {
-					return false;
-				}
-				else if constexpr (std::is_same_v<T, typename L::head>) {
-					return true;
-				}
-				else {
-					return detail::contains<typename L::tail, T>::val();
-				}
-			}
-		};
-	}
-
 	template<class L, class T>
-	static constexpr bool contains_v = detail::contains<L, T>::val();
+	static constexpr bool contains_v = false;
+
+	template<class... Ls, class T>
+	static constexpr bool contains_v<te::list<Ls...>, T> = (std::same_as<Ls, T> || ...);
 
 
 	template<class T>
