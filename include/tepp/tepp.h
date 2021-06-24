@@ -89,6 +89,12 @@ namespace te
 		using type = te::list<F<Ls>...>;
 	};
 
+	template<template<class> class F, class... Ls>
+	struct map<F, std::tuple<Ls...>>
+	{
+		using type = std::tuple<F<Ls>...>;
+	};
+
 	template<template<class> class F, class L>
 	using map_t = typename map<F, L>::type;
 
