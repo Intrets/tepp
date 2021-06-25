@@ -98,6 +98,16 @@ namespace te
 	template<template<class> class F, class L>
 	using map_t = typename map<F, L>::type;
 
+	template<template<class, class> class F, class L1, class L2>
+	struct zip;
+
+	template<template<class, class> class F, class... L1s, class... L2s>
+	struct zip<F, std::tuple<L1s...>, std::tuple<L2s...>>
+	{
+		using type = std::tuple<F<L1s, L2s>...>;
+	};
+
+
 
 	namespace detail
 	{
