@@ -259,6 +259,9 @@ namespace te
 	template<class T>
 	using return_type_t = typename deconstruct_fun<T>::return_type;
 
+	template<auto ptr>
+	using return_type_t_ptr = typename deconstruct_fun<decltype(ptr)>::return_type;
+
 	template<class T>
 	using arguments_list_t = typename deconstruct_fun<T>::arguments_list;
 
