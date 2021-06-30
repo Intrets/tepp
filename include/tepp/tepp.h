@@ -271,4 +271,44 @@ namespace te
 	template<class T>
 	inline constexpr bool is_any_fun_v = is_c_fun_v<T> || is_lambda_fun_v<T> || is_member_fun_v<T> || is_std_fun_v<T>;
 
+	namespace impl
+	{
+		struct nothing {};
+
+		template<class T, class List>
+		struct test_fun;
+
+		template<class T, class... Args>
+		concept test_concept = requires (T t) { t(std::declval<Args>()...); };
+
+		template<class T, class... Args>
+		struct test_fun<T, te::list<Args...>>
+		{
+			constexpr static bool value = test_concept<T, Args...>;
+		};
+	}
+
+	template<int I, class T>
+	struct duplicate;
+
+	template<int I, class T>
+	using duplicate_t = typename duplicate<I, T>::type;
+
+	template<class T>
+	struct duplicate<1, T>
+	{
+		using type = te::list<T>;
+	};
+
+	template<int I, class T>
+	struct duplicate
+	{
+		using type = typename duplicate<I - 1, T>::type::template prepend_t<T>;
+	};
+
+	template<class T, int I>
+	concept number_of_arguments_is =
+		impl::test_fun<T, duplicate_t<I, impl::nothing>>::value ||
+		((requires (T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
+		((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
 }
