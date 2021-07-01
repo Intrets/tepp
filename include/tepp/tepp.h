@@ -304,7 +304,7 @@ namespace te
 	struct replicate;
 
 	template<int I, class T>
-	using duplicate_t = typename replicate<I, T>::type;
+	using replicate_t = typename replicate<I, T>::type;
 
 	template<class T>
 	struct replicate<1, T>
@@ -320,7 +320,7 @@ namespace te
 
 	template<class T, int I>
 	concept number_of_arguments_is =
-		impl::number_arguments_test<T, duplicate_t<I, impl::nothing>>::value ||
+		impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
 		((requires (T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
 		((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
 }
