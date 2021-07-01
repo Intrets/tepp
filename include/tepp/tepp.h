@@ -164,6 +164,9 @@ namespace te
 	template<class T>
 	inline constexpr bool is_std_fun_v = is_std_fun<T>::value;
 
+	template<class T>
+	concept std_fun = is_std_fun_v<T>;
+
 
 	template<class T>
 	struct is_c_fun;
@@ -180,6 +183,9 @@ namespace te
 
 	template<class T>
 	inline constexpr bool is_c_fun_v = is_c_fun<T>::value;
+
+	template<class T>
+	concept c_fun = is_c_fun_v<T>;
 
 
 	template<class T>
@@ -199,6 +205,9 @@ namespace te
 	template<class T>
 	inline constexpr bool is_member_fun_v = is_member_fun<T>::value;
 
+	template<class T>
+	concept member_fun = is_member_fun_v<T>;
+
 
 	template<class, class = void>
 	struct is_lambda_fun : std::false_type {};
@@ -212,19 +221,22 @@ namespace te
 	template<class T>
 	inline constexpr bool is_lambda_fun_v = is_lambda_fun<T>::value;
 
+	template<class T>
+	concept lambda_fun = is_lambda_fun_v<T>;
 
-	template<class T, class = void>
-	struct deconstruct_fun;
 
 	template<class T>
-	struct deconstruct_fun<T, std::enable_if_t<is_c_fun_v<T>>>
+	struct deconstruct_fun;
+
+	template<c_fun T>
+	struct deconstruct_fun<T>
 	{
 		using return_type = typename is_c_fun<T>::return_type;
 		using arguments_list = typename is_c_fun<T>::arguments_list;
 	};
 
-	template<class T>
-	struct deconstruct_fun<T, std::enable_if_t<is_std_fun_v<T>>>
+	template<std_fun T>
+	struct deconstruct_fun<T>
 	{
 		using return_type = typename is_std_fun<T>::return_type;
 		using arguments_list = typename is_std_fun<T>::arguments_list;
@@ -241,15 +253,15 @@ namespace te
 	};
 
 
-	template<class T>
-	struct deconstruct_fun<T, std::enable_if_t<is_lambda_fun_v<T>>>
+	template<lambda_fun T>
+	struct deconstruct_fun<T>
 	{
 		using return_type = typename deconstruct_lambda_member_fun<decltype(&T::operator())>::return_type;
 		using arguments_list = typename deconstruct_lambda_member_fun<decltype(&T::operator())>::arguments_list;
 	};
 
-	template<class T>
-	struct deconstruct_fun<T, std::enable_if_t<is_member_fun_v<T>>>
+	template<member_fun T>
+	struct deconstruct_fun<T>
 	{
 		using return_type = typename is_member_fun<T>::return_type;
 		using arguments_list = typename is_member_fun<T>::arguments_list;
@@ -275,40 +287,40 @@ namespace te
 	{
 		struct nothing {};
 
+		template<class T, class... Args>
+		concept number_arguments_concept = requires (T t) { t(std::declval<Args>()...); };
+
 		template<class T, class List>
-		struct test_fun;
+		struct number_arguments_test;
 
 		template<class T, class... Args>
-		concept test_concept = requires (T t) { t(std::declval<Args>()...); };
-
-		template<class T, class... Args>
-		struct test_fun<T, te::list<Args...>>
+		struct number_arguments_test<T, te::list<Args...>>
 		{
-			constexpr static bool value = test_concept<T, Args...>;
+			constexpr static bool value = number_arguments_concept<T, Args...>;
 		};
 	}
 
 	template<int I, class T>
-	struct duplicate;
+	struct replicate;
 
 	template<int I, class T>
-	using duplicate_t = typename duplicate<I, T>::type;
+	using duplicate_t = typename replicate<I, T>::type;
 
 	template<class T>
-	struct duplicate<1, T>
+	struct replicate<1, T>
 	{
 		using type = te::list<T>;
 	};
 
 	template<int I, class T>
-	struct duplicate
+	struct replicate
 	{
-		using type = typename duplicate<I - 1, T>::type::template prepend_t<T>;
+		using type = typename replicate<I - 1, T>::type::template prepend_t<T>;
 	};
 
 	template<class T, int I>
 	concept number_of_arguments_is =
-		impl::test_fun<T, duplicate_t<I, impl::nothing>>::value ||
+		impl::number_arguments_test<T, duplicate_t<I, impl::nothing>>::value ||
 		((requires (T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
 		((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
 }
