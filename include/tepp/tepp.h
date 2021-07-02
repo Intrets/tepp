@@ -284,17 +284,16 @@ namespace te
 		template<class... Is, class Tuple>
 		struct split_helper<te::list<Is...>, Tuple>
 		{
-			static auto run(Tuple&& tuple) {
-				return std::make_tuple(std::get<Is::index>(tuple)...);
+			constexpr static auto run(Tuple&& tuple) {
+				return std::forward_as_tuple(std::get<Is::index>(tuple)...);
 			}
 		};
-
 	}
 
 	struct split_tuple
 	{
 		template<class WF, class... Args>
-		static auto run(std::tuple<Args...>&& tuple) {
+		constexpr static auto run(std::tuple<Args...>&& tuple) {
 			using enumerated_list = enumerate_t<te::list<Args...>>;
 			using yes = te::filter_t<inspect_type_t<WF>, enumerated_list>;
 

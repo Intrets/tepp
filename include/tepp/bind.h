@@ -44,12 +44,14 @@ namespace te
 		struct Select
 		{
 			template<class I, class Holes, class Args>
-			static auto run(Holes&& holes, Args&& args) {
+			constexpr static auto run(Holes&& holes, Args&& args) {
 				if constexpr (std::same_as<typename I::type, uhole_>) {
-					return std::get<I::index>(std::forward<Holes>(holes));
+					return std::forward<decltype(std::get<I::index>(std::forward<Holes>(holes)))>(
+						std::get<I::index>(std::forward<Holes>(holes)));
 				}
 				else {
-					return std::get<I::index>(std::forward<Args>(args));
+					return std::forward<decltype(std::get<I::index>(std::forward<Args>(args)))>(
+						std::get<I::index>(std::forward<Args>(args)));
 				}
 			}
 		};
@@ -57,9 +59,9 @@ namespace te
 		struct Order
 		{
 			template<class Info2, class F, class Holes2, class Args2, class... Ordered>
-			static auto run(F&& f, Holes2&& holes, Args2&& args, Ordered&&... ordered) {
+			constexpr static auto run(F&& f, Holes2&& holes, Args2&& args, Ordered&&... ordered) {
 				if constexpr (Info2::is_empty) {
-					return f(ordered...);
+					return std::invoke(f, ordered...);
 				}
 				else {
 					using I = typename Info2::head;
@@ -76,15 +78,12 @@ namespace te
 			}
 		};
 
-
-		template<class F, class Info, class Args>
-		struct Bind2;
-
-		template<class F, class Infos, class... Args>
-		struct Bind2<F, Infos, std::tuple<Args...>>
+		template<class Infos>
+		struct Bind2
 		{
-			static auto bind(F const& f, std::tuple<Args...>&& args) {
-				return[&, args = std::move(args)]<class... LArgs>(LArgs&&... hole) {
+			template<class F, class... Args>
+			constexpr static auto bind(F&& f, std::tuple<Args...>&& args) {
+				return[f, args = std::apply([]<class... As>(As... as) { return std::make_tuple(std::forward<As>(as)...); }, args)]<class... LArgs>(LArgs&&... hole) {
 					constexpr auto hole_count = filter_t<inspect_type_t<is_<uhole_>>, Infos>::size;
 					constexpr auto missing_holes = sizeof...(LArgs) - hole_count;
 					using enumerated_list = typename enumerate_holes_args<hole_count, 0, replicate_t<missing_holes, uhole_>>::type;
@@ -93,28 +92,20 @@ namespace te
 				};
 			}
 		};
-
-		template<class F, class... Args>
-		struct Bind
-		{
-			static auto bind(F f, Args&&... args) {
-				using enumerated_list = typename enumerate_holes_args<0, 0, te::list<Args...>>::type;
-
-				auto args_values = te::split_tuple::run<te::not_<te::is_<uhole_>>>(std::forward_as_tuple(args...));
-
-				return Bind2<F, enumerated_list, decltype(args_values)>::bind(f, std::move(args_values));
-			}
-		};
-
 	}
 
 	template<class F, class... Args>
-	auto bind(F f, Args&&... args) {
-		using enumerated_list = typename detail::enumerate_holes_args<0, 0, te::list<Args...>>::type;
+	constexpr auto bind(F&& f, Args&&... args) {
+		if constexpr (sizeof...(Args) == 0) {
+			return f;
+		}
+		else {
+			using enumerated_list = typename detail::enumerate_holes_args<0, 0, te::list<Args...>>::type;
 
-		auto args_values = te::split_tuple::run<te::not_<te::is_<detail::uhole_>>>(std::forward_as_tuple(args...));
+			auto args_values = te::split_tuple::run<te::not_<te::is_<detail::uhole_>>>(std::forward_as_tuple(args...));
 
-		return detail::Bind2<F, enumerated_list, decltype(args_values)>::bind(f, std::move(args_values));
+			return detail::Bind2<enumerated_list>::bind(std::forward<F>(f), std::move(args_values));
+		}
 	}
 
 	using hole = detail::uhole_;
