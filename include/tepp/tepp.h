@@ -13,10 +13,22 @@ namespace te
 		template<class E, class F>
 		struct prepend;
 
+		template<class... Args1>
+		struct prepend<te::list<Args1...>, void>
+		{
+			using val = te::list<Args1...>;
+		};
+
 		template<class E>
 		struct prepend<E, void>
 		{
 			using val = list<E>;
+		};
+
+		template<class... Args1, class... Args2>
+		struct prepend<te::list<Args1...>, te::list<Args2...>>
+		{
+			using val = te::list<Args1..., Args2...>;
 		};
 
 		template<class E, class... Args>
@@ -32,10 +44,22 @@ namespace te
 		template<class E, class F>
 		struct append;
 
+		template<class... Args1>
+		struct append<te::list<Args1...>, void>
+		{
+			using val = te::list<Args1...>;
+		};
+
 		template<class E>
 		struct append<E, void>
 		{
 			using val = list<E>;
+		};
+
+		template<class... Args1, class... Args2>
+		struct append<te::list<Args1...>, te::list<Args2...>>
+		{
+			using val = te::list<Args2..., Args1...>;
 		};
 
 		template<class E, class... Args>
@@ -47,6 +71,49 @@ namespace te
 		template<class E, class F>
 		using append_t = typename append<E, F>::val;
 	}
+
+	template<template<class> class F>
+	struct wf
+	{
+		template<class T>
+		using apply = F<T>;
+
+		template<class T>
+		using apply_t = typename apply<T>::type;
+
+		template<class T>
+		static constexpr auto value = apply<T>::value;
+	};
+
+	namespace detail
+	{
+		template<class T>
+		struct is_struct
+		{
+			template<class R>
+			struct type
+			{
+				constexpr static bool value = std::same_as<std::remove_cvref_t<R>, T>;
+			};
+		};
+
+		template<class WF>
+		struct not_struct;
+
+		template<template<class> class F>
+		struct not_struct<te::wf<F>>
+		{
+			template<class T>
+			using type = std::negation<F<T>>;
+		};
+	}
+
+
+	template<class T>
+	using is_ = te::wf<detail::is_struct<T>::template type>;
+
+	template<class WF>
+	using not_ = te::wf<detail::not_struct<WF>::template type>;
 
 
 	template<class... Ts>
@@ -114,7 +181,7 @@ namespace te
 	};
 
 	template<template<class, class> class F, class L1, class L2>
-	using zip_t = zip<F, L1, L2>::type;
+	using zip_t = typename zip<F, L1, L2>::type;
 
 
 	template<class T>
@@ -144,6 +211,12 @@ namespace te
 	template<class List, class Is>
 	struct enumerate;
 
+	template<>
+	struct enumerate<te::list<>, std::index_sequence<>>
+	{
+		using type = te::list<>;
+	};
+
 	template<class... Args, int... Is>
 	struct enumerate<te::list<Args...>, std::index_sequence<Is...>>
 	{
@@ -153,12 +226,11 @@ namespace te
 	template<class List>
 	using enumerate_t = typename enumerate<List, std::make_index_sequence<List::size>>::type;
 
-
-	template<template<class> class P, class List>
+	template<class WF, class List>
 	struct filter;
 
 	template<template<class> class P, class Arg>
-	struct filter<P, te::list<Arg>>
+	struct filter<wf<P>, te::list<Arg>>
 	{
 		using type = std::conditional_t<P<Arg>::value,
 			te::list<Arg>,
@@ -166,16 +238,16 @@ namespace te
 	};
 
 	template<template<class> class P, class Arg, class... Args>
-	struct filter<P, te::list<Arg, Args...>>
+	struct filter<wf<P>, te::list<Arg, Args...>>
 	{
-		using next = typename filter<P, te::list<Args...>>::type;
+		using next = typename filter<wf<P>, te::list<Args...>>::type;
 		using type = std::conditional_t<P<Arg>::value,
 			typename next::template prepend_t<Arg>,
 			next>;
 	};
 
-	template<template<class> class P, class List>
-	using filter_t = typename filter<P, List>::type;
+	template<class WF, class List>
+	using filter_t = typename filter<WF, List>::type;
 
 
 	template<class List>
@@ -190,13 +262,18 @@ namespace te
 	template<class List>
 	using to_tuple_t = typename to_tuple<List>::type;
 
+	template<class WF>
+	struct inspect_type;
 
 	template<template<class> class P>
-	struct inspect_type
+	struct inspect_type<wf<P>>
 	{
 		template<class T>
 		using type = P<typename T::type>;
 	};
+
+	template<class WF>
+	using inspect_type_t = wf<inspect_type<WF>::template type>;
 
 
 	namespace detail
@@ -214,22 +291,16 @@ namespace te
 
 	}
 
-	template<template<class> class P, class Tuple>
-	struct split_tuple;
-
-	template<template<class> class P, class... Args>
-	struct split_tuple<P, std::tuple<Args...>>
+	struct split_tuple
 	{
-		using enumerated_list = enumerate_t<te::list<Args...>>;
-
-		using yes = te::filter_t<inspect_type<P>::template type, enumerated_list>;
-
+		template<class WF, class... Args>
 		static auto run(std::tuple<Args...>&& tuple) {
+			using enumerated_list = enumerate_t<te::list<Args...>>;
+			using yes = te::filter_t<inspect_type_t<WF>, enumerated_list>;
+
 			return detail::split_helper<yes, std::tuple<Args...>>::run(std::forward<decltype(tuple)>(tuple));
 		}
 	};
-
-
 
 
 	namespace detail
@@ -428,6 +499,12 @@ namespace te
 
 	template<int I, class T>
 	using replicate_t = typename replicate<I, T>::type;
+
+	template<class T>
+	struct replicate<0, T>
+	{
+		using type = te::list<>;
+	};
 
 	template<class T>
 	struct replicate<1, T>
