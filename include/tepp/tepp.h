@@ -262,6 +262,17 @@ namespace te
 	template<class List>
 	using to_tuple_t = typename to_tuple<List>::type;
 
+
+	template<int I, class Tuple>
+	struct tuple_type_at
+	{
+		using type = decltype(std::get<I>(std::declval<Tuple>()));
+	};
+
+	template<int I, class Tuple>
+	using tuple_type_at_t = typename tuple_type_at<I, Tuple>::type;
+
+
 	template<class WF>
 	struct inspect_type;
 

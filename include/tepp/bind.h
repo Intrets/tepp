@@ -41,40 +41,50 @@ namespace te
 			>;
 		};
 
-		struct Select
+
+		template<class I>
+		struct Select;
+
+		template<class I>
+		requires std::same_as<typename I::type, uhole_>
+			struct Select<I>
 		{
-			template<class I, class Holes, class Args>
-			constexpr static auto run(Holes&& holes, Args&& args) {
-				if constexpr (std::same_as<typename I::type, uhole_>) {
-					return std::forward<decltype(std::get<I::index>(std::forward<Holes>(holes)))>(
-						std::get<I::index>(std::forward<Holes>(holes)));
-				}
-				else {
-					return std::forward<decltype(std::get<I::index>(std::forward<Args>(args)))>(
-						std::get<I::index>(std::forward<Args>(args)));
-				}
+			template<class Holes, class Args>
+			constexpr static tuple_type_at_t<I::index, Holes>&& run(Holes&& holes, Args&& args) {
+				return std::get<I::index>(std::forward<Holes>(holes));
+			}
+		};
+
+		template<class I>
+		requires (!std::same_as<typename I::type, uhole_>)
+			struct Select<I>
+		{
+			template<class Holes, class Args>
+			constexpr static tuple_type_at_t<I::index, Args>&& run(Holes&& holes, Args&& args) {
+				return std::get<I::index>(std::forward<Args>(args));
+			}
+		};
+
+		template<class Info2, class F, class Holes2, class Args2>
+		struct Order2;
+
+		template<class... Is, class F, class Holes2, class Args2>
+		struct Order2<te::list<Is...>, F, Holes2, Args2>
+		{
+			constexpr static auto run(F&& f, Holes2&& holes, Args2&& args) {
+				return std::invoke(f, Select<Is>::run(std::forward<Holes2>(holes), std::forward<Args2>(args))...);
 			}
 		};
 
 		struct Order
 		{
-			template<class Info2, class F, class Holes2, class Args2, class... Ordered>
-			constexpr static auto run(F&& f, Holes2&& holes, Args2&& args, Ordered&&... ordered) {
-				if constexpr (Info2::is_empty) {
-					return std::invoke(f, ordered...);
-				}
-				else {
-					using I = typename Info2::head;
-					using Next = typename Info2::tail;
-
-					return Order::run<Next>(
-						std::forward<F>(f),
-						std::forward<Holes2>(holes),
-						std::forward<Args2>(args),
-						std::forward<Ordered>(ordered)...,
-						Select::run<I>(std::forward<Holes2>(holes), std::forward<Args2>(args))
-						);
-				}
+			template<class Info2, class F, class Holes2, class Args2>
+			constexpr static auto run(F&& f, Holes2&& holes, Args2&& args) {
+				return Order2<Info2, F, Holes2, Args2>::run(
+					std::forward<F>(f),
+					std::forward<Holes2>(holes),
+					std::forward<Args2>(args)
+				);
 			}
 		};
 
@@ -83,9 +93,10 @@ namespace te
 		{
 			template<class F, class... Args>
 			constexpr static auto bind(F&& f, std::tuple<Args...>&& args) {
-				return[f, args = std::apply([]<class... As>(As... as) { return std::make_tuple(std::forward<As>(as)...); }, args)]<class... LArgs>(LArgs&&... hole) {
+				return[f, args = std::apply([]<class... As>(As&&... as) { return std::make_tuple(std::forward<As>(as)...); }, args)]<class... LArgs>(LArgs&&... hole) {
 					constexpr auto hole_count = filter_t<inspect_type_t<is_<uhole_>>, Infos>::size;
-					constexpr auto missing_holes = sizeof...(LArgs) - hole_count;
+					constexpr auto missing_holes = std::max(static_cast<int>(sizeof...(LArgs)) - hole_count, 0);
+
 					using enumerated_list = typename enumerate_holes_args<hole_count, 0, replicate_t<missing_holes, uhole_>>::type;
 
 					return Order::run<typename Infos::template append_t<enumerated_list>>(f, std::forward_as_tuple(hole...), args);
