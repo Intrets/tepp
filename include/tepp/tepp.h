@@ -284,7 +284,7 @@ namespace te
 	};
 
 	template<class WF>
-	using inspect_type_t = wf<inspect_type<WF>::template type>;
+	using inspect_type_ = wf<inspect_type<WF>::template type>;
 
 
 	namespace detail
@@ -301,12 +301,12 @@ namespace te
 		};
 	}
 
-	struct split_tuple
+	struct group_tuple
 	{
 		template<class WF, class... Args>
 		constexpr static auto run(std::tuple<Args...>&& tuple) {
 			using enumerated_list = enumerate_t<te::list<Args...>>;
-			using yes = te::filter_t<inspect_type_t<WF>, enumerated_list>;
+			using yes = filter_t<inspect_type_<WF>, enumerated_list>;
 
 			return detail::split_helper<yes, std::tuple<Args...>>::run(std::forward<decltype(tuple)>(tuple));
 		}
