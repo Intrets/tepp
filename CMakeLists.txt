@@ -14,3 +14,9 @@ target_include_directories(${MODULE_NAME} PUBLIC include)
 target_include_directories(${MODULE_NAME} PRIVATE include/${MODULE_NAME})
 
 target_compile_features(${MODULE_NAME} PUBLIC cxx_std_20)
+
+add_executable(test_ops
+	main.cpp
+)
+
+target_link_libraries(test_ops PUBLIC tepp)
