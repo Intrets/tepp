@@ -18,4 +18,6 @@ add_executable(test_ops
 	main.cpp
 )
 
+target_compile_features(test_ops PUBLIC cxx_std_20)
+
 target_link_libraries(test_ops PUBLIC tepp)

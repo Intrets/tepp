@@ -1,7 +1,6 @@
-#include <iostream>
-
 #include <tuple>
-
+#include <type_traits>
+#include <concepts>
 
 namespace detail
 {
@@ -101,21 +100,6 @@ struct applicative_and
 };
 
 
-template<template <class> class F1, template <class> class F2>
-constexpr auto operator&&(detail::wf<F1>, detail::wf<F2>) {
-	return detail::wf<applicative_and<F1, F2>::template type>();
-}
-
-template<template <class> class F1, template <class> class F2>
-constexpr auto operator|(detail::wf<F1>, detail::wf<F2>) {
-	return detail::wf<compose<F1, F2>::template type>();
-}
-
-template<template <class> class F1, class T>
-constexpr auto operator|(detail::wf<F1>, detail::arg<T>) {
-	return detail::wf<F1>::template value<T>;
-}
-
 template<template<class> class P>
 constexpr auto wf = detail::wf<P>();
 
@@ -123,33 +107,6 @@ constexpr auto wf = detail::wf<P>();
 
 template<class T, class WF>
 concept evaluate = WF::template value<T>;
-
-
-template<class T> struct Test : std::false_type {};
-
-template<to_constraint(neg | is<int>) T>
-struct Test<T> : std::true_type {};
-
-static_assert(!Test<int>::value);
-static_assert(Test<long long int>::value);
-static_assert(Test<float>::value);
-
-
-
-template<class T> struct Test2 : std::false_type {};
-
-template<to_constraint((neg | wf<std::is_integral>) && (neg | is<float>)) T>
-struct Test2<T> : std::true_type {};
-
-static_assert(!Test2<int>::value);
-static_assert(!Test2<long long int>::value);
-static_assert(!Test2<float>::value);
-static_assert(Test2<double>::value);
-
-template<class T>
-requires (!std::integral<T> && !std::same_as<T, float>)
-struct Test3 {};
-
 
 
 namespace detail
@@ -172,20 +129,67 @@ namespace detail
 			typename filter<WF, std::tuple<RArgs...>, std::tuple<Args...>>::type
 		>;
 	};
+
+	template<class WF, class Tuple>
+	struct map;
+
+	template<class WF, class... Args>
+	struct map<WF, std::tuple<Args...>>
+	{
+		using type = std::tuple<typename WF::template apply<Args>...>;
+	};
 }
 
 template<auto WF, class Tuple>
 using filter_t = typename detail::filter<decltype(WF), std::tuple<>, Tuple>::type;
 
-template<auto WF>
+template<class WF>
 struct filter_type
 {
 	template<class Tuple>
-	using type = typename detail::filter<decltype(WF), std::tuple<>, Tuple>::type;
+	using type = typename detail::filter<WF, std::tuple<>, Tuple>::type;
 };
 
-template<auto WF>
-constexpr auto filter = detail::wf<filter_type<WF>::template type>();
+template<class WF>
+struct map_type
+{
+	template<class Tuple>
+	using type = typename detail::map<WF, Tuple>::type;
+};
+
+template<auto WF, class T>
+using apply = typename decltype(WF)::template apply<T>;
+
+template<template <class> class F1, template <class> class F2>
+constexpr auto operator&&(detail::wf<F1>, detail::wf<F2>) {
+	return detail::wf<applicative_and<F1, F2>::template type>();
+}
+
+template<template <class> class F1, template <class> class F2>
+constexpr auto operator|(detail::wf<F1>, detail::wf<F2>) {
+	return detail::wf<compose<F1, F2>::template type>();
+}
+
+template<template <class> class F1, class T>
+constexpr auto operator|(detail::wf<F1>, detail::arg<T>) {
+	return detail::wf<F1>::template value<T>;
+}
+
+template<template <class> class F1, class T>
+requires requires () { detail::wf<F1>::template apply<T>(); }
+constexpr auto operator|(detail::wf<F1>, detail::arg<T>) {
+	return detail::wf<F1>::template apply<T>();
+}
+
+template<class WF>
+constexpr auto filter(WF) {
+	return detail::wf<filter_type<WF>::template type>();
+}
+
+template<class WF>
+constexpr auto map(WF) {
+	return detail::wf<map_type<WF>::template type>();
+}
 
 
 template<int N>
@@ -212,7 +216,9 @@ int main() {
 		int_type<5>
 	>;
 
-	using filtered_tuple = filter_t<neg | is<int> | type, tuple>;
+	//using filtered_tuple = filter_t<neg | is<int> | type, tuple>;
+	//using filtered_tuple = decltype(filter(neg | is<int> | type) | arg<tuple>);
+	using filtered_tuple = apply<filter(neg | is<int> | type), tuple>;
 
 	static_assert(std::is_same_v<
 		filtered_tuple,
@@ -220,7 +226,9 @@ int main() {
 	>);
 
 
-	using filtered_tuple_2 = filter_t<gt<1> && (neg | is<int> | type), tuple>;
+	//using filtered_tuple_2 = filter_t<gt<1> && (neg | is<int> | type), tuple>;
+	//using filtered_tuple_2 = decltype(filter(gt<1> && (neg | is<int> | type)) | arg<tuple>);
+	using filtered_tuple_2 = apply<filter(gt<1> && (neg | is<int> | type)), tuple>;
 
 	static_assert(std::is_same_v<
 		filtered_tuple_2,
@@ -236,20 +244,14 @@ int main() {
 	>);
 
 
-	//using aaas = decltype(filter<even | value> | arg<std::tuple<int_type<1>>>);
+	using nested_tuple = std::tuple<std::tuple<int_type<0>, float_type<1>>, std::tuple<int_type<2>, float_type<3>>>;
 
-	static_assert(neg | wf<std::is_integral> | arg<float>);
+	using z = apply<map(filter(is<int> | type)) , nested_tuple>;
 
-	//aaas aa;
-
-
-
-	rand();
-	//std::negation
-
-
-
-
+	static_assert(std::is_same_v<
+		z,
+		std::tuple<std::tuple<int_type<0>>, std::tuple<int_type<2>>>
+	>);
 
 	return 0;
 }
