@@ -125,7 +125,7 @@ namespace te
 		else {
 			using enumerated_list = typename detail::enumerate_holes_args<0, 0, list<Args...>>::type;
 
-			auto args_values = group_tuple::run<not_<is_<detail::uhole_>>>(std::forward_as_tuple(args...));
+			auto args_values = filter_tuple<not_<is_<detail::uhole_>>>::run(std::forward_as_tuple(args...));
 
 			return std::apply([f]<class... As>(As&&... as) { return detail::Bind2<enumerated_list>::bind_const(f, std::forward<As>(as)...); }, args_values);
 		}
@@ -139,7 +139,7 @@ namespace te
 		else {
 			using enumerated_list = typename detail::enumerate_holes_args<0, 0, list<Args...>>::type;
 
-			auto args_values = group_tuple::run<not_<is_<detail::uhole_>>>(std::forward_as_tuple(args...));
+			auto args_values = filter_tuple<not_<is_<detail::uhole_>>>::run(std::forward_as_tuple(args...));
 
 			return std::apply([f]<class... As>(As&&... as) { return detail::Bind2<enumerated_list>::bind_mutable(f, std::forward<As>(as)...); }, args_values);
 		}

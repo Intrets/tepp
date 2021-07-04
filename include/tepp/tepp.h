@@ -82,7 +82,7 @@ namespace te
 		using apply_t = typename apply<T>::type;
 
 		template<class T>
-		static constexpr auto value = apply<T>::value;
+		static constexpr decltype(apply<T>::type::value) value = apply<T>::type::value;
 	};
 
 	namespace detail
@@ -290,10 +290,10 @@ namespace te
 	namespace detail
 	{
 		template<class Is, class Tuple>
-		struct split_helper;
+		struct filter_tuple_detail;
 
 		template<class... Is, class Tuple>
-		struct split_helper<te::list<Is...>, Tuple>
+		struct filter_tuple_detail<te::list<Is...>, Tuple>
 		{
 			constexpr static auto run(Tuple&& tuple) {
 				return std::forward_as_tuple(std::get<Is::index>(tuple)...);
@@ -301,14 +301,15 @@ namespace te
 		};
 	}
 
-	struct group_tuple
+	template<class WF>
+	struct filter_tuple
 	{
-		template<class WF, class... Args>
+		template<class... Args>
 		constexpr static auto run(std::tuple<Args...>&& tuple) {
 			using enumerated_list = enumerate_t<te::list<Args...>>;
 			using yes = filter_t<inspect_type_<WF>, enumerated_list>;
 
-			return detail::split_helper<yes, std::tuple<Args...>>::run(std::forward<decltype(tuple)>(tuple));
+			return detail::filter_tuple_detail<yes, std::tuple<Args...>>::run(std::forward<decltype(tuple)>(tuple));
 		}
 	};
 
