@@ -181,6 +181,11 @@ constexpr auto operator|(detail::wf<F1>, detail::arg<T>) {
 	return detail::wf<F1>::template apply<T>();
 }
 
+template<template <class> class F1, class T>
+constexpr auto operator|(detail::wf<F1>, T t) {
+	return detail::wf<F1>::template apply<constant<T, t>>();
+}
+
 template<class WF>
 constexpr auto filter(WF) {
 	return detail::wf<filter_type<WF>::template type>();
@@ -206,40 +211,34 @@ struct float_type
 	static constexpr int value = N;
 };
 
-template<class T>
+//template<class T>
+//struct id
+//{
+//	using type = T;
+//	static constexpr auto value = T::value;
+//};
+
 struct id
 {
+	template<class T>
 	using type = T;
-	static constexpr auto value = T::value;
 };
 
+template<class C1, class C2>
+requires std::same_as<typename C1::type, typename C2::type>
+struct add_constants
+{
+	using type = constant<typename C1::type, C2::value + C1::value>;
+};
 
-//struct sum2
-//{
-//	template<class T /*constant<1>*/>
-//	using type = constant<typename T::type, T::value>;
-//};
-//
-//struct sum1
-//{
-//	template<class T>
-//	using type = detail::wf<add_type<detail::wf<sum2::template type>, T>::template type>;
-//};
-//
-//struct sum0
-//{
-//	template<class T>
-//	using type = detail::wf<add_type<detail::wf<sum1::template type>, T>::template type>;
-//};
-
-// wf::apply<1> -> wf::apply<2> -> 1 + 2
 
 
 template<class WF, class I>
 struct add_type
 {
 	template<class T>
-	using type = constant<typename I::type, I::value + WF::template apply<T>::value>;
+	//using type = constant<typename I::type, I::value + WF::template apply<T>::value>;
+	using type = typename add_constants<I, typename WF::template apply<T>>::type;
 };
 
 template<class WF, class I>
@@ -248,7 +247,7 @@ using add_wf = detail::wf<add_type<WF, I>::template type>;
 struct sum0_struct
 {
 	template<class T>
-	using type = add_wf<detail::wf<id>, T>;
+	using type = T;
 };
 
 struct sum1_struct
@@ -257,9 +256,19 @@ struct sum1_struct
 	using type = add_wf<detail::wf<sum0_struct::template type>, T>;
 };
 
+struct sum2_struct
+{
+	template<class T>
+	using type = add_wf<detail::wf<sum1_struct::template type>, T>;
+};
+
 using sum0_wf = detail::wf<sum0_struct::template type>;
 using sum1_wf = detail::wf<sum1_struct::template type>;
+using sum2_wf = detail::wf<sum2_struct::template type>;
 
+constexpr auto sum0 = sum0_wf();
+constexpr auto sum1 = sum1_wf();
+constexpr auto sum2 = sum2_wf();
 
 //constexpr auto sum1 = sum1_struct();
 
@@ -268,10 +277,10 @@ using sum1_wf = detail::wf<sum1_struct::template type>;
 
 int main() {
 
-	using zz = add_wf<detail::wf<id>, constant<int, 1>>;
-	using zz2 = detail::wf<add_type<detail::wf<id>, constant<int, 1>>::template type>;
+	//using zz = add_wf<detail::wf<id>, constant<int, 1>>;
+	//using zz2 = detail::wf<add_type<detail::wf<id>, constant<int, 1>>::template type>;
 
-	using zzz = add_wf<zz, constant<int, 1>>;
+	//using zzz = add_wf<zz, constant<int, 1>>;
 	//using zzz2 = detail::wf<add_type<zz2, constant<int, 1>>::template type>;
 	//using zzz3 = detail::wf<add_type<zz2, constant<int, 1>>::template type>::apply<constant<int, 2>>;
 	//using zzz4 = add_type<zz2, constant<int, 1>>::template type<constant<int, 2>>;
@@ -282,16 +291,32 @@ int main() {
 
 
 	//zzz::apply<constant<int, 3>>;
-	using aa = zz::apply<constant<int, 2>>;
-	using aa2 = zzz::apply<constant<int, 2>>;
+	//using aa = zz::apply<constant<int, 2>>;
+	//using aa2 = zzz::apply<constant<int, 2>>;
 	//zzz zzz1;
 
 	//using ok = sum1_wf::template apply<constant<int, 1>>::template apply<constant<int, 2>>;
-	using ok2 = sum0_wf::template apply<constant<int, 1>>;
-	using ok3 = ok2::template apply<constant<int, 2>>;
-	ok2 okok;
-	ok3 okokok;
+	//using ok2 = sum0_wf::template apply<constant<int, 1>>;
+	//using ok3 = ok2::template apply<constant<int, 2>>;
+	//ok2 okok;
+	//ok3 okokok;
 
+
+	//auto test = sum0 | arg<constant<int, 1>>;
+	//auto test2 = test | arg<constant<int, 2>>;
+
+	auto test0 = sum0 | arg<constant<int, 1>>;
+	auto test1 = sum2 | arg<constant<int, 1>>;
+	//decltype(test1)::apply<constant<int, 2>> zzzz;
+	//auto test3 = test2 | arg<constant<int, 1>>;
+	//auto test4 = test3 | arg<constant<int, 2>> ;
+	//auto test4 = test3 | arg<constant<int, 2>>;
+	//auto test5 = test4;
+
+	//using ok4 = sum1_wf::template apply<constant<int, 1>>;
+	//using ok5 = ok4::template apply<constant<int, 2>>;
+	//ok4 okok2;
+	//ok5 okokok2;
 
 
 	//constant<int, 1>::value;
