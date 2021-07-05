@@ -206,7 +206,110 @@ struct float_type
 	static constexpr int value = N;
 };
 
+template<class T>
+struct id
+{
+	using type = T;
+	static constexpr auto value = T::value;
+};
+
+
+//struct sum2
+//{
+//	template<class T /*constant<1>*/>
+//	using type = constant<typename T::type, T::value>;
+//};
+//
+//struct sum1
+//{
+//	template<class T>
+//	using type = detail::wf<add_type<detail::wf<sum2::template type>, T>::template type>;
+//};
+//
+//struct sum0
+//{
+//	template<class T>
+//	using type = detail::wf<add_type<detail::wf<sum1::template type>, T>::template type>;
+//};
+
+// wf::apply<1> -> wf::apply<2> -> 1 + 2
+
+
+template<class WF, class I>
+struct add_type
+{
+	template<class T>
+	using type = constant<typename I::type, I::value + WF::template apply<T>::value>;
+};
+
+template<class WF, class I>
+using add_wf = detail::wf<add_type<WF, I>::template type>;
+
+struct sum0_struct
+{
+	template<class T>
+	using type = add_wf<detail::wf<id>, T>;
+};
+
+struct sum1_struct
+{
+	template<class T>
+	using type = add_wf<detail::wf<sum0_struct::template type>, T>;
+};
+
+using sum0_wf = detail::wf<sum0_struct::template type>;
+using sum1_wf = detail::wf<sum1_struct::template type>;
+
+
+//constexpr auto sum1 = sum1_struct();
+
+
+
+
 int main() {
+
+	using zz = add_wf<detail::wf<id>, constant<int, 1>>;
+	using zz2 = detail::wf<add_type<detail::wf<id>, constant<int, 1>>::template type>;
+
+	using zzz = add_wf<zz, constant<int, 1>>;
+	//using zzz2 = detail::wf<add_type<zz2, constant<int, 1>>::template type>;
+	//using zzz3 = detail::wf<add_type<zz2, constant<int, 1>>::template type>::apply<constant<int, 2>>;
+	//using zzz4 = add_type<zz2, constant<int, 1>>::template type<constant<int, 2>>;
+	//using zzz5 = constant<constant<int, 2>::type, constant<int, 1>::value + zz2::template value<constant<int, 2>>>;
+	//using zzz6 = constant<int, 1 + zz2::template value<constant<int, 2>>>;
+	//using zzz7 = constant<int, 1 + detail::wf<add_type<detail::wf<id>, constant<int, 1>>::template type>::template value<constant<int, 2>>>;
+
+
+
+	//zzz::apply<constant<int, 3>>;
+	using aa = zz::apply<constant<int, 2>>;
+	using aa2 = zzz::apply<constant<int, 2>>;
+	//zzz zzz1;
+
+	//using ok = sum1_wf::template apply<constant<int, 1>>::template apply<constant<int, 2>>;
+	using ok2 = sum0_wf::template apply<constant<int, 1>>;
+	using ok3 = ok2::template apply<constant<int, 2>>;
+	ok2 okok;
+	ok3 okokok;
+
+
+
+	//constant<int, 1>::value;
+
+
+	//auto constexpr ok = sum1::type<constant<int, 1>>::value<constant<int, 2>>;
+	//detail::wf<sum2::template type>::apply<constant<int, 1>> ak;
+
+	//add_type<detail::wf<sum2::template type>, constant<int, 2>>::template type<constant<int, 1>> ik;
+	//sum0::template type<constant<int, 2>>::template apply<constant<int, 1>> uuj;
+
+	//add_type<detail::wf<sum1::template type>, constant<int, 2>>::template type<constant<int, 1>> ik1;
+
+	rand();
+
+
+
+
 	using tuple = std::tuple<
 		int_type<0>,
 		float_type<1>,
@@ -246,7 +349,7 @@ int main() {
 
 	using nested_tuple = std::tuple<std::tuple<int_type<0>, float_type<1>>, std::tuple<int_type<2>, float_type<3>>>;
 
-	using z = apply<map(filter(is<int> | type)) , nested_tuple>;
+	using z = apply<map(filter(is<int> | type)), nested_tuple>;
 
 	static_assert(std::is_same_v<
 		z,
