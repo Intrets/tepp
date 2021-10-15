@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <type_traits>
 
 #include "tepp.h"
 
@@ -13,7 +14,7 @@ static auto dest##n() {\
 }\
 \
 template<class T>\
-requires has_n_members<T, n>::value \
+requires (!std::is_empty_v<T> &&  has_n_members<T, n>::value) \
 struct Dest<T>\
 {\
 	using type = decltype(dest##n<T>());\
@@ -38,18 +39,6 @@ namespace te
 		operator T () const {
 			return T();
 		};
-
-		template<class T>
-		operator T& () const {
-			T a;
-			return a;
-		};
-
-		template<class T>
-		operator T && () const {
-			T a;
-			return a;
-		};
 	};
 
 	template<class T, class... S>
@@ -72,6 +61,13 @@ namespace te
 
 	template<class T>
 	struct Dest;
+
+	template<class T>
+	requires std::is_empty_v<T>
+	struct Dest<T>
+	{
+		using type = te::list<>;
+	};
 
 	UNPACK(1, x1);
 	UNPACK(2, x1, x2);
