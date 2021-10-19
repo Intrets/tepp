@@ -249,6 +249,23 @@ namespace te
 	template<class WF, class List>
 	using filter_t = typename filter<WF, List>::type;
 
+	template<class WF, class List>
+	struct all;
+
+	template<template<class> class P>
+	struct all<wf<P>, te::list<>>
+	{
+		static constexpr bool value = true;
+	};
+
+	template<template<class> class P, class Arg, class... Args>
+	struct all<wf<P>, te::list<Arg, Args...>>
+	{
+		static constexpr bool value = P<Arg>::value && all<wf<P>, te::list<Args...>>::value;
+	};
+
+	template<class WF, class List>
+	constexpr bool all_v = all<WF, List>::value;
 
 	template<class List>
 	struct to_tuple;
