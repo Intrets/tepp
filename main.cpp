@@ -1,5 +1,8 @@
 #include <concepts>
 #include <tuple>
+#include <type_traits>
+
+#include "tepp/tepp.h"
 
 namespace detail
 {
@@ -33,24 +36,15 @@ namespace detail
 }
 
 template<list L>
-constexpr auto list_size = detail::list_size<L>::value;
+constexpr auto list_size_v = detail::list_size<L>::value;
 
 namespace detail
 {
-	//template<list L>
-	//struct to_tuple;
-
-	//template<template<class... > class L, class... Args>
-	//struct to_tuple<L<Args...>>
-	//{
-	//	using type = std::tuple<Args...>;
-	//};
-
 	template<list From, template<class...> class To>
-	struct to_list;
+	struct convert_list;
 
 	template<template<class...> class From, class... Args, template<class...> class To>
-	struct to_list<From<Args...>, To>
+	struct convert_list<From<Args...>, To>
 	{
 		using type = To<Args...>;
 	};
@@ -81,21 +75,21 @@ namespace detail
 	{
 		using type = Arg;
 	};
-
 }
-
-template<list L>
-constexpr auto to_tuple = detail::to_list<L, std::tuple>::type;
 
 namespace detail
 {
 	template<list L>
 	struct list_cat;
 
-	template<template<list...> class L>
-	struct list_cat<L<>>
+	template<template<list...> class L, list Arg>
+	struct list_cat<L<Arg>>
 	{
-		using type = L<>;
+		using type = std::conditional_t<
+			list_size_v<Arg> == 0,
+			L<>,
+			L<Arg>
+		>;
 	};
 
 	template<template<list...> class L, list Arg, list... Args>
@@ -103,26 +97,16 @@ namespace detail
 	{
 		using next = detail::list_cat<L<Args...>>::type;
 
-		using type = std::conditional_t <
-			detail::list_size<Arg>::value == 0,
+		using type = std::conditional_t<
+			list_size_v<Arg> == 0,
 			next,
 			typename detail::prepend<next, Arg>::type
 		>;
 	};
 }
 
-namespace detail
-{
-	template<list List>
-	struct size;
-
-	template<template<class...> class L, class...Args>
-	struct size<L<Args...>>
-	{
-		static constexpr auto value = sizeof...(Args);
-	};
-}
-
+template<list List>
+using list_cat_t = detail::list_cat<List>::type;
 
 namespace detail
 {
@@ -145,6 +129,9 @@ namespace detail
 	{
 	};
 }
+
+template<class T>
+using Type_t = detail::Type<T>;
 
 template<class T>
 constexpr auto Type = detail::Type<T>();
@@ -178,20 +165,20 @@ namespace detail
 template<auto v>
 constexpr auto Value = detail::Value<v>();
 
+template<auto v>
+using Value_t = detail::Value<v>;
+
 template<class V>
 concept value = detail::is_value<V>::value;
 
 template<class T>
 concept meta = value<T> || type<T>;
 
-//template<value... Values>
-//constexpr auto value_list = Type<std::tuple<Values>...>;
-constexpr auto value_list(value auto... Values) {
-	return Type<std::tuple<decltype(Values)...>>;
-}
+template<auto... values>
+constexpr auto value_list = Type<std::tuple<detail::Value<values>...>>;
 
 template<class... Args>
-constexpr auto make_list = Type<std::tuple<detail::Type<Args>...>>;
+constexpr auto type_list = Type<std::tuple<detail::Type<Args>...>>;
 
 consteval auto operator== (meta auto t1, meta auto t2) {
 	return Value<std::same_as<decltype(t1), decltype(t2)>>;
@@ -200,108 +187,76 @@ consteval auto operator== (meta auto t1, meta auto t2) {
 namespace detail
 {
 	template<class F, list List>
-	struct map2;
+	struct map;
 
 	template<class F, template<class...> class L, type... Args>
-	struct map2<F, L<Args...>>
+	struct map<F, L<Args...>>
 	{
 		using type = L<decltype(F()(std::declval<Args>()))...>;
 	};
 
 	template<class F, template<class...> class L, value... Args>
-	struct map2<F, L<Args...>>
+	struct map<F, L<Args...>>
 	{
 		using type = L<detail::Value<F()(Args::value)>...>;
 	};
 }
 
 constexpr auto map(auto F, type auto Type) {
-	using a = detail::map2<decltype(F), decltype(Type)::type>::type;
+	using a = detail::map<decltype(F), decltype(Type)::type>::type;
 	return detail::Type<a>();
 }
 
 namespace detail
 {
-	template<auto F, list List>
+	template<class F, list L>
 	struct filter;
 
-	template<auto F, template<class...> class L, type... Args>
-	struct filter<F, L<Args...>>
+	template<class F, template<class...> class L, class Arg>
+	struct filter<F, L<Arg>>
 	{
-		//using mapped =
-		//using type = decltype(std::tuple_cat(
-		//	std::conditional_t<
-		//	(F(std::declval<Args>())),
-		//	std::tuple<Args>,
-		//	std::tuple<>
-		//	>()...
-		//));
+		using type = std::conditional_t<
+			std::invoke_result_t<F, Arg>::value,
+			L<Arg>,
+			L<>
+		>;
 	};
 
-	template<auto F, template<class...> class L, value... Args>
-	struct filter<F, L<Args...>>
+	template<class F, template<class...> class L, class Arg, class... Args>
+	struct filter<F, L<Arg, Args...>>
 	{
-		//using type = decltype(std::tuple_cat(
-		//	std::conditional_t<
-		//	(F(Args::value)),
-		//	std::tuple<Args>,
-		//	std::tuple<>
-		//	>()...
-		//));
+		using next = detail::filter<F, L<Args...>>::type;
+
+		using type = std::conditional_t<
+			std::invoke_result_t<F, Arg>::value,
+			typename detail::prepend<next, Arg>::type,
+			next
+		>;
 	};
 }
 
-//constexpr auto filter(auto F, type auto Type) {
-//	using a = detail::filter<F, decltype(Type)::type>::type;
-//	return detail::Type<a>();
-//}
+template<class F, list L>
+using filter_t = detail::filter<F, L>::type;
 
-//constexpr auto filter(auto F, type auto Type) {
-//	using r = detail::filter<F, decltype(Type)>;
-//	return ::Type<r>;
-//}
-
-//template<class F, type... T>
-//constexpr auto filter(F f, T... type) {
-//	using a = std::tuple_cat<
-//		std::conditional_t<
-//		f(type),
-//		std::tuple<decltype(type)>,
-//		std::tuple<>
-//		>...>;
-//
-//	return Type<a>;
-//}
-
-consteval auto testing() {
-	constexpr auto f1 = Type<float>;
-	constexpr auto f2 = Type<float>;
-	constexpr auto i1 = Type<int>;
-
-	constexpr auto v1 = Value<1>;
-	constexpr auto v2 = Value<1>;
-	constexpr auto v3 = Value<2>;
-
-	//constexpr auto b1 = f1 == f2;
-	//constexpr auto b2 = f1 == i1;
-
-	constexpr auto b3 = v1 == v1;
-	constexpr auto b4 = v1 == v2;
-	constexpr auto b5 = v1 == v3;
-
+template<class F, list L>
+constexpr auto filter(F, Type_t<L>) {
+	return Type<filter_t<F, L>>;
 }
 
+constexpr auto operator|(auto f1, auto f2) {
+	return [=](auto x) {
+		return f1(f2(x));
+	};
+}
 
 int main() {
-	testing();
-
 	//constexpr std::tuple<detail::Type<float>, Type<int>> t;
 
-	constexpr auto l = make_list<float, int, float>;
+	constexpr auto l = type_list<float, int, float>;
 
-	//constexpr auto l = make_list<Value<1>, Value<2>, Value<3>>;
+	//constexpr auto l = type_list<Value<1>, Value<2>, Value<3>>;
 	constexpr int r = 1;
-	constexpr auto l2 = value_list(Value<1>, Value<2>, Value<3>);
+	constexpr auto l2 = value_list<1, 2, 3>;
 
 	constexpr auto a = map(
 		[](auto a) {
@@ -332,11 +287,28 @@ int main() {
 
 	//constexpr auto aaaaaaaaaaaaa = detail::list_cat<>;
 
-	//using tt = detail::list_cat<std::tuple<std::tuple<int>, std::tuple<>, std::tuple<float>>>::type;
-	//using tt = detail::list_cat<std::tuple<std::tuple<int>, std::tuple<>, std::tuple<float>>>::type;
-	using tt = detail::list_cat<std::tuple<>>::type;
 
-	tt t;
+	constexpr auto l5 = value_list<1, 2, 3, 4, 5, 6>;
+
+
+	constexpr auto f = []<type T>(T t) {
+		return std::same_as<T::type, float>;
+	};
+
+
+	constexpr auto g = []<auto v>(Value_t<v>) {
+		return Value<v % 2 == 0>;
+	};
+
+	constexpr auto g1 = []<auto v>(Value_t<v>) {
+		return Value<v + 1>;
+	};
+
+	constexpr auto gg = g1 | g1;
+	constexpr auto ggg = gg | g1;
+	constexpr auto gggg = g1 | ggg;
+
+	constexpr auto zz = filter(g | ggg, l5);
 
 	rand();
 	return 0;
