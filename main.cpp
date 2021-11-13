@@ -1,385 +1,343 @@
-#include <tuple>
-#include <type_traits>
 #include <concepts>
+#include <tuple>
 
 namespace detail
 {
-	template<class T>
-	struct arg {};
+	template<class L>
+	struct is_list;
 
-	template<template<class> class F>
-	struct wf
+	template<template<class...> class L, class... Args>
+	struct is_list<L<Args...>> : std::true_type
 	{
-		template<class T>
-		using apply = F<T>;
+	};
 
-		template<class T>
-		using apply_t = typename apply<T>::type;
-
-		template<class T>
-		static constexpr decltype(apply<T>::type::value) value = apply<T>::type::value;
+	template<class L>
+	struct is_list : std::false_type
+	{
 	};
 }
 
 template<class T>
-constexpr auto arg = detail::arg<T>();
-
-template<class R>
-struct is_same
-{
-	template<class T>
-	using type = std::is_same<R, T>;
-};
-
-struct inspect_type
-{
-	template<class T>
-	using type = typename T::type;
-};
-
-
-template<class T, T t>
-struct constant
-{
-	using type = T;
-	static constexpr T value = t;
-};
-
-struct inspect_value
-{
-	template<class T>
-	using type = constant<std::remove_cvref_t<decltype(T::value)>, T::value>;
-};
-
-template<auto I>
-struct greater_than
-{
-	template<class T>
-	using type = std::conditional_t<
-		(T::value > I),
-		std::true_type,
-		std::false_type
-	>;
-};
-
-struct even_type
-{
-	template<class T>
-	using type = std::conditional_t<
-		(T::value % 2 == 0),
-		std::true_type,
-		std::false_type
-	>;
-};
-
-
-constexpr auto neg = detail::wf<std::negation>();
-constexpr auto type = detail::wf<inspect_type::template type>();
-constexpr auto value = detail::wf<inspect_value::template type>();
-constexpr auto even = detail::wf<even_type::template type>();
-
-template<class T>
-constexpr auto is = detail::wf<is_same<T>::template type>();
-
-template<auto I>
-constexpr auto gt = detail::wf<greater_than<I>::template type>();
-
-
-template<template <class> class F1, template <class> class F2>
-struct compose
-{
-	template<class T>
-	using type = F1<F2<T>>;
-};
-
-template<template <class> class F1, template <class> class F2>
-struct applicative_and
-{
-	template<class T>
-	using type = std::conjunction<F1<T>, F2<T>>;
-};
-
-
-template<template<class> class P>
-constexpr auto wf = detail::wf<P>();
-
-#define to_constraint(X) evaluate<decltype(X)>
-
-template<class T, class WF>
-concept evaluate = WF::template value<T>;
-
+concept list = detail::is_list<T>::value;
 
 namespace detail
 {
-	template<class WF, class Result, class Tuple>
-	struct filter;
+	template<list L>
+	struct list_size;
 
-	template<class WF, class Result >
-	struct filter<WF, Result, std::tuple<>>
+	template<template<class...> class L, class... Args>
+	struct list_size<L<Args...>>
 	{
-		using type = Result;
+		static constexpr auto value = sizeof...(Args);
+	};
+}
+
+template<list L>
+constexpr auto list_size = detail::list_size<L>::value;
+
+namespace detail
+{
+	//template<list L>
+	//struct to_tuple;
+
+	//template<template<class... > class L, class... Args>
+	//struct to_tuple<L<Args...>>
+	//{
+	//	using type = std::tuple<Args...>;
+	//};
+
+	template<list From, template<class...> class To>
+	struct to_list;
+
+	template<template<class...> class From, class... Args, template<class...> class To>
+	struct to_list<From<Args...>, To>
+	{
+		using type = To<Args...>;
 	};
 
-	template<class WF, class... RArgs, class Arg, class... Args>
-	struct filter<WF, std::tuple<RArgs...>, std::tuple<Arg, Args...>>
+	template<list L, class T>
+	struct append;
+
+	template<template<class...> class L, class... Args, class T>
+	struct append<L<Args...>, T>
 	{
-		using type = std::conditional_t<
-			WF::template value<Arg>,
-			typename filter<WF, std::tuple<RArgs..., Arg>, std::tuple<Args...>>::type,
-			typename filter<WF, std::tuple<RArgs...>, std::tuple<Args...>>::type
+		using type = L<Args..., T>;
+	};
+
+	template<list L, class T>
+	struct prepend;
+
+	template<template<class...> class L, class... Args, class T>
+	struct prepend<L<Args...>, T>
+	{
+		using type = L<T, Args...>;
+	};
+
+	template<list L>
+	struct head;
+
+	template<template<class...> class L, class Arg, class... Args>
+	struct head<L<Arg, Args...>>
+	{
+		using type = Arg;
+	};
+
+}
+
+template<list L>
+constexpr auto to_tuple = detail::to_list<L, std::tuple>::type;
+
+namespace detail
+{
+	template<list L>
+	struct list_cat;
+
+	template<template<list...> class L>
+	struct list_cat<L<>>
+	{
+		using type = L<>;
+	};
+
+	template<template<list...> class L, list Arg, list... Args>
+	struct list_cat<L<Arg, Args...>>
+	{
+		using next = detail::list_cat<L<Args...>>::type;
+
+		using type = std::conditional_t <
+			detail::list_size<Arg>::value == 0,
+			next,
+			typename detail::prepend<next, Arg>::type
 		>;
 	};
+}
 
-	template<class WF, class Tuple>
-	struct map;
+namespace detail
+{
+	template<list List>
+	struct size;
 
-	template<class WF, class... Args>
-	struct map<WF, std::tuple<Args...>>
+	template<template<class...> class L, class...Args>
+	struct size<L<Args...>>
 	{
-		using type = std::tuple<typename WF::template apply<Args>...>;
+		static constexpr auto value = sizeof...(Args);
 	};
 }
 
-template<auto WF, class Tuple>
-using filter_t = typename detail::filter<decltype(WF), std::tuple<>, Tuple>::type;
 
-template<class WF>
-struct filter_type
-{
-	template<class Tuple>
-	using type = typename detail::filter<WF, std::tuple<>, Tuple>::type;
-};
-
-template<class WF>
-struct map_type
-{
-	template<class Tuple>
-	using type = typename detail::map<WF, Tuple>::type;
-};
-
-template<auto WF, class T>
-using apply = typename decltype(WF)::template apply<T>;
-
-template<template <class> class F1, template <class> class F2>
-constexpr auto operator&&(detail::wf<F1>, detail::wf<F2>) {
-	return detail::wf<applicative_and<F1, F2>::template type>();
-}
-
-template<template <class> class F1, template <class> class F2>
-constexpr auto operator|(detail::wf<F1>, detail::wf<F2>) {
-	return detail::wf<compose<F1, F2>::template type>();
-}
-
-template<template <class> class F1, class T>
-constexpr auto operator|(detail::wf<F1>, detail::arg<T>) {
-	return detail::wf<F1>::template value<T>;
-}
-
-template<template <class> class F1, class T>
-requires requires () { detail::wf<F1>::template apply<T>(); }
-constexpr auto operator|(detail::wf<F1>, detail::arg<T>) {
-	return detail::wf<F1>::template apply<T>();
-}
-
-template<template <class> class F1, class T>
-constexpr auto operator|(detail::wf<F1>, T t) {
-	return detail::wf<F1>::template apply<constant<T, t>>();
-}
-
-template<class WF>
-constexpr auto filter(WF) {
-	return detail::wf<filter_type<WF>::template type>();
-}
-
-template<class WF>
-constexpr auto map(WF) {
-	return detail::wf<map_type<WF>::template type>();
-}
-
-
-template<int N>
-struct int_type
-{
-	using type = int;
-	static constexpr int value = N;
-};
-
-template<int N>
-struct float_type
-{
-	using type = float;
-	static constexpr int value = N;
-};
-
-//template<class T>
-//struct id
-//{
-//	using type = T;
-//	static constexpr auto value = T::value;
-//};
-
-struct id
+namespace detail
 {
 	template<class T>
-	using type = T;
-};
+	struct Type
+	{
+		using type = T;
+	};
 
-template<class C1, class C2>
-requires std::same_as<typename C1::type, typename C2::type>
-struct add_constants
-{
-	using type = constant<typename C1::type, C2::value + C1::value>;
-};
-
-
-
-template<class WF, class I>
-struct add_type
-{
 	template<class T>
-	//using type = constant<typename I::type, I::value + WF::template apply<T>::value>;
-	using type = typename add_constants<I, typename WF::template apply<T>>::type;
-};
+	struct is_type;
 
-template<class WF, class I>
-using add_wf = detail::wf<add_type<WF, I>::template type>;
-
-struct sum0_struct
-{
 	template<class T>
-	using type = T;
-};
+	struct is_type<Type<T>> : std::true_type
+	{
+	};
 
-struct sum1_struct
-{
 	template<class T>
-	using type = add_wf<detail::wf<sum0_struct::template type>, T>;
-};
+	struct is_type : std::false_type
+	{
+	};
+}
 
-struct sum2_struct
+template<class T>
+constexpr auto Type = detail::Type<T>();
+
+template<class T>
+concept type = detail::is_type<T>::value;
+
+namespace detail
 {
-	template<class T>
-	using type = add_wf<detail::wf<sum1_struct::template type>, T>;
-};
+	template<auto v>
+	struct Value
+	{
+		using value_type = decltype(v);
+		static constexpr value_type value = v;
+	};
 
-using sum0_wf = detail::wf<sum0_struct::template type>;
-using sum1_wf = detail::wf<sum1_struct::template type>;
-using sum2_wf = detail::wf<sum2_struct::template type>;
+	template<class V>
+	struct is_value;
 
-constexpr auto sum0 = sum0_wf();
-constexpr auto sum1 = sum1_wf();
-constexpr auto sum2 = sum2_wf();
+	template<auto v>
+	struct is_value<Value<v>> : std::true_type
+	{
+	};
 
-//constexpr auto sum1 = sum1_struct();
+	template<class V>
+	struct is_value : std::false_type
+	{
+	};
+}
 
+template<auto v>
+constexpr auto Value = detail::Value<v>();
 
+template<class V>
+concept value = detail::is_value<V>::value;
+
+template<class T>
+concept meta = value<T> || type<T>;
+
+//template<value... Values>
+//constexpr auto value_list = Type<std::tuple<Values>...>;
+constexpr auto value_list(value auto... Values) {
+	return Type<std::tuple<decltype(Values)...>>;
+}
+
+template<class... Args>
+constexpr auto make_list = Type<std::tuple<detail::Type<Args>...>>;
+
+consteval auto operator== (meta auto t1, meta auto t2) {
+	return Value<std::same_as<decltype(t1), decltype(t2)>>;
+}
+
+namespace detail
+{
+	template<class F, list List>
+	struct map2;
+
+	template<class F, template<class...> class L, type... Args>
+	struct map2<F, L<Args...>>
+	{
+		using type = L<decltype(F()(std::declval<Args>()))...>;
+	};
+
+	template<class F, template<class...> class L, value... Args>
+	struct map2<F, L<Args...>>
+	{
+		using type = L<detail::Value<F()(Args::value)>...>;
+	};
+}
+
+constexpr auto map(auto F, type auto Type) {
+	using a = detail::map2<decltype(F), decltype(Type)::type>::type;
+	return detail::Type<a>();
+}
+
+namespace detail
+{
+	template<auto F, list List>
+	struct filter;
+
+	template<auto F, template<class...> class L, type... Args>
+	struct filter<F, L<Args...>>
+	{
+		//using mapped =
+		//using type = decltype(std::tuple_cat(
+		//	std::conditional_t<
+		//	(F(std::declval<Args>())),
+		//	std::tuple<Args>,
+		//	std::tuple<>
+		//	>()...
+		//));
+	};
+
+	template<auto F, template<class...> class L, value... Args>
+	struct filter<F, L<Args...>>
+	{
+		//using type = decltype(std::tuple_cat(
+		//	std::conditional_t<
+		//	(F(Args::value)),
+		//	std::tuple<Args>,
+		//	std::tuple<>
+		//	>()...
+		//));
+	};
+}
+
+//constexpr auto filter(auto F, type auto Type) {
+//	using a = detail::filter<F, decltype(Type)::type>::type;
+//	return detail::Type<a>();
+//}
+
+//constexpr auto filter(auto F, type auto Type) {
+//	using r = detail::filter<F, decltype(Type)>;
+//	return ::Type<r>;
+//}
+
+//template<class F, type... T>
+//constexpr auto filter(F f, T... type) {
+//	using a = std::tuple_cat<
+//		std::conditional_t<
+//		f(type),
+//		std::tuple<decltype(type)>,
+//		std::tuple<>
+//		>...>;
+//
+//	return Type<a>;
+//}
+
+consteval auto testing() {
+	constexpr auto f1 = Type<float>;
+	constexpr auto f2 = Type<float>;
+	constexpr auto i1 = Type<int>;
+
+	constexpr auto v1 = Value<1>;
+	constexpr auto v2 = Value<1>;
+	constexpr auto v3 = Value<2>;
+
+	//constexpr auto b1 = f1 == f2;
+	//constexpr auto b2 = f1 == i1;
+
+	constexpr auto b3 = v1 == v1;
+	constexpr auto b4 = v1 == v2;
+	constexpr auto b5 = v1 == v3;
+
+}
 
 
 int main() {
+	testing();
 
-	//using zz = add_wf<detail::wf<id>, constant<int, 1>>;
-	//using zz2 = detail::wf<add_type<detail::wf<id>, constant<int, 1>>::template type>;
+	//constexpr std::tuple<detail::Type<float>, Type<int>> t;
 
-	//using zzz = add_wf<zz, constant<int, 1>>;
-	//using zzz2 = detail::wf<add_type<zz2, constant<int, 1>>::template type>;
-	//using zzz3 = detail::wf<add_type<zz2, constant<int, 1>>::template type>::apply<constant<int, 2>>;
-	//using zzz4 = add_type<zz2, constant<int, 1>>::template type<constant<int, 2>>;
-	//using zzz5 = constant<constant<int, 2>::type, constant<int, 1>::value + zz2::template value<constant<int, 2>>>;
-	//using zzz6 = constant<int, 1 + zz2::template value<constant<int, 2>>>;
-	//using zzz7 = constant<int, 1 + detail::wf<add_type<detail::wf<id>, constant<int, 1>>::template type>::template value<constant<int, 2>>>;
+	constexpr auto l = make_list<float, int, float>;
 
+	//constexpr auto l = make_list<Value<1>, Value<2>, Value<3>>;
+	constexpr int r = 1;
+	constexpr auto l2 = value_list(Value<1>, Value<2>, Value<3>);
 
+	constexpr auto a = map(
+		[](auto a) {
+			return Type<double>;
+		}, l
+	);
 
-	//zzz::apply<constant<int, 3>>;
-	//using aa = zz::apply<constant<int, 2>>;
-	//using aa2 = zzz::apply<constant<int, 2>>;
-	//zzz zzz1;
+	constexpr auto l3 = map(
+		[](auto i) {
+			return i * 2;
+		},
+		l2
+			);
 
-	//using ok = sum1_wf::template apply<constant<int, 1>>::template apply<constant<int, 2>>;
-	//using ok2 = sum0_wf::template apply<constant<int, 1>>;
-	//using ok3 = ok2::template apply<constant<int, 2>>;
-	//ok2 okok;
-	//ok3 okokok;
+	//constexpr auto l4 = filter(
+	//	[](auto a) {
+	//		return true;
+	//	},
+	//	l
+	//		);
 
-
-	//auto test = sum0 | arg<constant<int, 1>>;
-	//auto test2 = test | arg<constant<int, 2>>;
-
-	auto test0 = sum0 | arg<constant<int, 1>>;
-	auto test1 = sum2 | arg<constant<int, 1>>;
-	//decltype(test1)::apply<constant<int, 2>> zzzz;
-	//auto test3 = test2 | arg<constant<int, 1>>;
-	//auto test4 = test3 | arg<constant<int, 2>> ;
-	//auto test4 = test3 | arg<constant<int, 2>>;
-	//auto test5 = test4;
-
-	//using ok4 = sum1_wf::template apply<constant<int, 1>>;
-	//using ok5 = ok4::template apply<constant<int, 2>>;
-	//ok4 okok2;
-	//ok5 okokok2;
+	using oh = decltype(a)::type;
+	oh o;
 
 
-	//constant<int, 1>::value;
+	constexpr auto b = list<std::tuple<int>>;
+	constexpr auto b2 = list<int>;
 
+	//constexpr auto aaaaaaaaaaaaa = detail::list_cat<>;
 
-	//auto constexpr ok = sum1::type<constant<int, 1>>::value<constant<int, 2>>;
-	//detail::wf<sum2::template type>::apply<constant<int, 1>> ak;
+	//using tt = detail::list_cat<std::tuple<std::tuple<int>, std::tuple<>, std::tuple<float>>>::type;
+	//using tt = detail::list_cat<std::tuple<std::tuple<int>, std::tuple<>, std::tuple<float>>>::type;
+	using tt = detail::list_cat<std::tuple<>>::type;
 
-	//add_type<detail::wf<sum2::template type>, constant<int, 2>>::template type<constant<int, 1>> ik;
-	//sum0::template type<constant<int, 2>>::template apply<constant<int, 1>> uuj;
-
-	//add_type<detail::wf<sum1::template type>, constant<int, 2>>::template type<constant<int, 1>> ik1;
+	tt t;
 
 	rand();
-
-
-
-
-	using tuple = std::tuple<
-		int_type<0>,
-		float_type<1>,
-		float_type<2>,
-		int_type<3>,
-		float_type<4>,
-		int_type<5>
-	>;
-
-	//using filtered_tuple = filter_t<neg | is<int> | type, tuple>;
-	//using filtered_tuple = decltype(filter(neg | is<int> | type) | arg<tuple>);
-	using filtered_tuple = apply<filter(neg | is<int> | type), tuple>;
-
-	static_assert(std::is_same_v<
-		filtered_tuple,
-		std::tuple<float_type<1>, float_type<2>, float_type<4>>
-	>);
-
-
-	//using filtered_tuple_2 = filter_t<gt<1> && (neg | is<int> | type), tuple>;
-	//using filtered_tuple_2 = decltype(filter(gt<1> && (neg | is<int> | type)) | arg<tuple>);
-	using filtered_tuple_2 = apply<filter(gt<1> && (neg | is<int> | type)), tuple>;
-
-	static_assert(std::is_same_v<
-		filtered_tuple_2,
-		std::tuple<float_type<2>, float_type<4>>
-	>);
-
-
-	using filtered_tuple_3 = filter_t<even | value, tuple>;
-
-	static_assert(std::is_same_v<
-		filtered_tuple_3,
-		std::tuple<int_type<0>, float_type<2>, float_type<4>>
-	>);
-
-
-	using nested_tuple = std::tuple<std::tuple<int_type<0>, float_type<1>>, std::tuple<int_type<2>, float_type<3>>>;
-
-	using z = apply<map(filter(is<int> | type)), nested_tuple>;
-
-	static_assert(std::is_same_v<
-		z,
-		std::tuple<std::tuple<int_type<0>>, std::tuple<int_type<2>>>
-	>);
-
 	return 0;
 }
