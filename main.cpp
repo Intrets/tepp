@@ -95,7 +95,7 @@ namespace detail
 	template<template<list...> class L, list Arg, list... Args>
 	struct list_cat<L<Arg, Args...>>
 	{
-		using next = detail::list_cat<L<Args...>>::type;
+		using next = typename detail::list_cat<L<Args...>>::type;
 
 		using type = std::conditional_t<
 			list_size_v<Arg> == 0,
@@ -106,7 +106,7 @@ namespace detail
 }
 
 template<list List>
-using list_cat_t = detail::list_cat<List>::type;
+using list_cat_t = typename detail::list_cat<List>::type;
 
 namespace detail
 {
@@ -175,7 +175,7 @@ template<class T>
 concept meta = value<T> || type<T>;
 
 template<auto... values>
-constexpr auto value_list = Type<std::tuple<detail::Value<values>...>>;
+constexpr auto value_list = Type<std::tuple<Value_t<values>...>>;
 
 template<class... Args>
 constexpr auto type_list = Type<std::tuple<detail::Type<Args>...>>;
@@ -198,12 +198,12 @@ namespace detail
 	template<class F, template<class...> class L, value... Args>
 	struct map<F, L<Args...>>
 	{
-		using type = L<detail::Value<F()(Args::value)>...>;
+		using type = L<Value<F()(Args::value)>...>;
 	};
 }
 
 constexpr auto map(auto F, type auto Type) {
-	using a = detail::map<decltype(F), decltype(Type)::type>::type;
+	using a = typename detail::map<decltype(F), typename decltype(Type)::type>::type;
 	return detail::Type<a>();
 }
 
@@ -225,7 +225,7 @@ namespace detail
 	template<class F, template<class...> class L, class Arg, class... Args>
 	struct filter<F, L<Arg, Args...>>
 	{
-		using next = detail::filter<F, L<Args...>>::type;
+		using next = typename detail::filter<F, L<Args...>>::type;
 
 		using type = std::conditional_t<
 			std::invoke_result_t<F, Arg>::value,
@@ -236,14 +236,27 @@ namespace detail
 }
 
 template<class F, list L>
-using filter_t = detail::filter<F, L>::type;
+using filter_t = typename detail::filter<F, L>::type;
 
 template<class F, list L>
 constexpr auto filter(F, Type_t<L>) {
 	return Type<filter_t<F, L>>;
 }
 
-constexpr auto operator|(auto f1, auto f2) {
+constexpr auto brute(auto f1, auto f2) {
+	return [=](auto x) {
+		return f1(f2(x));
+	};
+}
+
+template<class F1, class F2>
+concept can_compose = requires(F1 f1, F2 f2) {
+	brute(f1, f2);
+};
+
+template<class F1, class F2>
+requires can_compose<F1, F2>
+constexpr auto operator|(F1 f1, F2 f2) {
 	return [=](auto x) {
 		return f1(f2(x));
 	};
@@ -292,7 +305,7 @@ int main() {
 
 
 	constexpr auto f = []<type T>(T t) {
-		return std::same_as<T::type, float>;
+		return std::same_as<typename T::type, float>;
 	};
 
 
@@ -304,11 +317,39 @@ int main() {
 		return Value<v + 1>;
 	};
 
+	constexpr auto simple = [](auto x) {
+		return 1;
+	};
+
 	constexpr auto gg = g1 | g1;
 	constexpr auto ggg = gg | g1;
 	constexpr auto gggg = g1 | ggg;
 
-	constexpr auto zz = filter(g | ggg, l5);
+	constexpr auto test = gggg(Value<1>);
+
+	//constexpr auto zz = filter(g | 1, l5);
+
+	//g(Wildcard);
+
+
+	//constexpr bool t1 = te::number_of_arguments_is<decltype(g), 1>;
+	////constexpr bool t2 = te::number_of_arguments_is<decltype(simple), 1>;
+	////constexpr bool t3 = te::number_of_arguments_is<int, 1>;
+
+	//constexpr bool t3 = is_function_like<decltype(simple)>;
+	//static_assert(t3);
+
+	//constexpr bool t4 = is_function_like<decltype(g)>;
+	//static_assert(t4);
+
+	//constexpr bool t5 = is_function_like<int>;
+	//static_assert(!t5);
+
+	//constexpr bool t5 = has_value_argument<decltype(simple)>;
+	//constexpr bool t6 = has_value_argument<int>;
+
+	//auto test = g(Value<1.0f>);
+
 
 	rand();
 	return 0;
