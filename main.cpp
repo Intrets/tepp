@@ -1,6 +1,7 @@
 #include <concepts>
 #include <tuple>
 #include <type_traits>
+#include <ranges>
 
 #include "tepp/tepp.h"
 
@@ -243,24 +244,86 @@ constexpr auto filter(F, Type_t<L>) {
 	return Type<filter_t<F, L>>;
 }
 
-constexpr auto brute(auto f1, auto f2) {
-	return [=](auto x) {
-		return f1(f2(x));
+namespace detail
+{
+	template<class F, list L>
+	struct all;
+
+	template<class F, template<class...> class L, class... Values>
+	struct all<F, L<Values...>>
+	{
+		constexpr static bool value = (std::invoke_result_t<F, Values>::value && ...);
 	};
+}
+
+template<class F, list L>
+constexpr bool all_v = detail::all<F, L>::value;
+
+template<class F, list L>
+constexpr auto all(F, Type_t<L>) {
+	return Value<all_v<F, L>>;
+}
+
+constexpr auto id = [](auto x) {
+	return x;
+};
+
+constexpr auto and_f = [](list auto L) {
+	return all(id, L);
+};
+
+namespace detail
+{
+	constexpr auto brute_compose_test(auto f1, auto f2) {
+		return [=](auto x) {
+			return f1(f2(x));
+		};
+	}
 }
 
 template<class F1, class F2>
 concept can_compose = requires(F1 f1, F2 f2) {
-	brute(f1, f2);
+	detail::brute_compose_test(f1, f2);
 };
 
 template<class F1, class F2>
-requires can_compose<F1, F2>
+	requires can_compose<F1, F2>
 constexpr auto operator|(F1 f1, F2 f2) {
 	return [=](auto x) {
 		return f1(f2(x));
 	};
 }
+
+namespace detail
+{
+	constexpr auto brute_apply_test(auto f, auto arg) {
+		return f(arg);
+	}
+}
+
+template<class F, class Arg>
+concept can_apply = requires(F f, Arg arg) {
+	detail::brute_apply_test(f, arg);
+};
+
+template<class F, class Arg>
+	requires can_apply<F, Arg>
+constexpr auto operator&&(F f, Arg arg) {
+	return f(arg);
+}
+
+template<class... Args>
+struct Ok
+{
+	std::tuple<Args...> data;
+
+	Ok(Args... args) {
+
+	}
+};
+
+//template<class... Args>
+//Ok(Args...)->Ok<Args...>;
 
 int main() {
 	//constexpr std::tuple<detail::Type<float>, Type<int>> t;
@@ -310,7 +373,8 @@ int main() {
 
 
 	constexpr auto g = []<auto v>(Value_t<v>) {
-		return Value<v % 2 == 0>;
+		//return Value<v % 2 == 0>;
+		return v % 2 == 0;
 	};
 
 	constexpr auto g1 = []<auto v>(Value_t<v>) {
@@ -321,13 +385,43 @@ int main() {
 		return 1;
 	};
 
+	constexpr auto test_lambda = []<auto v>(Value_t<v>) {
+		return[=]<auto x>(Value_t<x>) {
+			return Value<x% v == 0>;
+		};
+	};
+
+	constexpr auto broke = test_lambda(Value<2>);
+	constexpr auto not_broke1 = broke(Value<3>);
+	constexpr auto not_broke2 = broke(Value<4>);
+
 	constexpr auto gg = g1 | g1;
 	constexpr auto ggg = gg | g1;
 	constexpr auto gggg = g1 | ggg;
 
-	constexpr auto test = gggg(Value<1>);
+	constexpr auto test = (g | ggg)(Value<1>);
+	constexpr auto test2 = ggg && Value<2>;
+
+	//std::ranges;
+	auto constexpr ok = std::views::drop(1);
 
 	//constexpr auto zz = filter(g | 1, l5);
+
+	constexpr int test1 = 1 | 2 | 3 && 1;
+
+
+	constexpr auto even = []<auto v>(Value_t<v>) {
+		return Value<v % 2 == 0>;
+	};
+
+	constexpr auto testing_all = all(even, value_list<1, 4, 6>);
+	constexpr auto testing_and1 = and_f(value_list<true, true, false>);
+	constexpr auto testing_and2 = and_f(value_list<true, true, true>);
+
+	Ok(1, 2, 3);
+
+
+	rand();
 
 	//g(Wildcard);
 
