@@ -323,8 +323,23 @@ struct Ok
 //template<class... Args>
 //Ok(Args...)->Ok<Args...>;
 
+namespace detail
+{
+	template<size_t N>
+	struct string
+	{
+		constexpr string(const char(&str)[N]) {
+			std::copy_n(str, N, value);
+		}
+
+		char value[N];
+		static constexpr auto size = N;
+	};
+}
+
+#define String(X) Value<detail::string(X)>
+
 int main() {
-	//constexpr std::tuple<detail::Type<float>, Type<int>> t;
 
 	constexpr auto l = type_list<float, int, float>;
 
@@ -340,12 +355,12 @@ int main() {
 		l2);
 
 	constexpr auto map_test_types = map(
-		[]<class T>(T x) {
-		if constexpr (std::same_as<int, decltype(x)::type>) {
+		[]<class T>(Type_t<T>) {
+		if constexpr (std::same_as<int, T>) {
 			return Value<1>;
 		}
 		else {
-			return Type<decltype(x)::type>;
+			return Type<T>;
 		}
 	},
 		l);
