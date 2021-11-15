@@ -181,8 +181,9 @@ constexpr auto value_list = Type<std::tuple<Value_t<values>...>>;
 template<class... Args>
 constexpr auto type_list = Type<std::tuple<detail::Type<Args>...>>;
 
-consteval auto operator== (meta auto t1, meta auto t2) {
-	return Value<std::same_as<decltype(t1), decltype(t2)>>;
+template<meta T1, meta T2>
+consteval auto operator== (T1, T2) {
+	return Value<std::same_as<T1, T2>>;
 }
 
 namespace detail
@@ -190,22 +191,19 @@ namespace detail
 	template<class F, list List>
 	struct map;
 
-	template<class F, template<class...> class L, type... Args>
+	template<class F, template<meta...> class L, meta... Args>
 	struct map<F, L<Args...>>
 	{
-		using type = L<decltype(F()(std::declval<Args>()))...>;
-	};
-
-	template<class F, template<class...> class L, value... Args>
-	struct map<F, L<Args...>>
-	{
-		using type = L<Value<F()(Args::value)>...>;
+		using type = L<std::invoke_result_t<F, Args>...>;
 	};
 }
 
-constexpr auto map(auto F, type auto Type) {
-	using a = typename detail::map<decltype(F), typename decltype(Type)::type>::type;
-	return detail::Type<a>();
+template<class F, list L>
+using map_t = detail::map<F, L>::type;
+
+template<class F, list L>
+constexpr auto map(F, Type_t<L>) {
+	return Type<map_t<F, L>>;
 }
 
 namespace detail
@@ -213,7 +211,7 @@ namespace detail
 	template<class F, list L>
 	struct filter;
 
-	template<class F, template<class...> class L, class Arg>
+	template<class F, template<meta...> class L, meta Arg>
 	struct filter<F, L<Arg>>
 	{
 		using type = std::conditional_t<
@@ -223,7 +221,7 @@ namespace detail
 		>;
 	};
 
-	template<class F, template<class...> class L, class Arg, class... Args>
+	template<class F, template<meta...> class L, meta Arg, meta... Args>
 	struct filter<F, L<Arg, Args...>>
 	{
 		using next = typename detail::filter<F, L<Args...>>::type;
@@ -249,10 +247,10 @@ namespace detail
 	template<class F, list L>
 	struct all;
 
-	template<class F, template<class...> class L, class... Values>
-	struct all<F, L<Values...>>
+	template<class F, template<meta...> class L, meta... Args>
+	struct all<F, L<Args...>>
 	{
-		constexpr static bool value = (std::invoke_result_t<F, Values>::value && ...);
+		constexpr static bool value = (std::invoke_result_t<F, Args>::value && ...);
 	};
 }
 
@@ -268,8 +266,8 @@ constexpr auto id = [](auto x) {
 	return x;
 };
 
-constexpr auto and_f = [](list auto L) {
-	return all(id, L);
+constexpr auto and_f = []<list L>(Type_t<L>) {
+	return all(id, Type<L>);
 };
 
 namespace detail
@@ -334,28 +332,26 @@ int main() {
 	constexpr int r = 1;
 	constexpr auto l2 = value_list<1, 2, 3>;
 
-	constexpr auto a = map(
-		[](auto a) {
-			return Type<double>;
-		}, l
-	);
 
-	constexpr auto l3 = map(
-		[](auto i) {
-			return i * 2;
-		},
-		l2
-			);
+	constexpr auto map_test = map(
+		[]<auto v>(Value_t<v>) {
+		return Value<v * 2>;
+	},
+		l2);
 
-	//constexpr auto l4 = filter(
-	//	[](auto a) {
-	//		return true;
-	//	},
-	//	l
-	//		);
+	constexpr auto map_test_types = map(
+		[]<class T>(T x) {
+		if constexpr (std::same_as<int, decltype(x)::type>) {
+			return Value<1>;
+		}
+		else {
+			return Type<decltype(x)::type>;
+		}
+	},
+		l);
 
-	using oh = decltype(a)::type;
-	oh o;
+	rand();
+
 
 
 	constexpr auto b = list<std::tuple<int>>;
