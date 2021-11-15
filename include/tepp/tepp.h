@@ -2,356 +2,346 @@
 
 #include <type_traits>
 #include <functional>
+#include <tuple>
 
 namespace te
 {
-	template<class... Ts>
-	struct list;
+	template<class... Args>
+	using list_type = std::tuple<Args...>;
 
 	namespace detail
 	{
-		template<class E, class F>
-		struct prepend;
+		template<class L>
+		struct is_list;
 
-		template<class... Args1>
-		struct prepend<te::list<Args1...>, void>
+		template<template<class...> class L, class... Args>
+		struct is_list<L<Args...>> : std::true_type
 		{
-			using val = te::list<Args1...>;
 		};
 
-		template<class E>
-		struct prepend<E, void>
+		template<class L>
+		struct is_list : std::false_type
 		{
-			using val = list<E>;
+		};
+	}
+
+	template<class T>
+	concept list = detail::is_list<T>::value;
+
+	namespace detail
+	{
+		template<list L>
+		struct list_size;
+
+		template<template<class...> class L, class... Args>
+		struct list_size<L<Args...>>
+		{
+			static constexpr auto value = sizeof...(Args);
+		};
+	}
+
+	template<list L>
+	constexpr auto list_size_v = detail::list_size<L>::value;
+
+	namespace detail
+	{
+		template<list From, template<class...> class To>
+		struct convert_list;
+
+		template<template<class...> class From, class... Args, template<class...> class To>
+		struct convert_list<From<Args...>, To>
+		{
+			using type = To<Args...>;
 		};
 
-		template<class... Args1, class... Args2>
-		struct prepend<te::list<Args1...>, te::list<Args2...>>
-		{
-			using val = te::list<Args1..., Args2...>;
-		};
-
-		template<class E, class... Args>
-		struct prepend<E, list<Args...>>
-		{
-			using val = list<E, Args...>;
-		};
-
-		template<class E, class F>
-		using prepend_t = typename prepend<E, F>::val;
-
-
-		template<class E, class F>
+		template<list L, class T>
 		struct append;
 
-		template<class... Args1>
-		struct append<te::list<Args1...>, void>
+		template<template<class...> class L, class... Args, class T>
+		struct append<L<Args...>, T>
 		{
-			using val = te::list<Args1...>;
+			using type = L<Args..., T>;
 		};
 
-		template<class E>
-		struct append<E, void>
+		template<list L, class T>
+		struct prepend;
+
+		template<template<class...> class L, class... Args, class T>
+		struct prepend<L<Args...>, T>
 		{
-			using val = list<E>;
+			using type = L<T, Args...>;
 		};
 
-		template<class... Args1, class... Args2>
-		struct append<te::list<Args1...>, te::list<Args2...>>
-		{
-			using val = te::list<Args2..., Args1...>;
-		};
+		template<list L>
+		struct head;
 
-		template<class E, class... Args>
-		struct append<E, list<Args...>>
+		template<template<class...> class L, class Arg, class... Args>
+		struct head<L<Arg, Args...>>
 		{
-			using val = list<Args..., E>;
+			using type = Arg;
 		};
-
-		template<class E, class F>
-		using append_t = typename append<E, F>::val;
 	}
 
-	template<template<class> class F>
-	struct wf
+	namespace detail
 	{
-		template<class T>
-		using apply = F<T>;
+		template<list L>
+		struct list_cat;
 
-		template<class T>
-		using apply_t = typename apply<T>::type;
+		template<template<list...> class L, list Arg>
+		struct list_cat<L<Arg>>
+		{
+			using type = std::conditional_t<
+				list_size_v<Arg> == 0,
+				L<>,
+				L<Arg>
+			>;
+		};
 
-		template<class T>
-		static constexpr decltype(apply<T>::type::value) value = apply<T>::type::value;
-	};
+		template<template<list...> class L, list Arg, list... Args>
+		struct list_cat<L<Arg, Args...>>
+		{
+			using next = typename detail::list_cat<L<Args...>>::type;
+
+			using type = std::conditional_t<
+				list_size_v<Arg> == 0,
+				next,
+				typename detail::prepend<next, Arg>::type
+			>;
+		};
+	}
+
+	template<list List>
+	using list_cat_t = typename detail::list_cat<List>::type;
 
 	namespace detail
 	{
 		template<class T>
-		struct is_struct
+		struct Type
 		{
-			template<class R>
-			struct type
-			{
-				constexpr static bool value = std::same_as<std::remove_cvref_t<R>, T>;
+			using type = T;
+		};
+
+		template<class T>
+		struct is_type;
+
+		template<class T>
+		struct is_type<Type<T>> : std::true_type
+		{
+		};
+
+		template<class T>
+		struct is_type : std::false_type
+		{
+		};
+	}
+
+	template<class T>
+	using Type_t = detail::Type<T>;
+
+	template<class T>
+	constexpr auto Type = detail::Type<T>();
+
+	template<class T>
+	concept type = detail::is_type<T>::value;
+
+	namespace detail
+	{
+		template<auto v>
+		struct Value
+		{
+			using value_type = decltype(v);
+			static constexpr value_type value = v;
+		};
+
+		template<class V>
+		struct is_value;
+
+		template<auto v>
+		struct is_value<Value<v>> : std::true_type
+		{
+		};
+
+		template<class V>
+		struct is_value : std::false_type
+		{
+		};
+	}
+
+	template<auto v>
+	constexpr auto Value = detail::Value<v>();
+
+	template<auto v>
+	using Value_t = detail::Value<v>;
+
+	template<class V>
+	concept value = detail::is_value<V>::value;
+
+	template<class T>
+	concept meta = value<T> || type<T>;
+
+	template<auto... values>
+	constexpr auto value_list = Type<std::tuple<Value_t<values>...>>;
+
+	template<class... Args>
+	constexpr auto type_list = Type<std::tuple<detail::Type<Args>...>>;
+
+	template<meta T1, meta T2>
+	consteval auto operator== (T1, T2) {
+		return Value<std::same_as<T1, T2>>;
+	}
+
+	namespace detail
+	{
+		template<class F, list List>
+		struct map;
+
+		template<class F, template<meta...> class L, meta... Args>
+		struct map<F, L<Args...>>
+		{
+			using type = L<std::invoke_result_t<F, Args>...>;
+		};
+	}
+
+	template<class F, list L>
+	using map_t = detail::map<F, L>::type;
+
+	template<class F, list L>
+	constexpr auto map(F, Type_t<L>) {
+		return Type<map_t<F, L>>;
+	}
+
+	namespace detail
+	{
+		template<class F, list L>
+		struct filter;
+
+		template<class F, template<meta...> class L, meta Arg>
+		struct filter<F, L<Arg>>
+		{
+			using type = std::conditional_t<
+				std::invoke_result_t<F, Arg>::value,
+				L<Arg>,
+				L<>
+			>;
+		};
+
+		template<class F, template<meta...> class L, meta Arg, meta... Args>
+		struct filter<F, L<Arg, Args...>>
+		{
+			using next = typename detail::filter<F, L<Args...>>::type;
+
+			using type = std::conditional_t<
+				std::invoke_result_t<F, Arg>::value,
+				typename detail::prepend<next, Arg>::type,
+				next
+			>;
+		};
+	}
+
+	template<class F, list L>
+	using filter_t = typename detail::filter<F, L>::type;
+
+	template<class F, list L>
+	constexpr auto filter(F, Type_t<L>) {
+		return Type<filter_t<F, L>>;
+	}
+
+	namespace detail
+	{
+		template<class F, list L>
+		struct all;
+
+		template<class F, template<meta...> class L, meta... Args>
+		struct all<F, L<Args...>>
+		{
+			constexpr static bool value = (std::invoke_result_t<F, Args>::value && ...);
+		};
+	}
+
+	template<class F, list L>
+	constexpr bool all_v = detail::all<F, L>::value;
+
+	template<class F, list L>
+	constexpr auto all(F, Type_t<L>) {
+		return Value<all_v<F, L>>;
+	}
+
+	constexpr auto id = [](auto x) {
+		return x;
+	};
+
+	constexpr auto and_f = []<list L>(Type_t<L>) {
+		return all(id, Type<L>);
+	};
+
+	namespace detail
+	{
+		constexpr auto brute_compose_test(auto f1, auto f2) {
+			return [=](auto x) {
+				return f1(f2(x));
 			};
-		};
-
-		template<class WF>
-		struct not_struct;
-
-		template<template<class> class F>
-		struct not_struct<te::wf<F>>
-		{
-			template<class T>
-			using type = std::negation<F<T>>;
-		};
+		}
 	}
 
-
-	template<class T>
-	using is_ = te::wf<detail::is_struct<T>::template type>;
-
-	template<class WF>
-	using not_ = te::wf<detail::not_struct<WF>::template type>;
-
-
-	template<class... Ts>
-	struct list
-	{
-		static constexpr bool is_empty = true;
-		static constexpr int size = 0;
-
-		template<class E>
-		using prepend_t = typename detail::prepend_t<E, list<Ts...>>;
-
-		template<class E>
-		using append_t = typename detail::append_t<E, list<Ts...>>;
+	template<class F1, class F2>
+	concept can_compose = requires(F1 f1, F2 f2) {
+		detail::brute_compose_test(f1, f2);
 	};
 
-	template<class Head, class... Tail>
-	struct list<Head, Tail...>
-	{
-		static constexpr bool is_empty = false;
-		static constexpr int size = 1 + sizeof...(Tail);
-		using head = Head;
-		using tail = typename te::list<Tail...>;
-
-		template<class E>
-		using prepend_t = typename detail::prepend_t<E, list<Head, Tail...>>;
-
-		template<class E>
-		using append_t = typename detail::append_t<E, list<Head, Tail...>>;
-	};
-
-	template<class T>
-	concept is_list = requires { T::is_empty; T::size; };
-
-	template<template<class> class F, class L>
-	struct map;
-
-	template<template<class> class F, class... Ls>
-	struct map<F, te::list<Ls...>>
-	{
-		using type = te::list<F<Ls>...>;
-	};
-
-	template<template<class> class F, class... Ls>
-	struct map<F, std::tuple<Ls...>>
-	{
-		using type = std::tuple<F<Ls>...>;
-	};
-
-	template<template<class> class F, class L>
-	using map_t = typename map<F, L>::type;
-
-	template<template<class, class> class F, class L1, class L2>
-	struct zip;
-
-	template<template<class, class> class F, class... L1s, class... L2s>
-	struct zip<F, std::tuple<L1s...>, std::tuple<L2s...>>
-	{
-		using type = std::tuple<F<L1s, L2s>...>;
-	};
-
-	template<template<class, class> class F, class... L1s, class... L2s>
-	struct zip<F, te::list<L1s...>, te::list<L2s...>>
-	{
-		using type = te::list<F<L1s, L2s>...>;
-	};
-
-	template<template<class, class> class F, class L1, class L2>
-	using zip_t = typename zip<F, L1, L2>::type;
-
-
-	template<class T>
-	struct to_list;
-
-	template<class... Args>
-	struct to_list<te::list<Args...>>
-	{
-		using type = te::list<Args...>;
-
-	};
-
-	template<class... Args>
-	struct to_list<std::tuple<Args...>>
-	{
-		using type = te::list<Args...>;
-	};
-
-	template<class T, int I>
-	struct enumeration
-	{
-		using type = T;
-		static constexpr size_t index = I;
-	};
-
-
-	template<class List, class Is>
-	struct enumerate;
-
-	template<>
-	struct enumerate<te::list<>, std::index_sequence<>>
-	{
-		using type = te::list<>;
-	};
-
-	template<class... Args, int... Is>
-	struct enumerate<te::list<Args...>, std::index_sequence<Is...>>
-	{
-		using type = te::list<enumeration<Args, Is>...>;
-	};
-
-	template<class List>
-	using enumerate_t = typename enumerate<List, std::make_index_sequence<List::size>>::type;
-
-	template<class WF, class List>
-	struct filter;
-
-	template<template<class> class P, class Arg>
-	struct filter<wf<P>, te::list<Arg>>
-	{
-		using type = std::conditional_t<P<Arg>::value,
-			te::list<Arg>,
-			te::list<>>;
-	};
-
-	template<template<class> class P, class Arg, class... Args>
-	struct filter<wf<P>, te::list<Arg, Args...>>
-	{
-		using next = typename filter<wf<P>, te::list<Args...>>::type;
-		using type = std::conditional_t<P<Arg>::value,
-			typename next::template prepend_t<Arg>,
-			next>;
-	};
-
-	template<class WF, class List>
-	using filter_t = typename filter<WF, List>::type;
-
-
-	template<class List>
-	struct to_tuple;
-
-	template<class... Args>
-	struct to_tuple<te::list<Args...>>
-	{
-		using type = std::tuple<Args...>;
-	};
-
-	template<class List>
-	using to_tuple_t = typename to_tuple<List>::type;
-
-
-	template<int I, class Tuple>
-	struct tuple_type_at
-	{
-		using type = decltype(std::get<I>(std::declval<Tuple>()));
-	};
-
-	template<int I, class Tuple>
-	using tuple_type_at_t = typename tuple_type_at<I, Tuple>::type;
-
-
-	template<class WF>
-	struct inspect_type;
-
-	template<template<class> class P>
-	struct inspect_type<wf<P>>
-	{
-		template<class T>
-		using type = P<typename T::type>;
-	};
-
-	template<class WF>
-	using inspect_type_ = wf<inspect_type<WF>::template type>;
-
+	template<class F1, class F2>
+		requires can_compose<F1, F2>
+	constexpr auto operator|(F1 f1, F2 f2) {
+		return [=](auto x) {
+			return f1(f2(x));
+		};
+	}
 
 	namespace detail
 	{
-		template<class Is, class Tuple>
-		struct filter_tuple_detail;
-
-		template<class... Is, class Tuple>
-		struct filter_tuple_detail<te::list<Is...>, Tuple>
-		{
-			constexpr static auto run(Tuple&& tuple) {
-				return std::forward_as_tuple(std::get<Is::index>(tuple)...);
-			}
-		};
+		constexpr auto brute_apply_test(auto f, auto arg) {
+			return f(arg);
+		}
 	}
 
-	template<class WF>
-	struct filter_tuple
-	{
-		template<class... Args>
-		constexpr static auto run(std::tuple<Args...>&& tuple) {
-			using enumerated_list = enumerate_t<te::list<Args...>>;
-			using yes = filter_t<inspect_type_<WF>, enumerated_list>;
+	template<class F, class Arg>
+	concept can_apply = requires(F f, Arg arg) {
+		detail::brute_apply_test(f, arg);
+	};
 
-			return detail::filter_tuple_detail<yes, std::tuple<Args...>>::run(std::forward<decltype(tuple)>(tuple));
+	template<class F, class Arg>
+		requires can_apply<F, Arg>
+	constexpr auto operator&&(F f, Arg arg) {
+		return f(arg);
+	}
+
+	template<class... Args>
+	struct Ok
+	{
+		std::tuple<Args...> data;
+
+		Ok(Args... args) {
+
 		}
 	};
 
+	//template<class... Args>
+	//Ok(Args...)->Ok<Args...>;
 
 	namespace detail
 	{
-		template<int I, class L, class R>
-		struct reverse;
-
-		template<class L, class R>
-		struct reverse<0, L, R>
+		template<size_t N>
+		struct string
 		{
-			using value = R;
-		};
+			constexpr string(const char(&str)[N]) {
+				std::copy_n(str, N, value);
+			}
 
-		template<int I, class L, class R>
-		struct reverse
-		{
-			using value = typename reverse<
-				I - 1,
-				typename L::tail,
-				typename te::detail::prepend_t<typename L::head, R>
-			>::value;
+			char value[N];
+			static constexpr auto size = N;
 		};
 	}
 
-	template<class T>
-	struct reverse
-	{
-		using value = typename detail::reverse<T::size, T, void>::value;
-	};
-
-	template<class T>
-	using reverse_t = typename reverse<T>::value;
-
-
-	template<class L, class T>
-	static constexpr bool contains_v = false;
-
-	template<class... Ls, class T>
-	static constexpr bool contains_v<te::list<Ls...>, T> = (std::same_as<Ls, T> || ...);
-
+#define String(X) Value<detail::string(X)>
 
 	template<class T>
 	struct is_std_fun;
@@ -360,7 +350,7 @@ namespace te
 	struct is_std_fun<std::function<R(Args...)>> : std::true_type
 	{
 		using return_type = R;
-		using arguments_list = list<Args...>;
+		using arguments_list = list_type<Args...>;
 	};
 
 	template<class T>
@@ -380,7 +370,7 @@ namespace te
 	struct is_c_fun<R(*)(Args...)> : std::true_type
 	{
 		using return_type = R;
-		using arguments_list = list<Args...>;
+		using arguments_list = list_type<Args...>;
 	};
 
 	template<class T>
@@ -400,7 +390,7 @@ namespace te
 	struct is_member_fun<R(B::*)(Args...)> : std::true_type
 	{
 		using return_type = R;
-		using arguments_list = list<Args...>;
+		using arguments_list = list_type<Args...>;
 		using base_class = B;
 	};
 
@@ -454,7 +444,7 @@ namespace te
 	struct deconstruct_lambda_member_fun<R(B::*)(Args...) const>
 	{
 		using return_type = R;
-		using arguments_list = list<Args...>;
+		using arguments_list = list_type<Args...>;
 	};
 
 
@@ -495,11 +485,11 @@ namespace te
 		template<class T, class... Args>
 		concept number_arguments_concept = requires (T t) { t(std::declval<Args>()...); };
 
-		template<class T, class List>
+		template<class T, list List>
 		struct number_arguments_test;
 
-		template<class T, class... Args>
-		struct number_arguments_test<T, te::list<Args...>>
+		template<template<class...> class L, class T, class... Args>
+		struct number_arguments_test<T, L<Args...>>
 		{
 			constexpr static bool value = number_arguments_concept<T, Args...>;
 		};
@@ -514,13 +504,13 @@ namespace te
 	template<class T>
 	struct replicate<0, T>
 	{
-		using type = te::list<>;
+		using type = list_type<>;
 	};
 
 	template<class T>
 	struct replicate<1, T>
 	{
-		using type = te::list<T>;
+		using type = list_type<T>;
 	};
 
 	template<int I, class T>

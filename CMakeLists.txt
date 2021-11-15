@@ -6,7 +6,6 @@ project(${MODULE_NAME} LANGUAGES CXX)
 
 add_library(${MODULE_NAME}
 	tepp.cpp include/tepp/tepp.h
-	bind.cpp include/tepp/bind.h
 )
 
 target_include_directories(${MODULE_NAME} PUBLIC include)
@@ -14,10 +13,3 @@ target_include_directories(${MODULE_NAME} PRIVATE include/${MODULE_NAME})
 
 target_compile_features(${MODULE_NAME} PUBLIC cxx_std_23)
 
-add_executable(test_2
-	main.cpp
-)
-
-target_compile_features(test_2 PUBLIC cxx_std_23)
-
-target_link_libraries(test_2 PUBLIC tepp)
