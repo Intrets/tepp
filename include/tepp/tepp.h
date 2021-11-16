@@ -82,6 +82,15 @@ namespace te
 		};
 	}
 
+	template<list L>
+	using head_t = detail::head<L>::type;
+
+	template<list L, class T>
+	using prepend_t = detail::prepend<L, T>::type;
+
+	template<list L, class T>
+	using append_t = detail::append<L, T>::type;
+
 	namespace detail
 	{
 		template<list L>
@@ -138,6 +147,8 @@ namespace te
 	template<class T>
 	using Type_t = detail::Type<T>;
 
+#define Decltype(X) te::Type<decltype(X)>
+
 	template<class T>
 	constexpr auto Type = detail::Type<T>();
 
@@ -151,6 +162,10 @@ namespace te
 		{
 			using value_type = decltype(v);
 			static constexpr value_type value = v;
+
+			constexpr operator value_type() {
+				return value;
+			}
 		};
 
 		template<class V>
@@ -251,7 +266,7 @@ namespace te
 		template<class F, list L>
 		struct all;
 
-		template<class F, template<meta...> class L, meta... Args>
+		template<class F, template<class...> class L, class... Args>
 		struct all<F, L<Args...>>
 		{
 			constexpr static bool value = (std::invoke_result_t<F, Args>::value && ...);
@@ -269,6 +284,15 @@ namespace te
 	constexpr auto id = [](auto x) {
 		return x;
 	};
+
+	constexpr auto is = []<class T>(T) {
+		return[]<class S>(S) {
+			return Value<std::same_as<S, T>>;
+		};
+	};
+
+	template<class T>
+	using is_t = decltype(is(Type<T>));
 
 	constexpr auto and_f = []<list L>(Type_t<L>) {
 		return all(id, Type<L>);
@@ -324,9 +348,6 @@ namespace te
 		}
 	};
 
-	//template<class... Args>
-	//Ok(Args...)->Ok<Args...>;
-
 	namespace detail
 	{
 		template<size_t N>
@@ -342,6 +363,71 @@ namespace te
 	}
 
 #define String(X) Value<detail::string(X)>
+
+	namespace detail
+	{
+		template<int I, class L, class R>
+		struct reverse;
+
+		template<class L, class R>
+		struct reverse<0, L, R>
+		{
+			using value = R;
+		};
+
+		template<int I, class L, class R>
+		struct reverse
+		{
+			using value = typename reverse<
+				I - 1,
+				typename L::tail,
+				typename te::detail::prepend<te::detail::head<L>, R>
+				//typename te::detail::prepend_t<typename L::head, R>
+			>::value;
+		};
+	}
+
+	template<class T>
+	struct reverse
+	{
+		using value = typename detail::reverse<T::size, T, void>::value;
+	};
+
+	template<class T>
+	using reverse_t = typename reverse<T>::value;
+
+	template<class T, int I>
+	struct enumeration
+	{
+		using type = T;
+		static constexpr size_t index = I;
+	};
+
+	template<class List, class Is>
+	struct enumerate;
+
+	template<>
+	struct enumerate<list_type<>, std::index_sequence<>>
+	{
+		using type = list_type<>;
+	};
+
+	template<class... Args, int... Is>
+	struct enumerate<list_type<Args...>, std::index_sequence<Is...>>
+	{
+		using type = list_type<enumeration<Args, Is>...>;
+	};
+
+	template<class List>
+	using enumerate_t = typename enumerate<List, std::make_index_sequence<List::size>>::type;
+
+
+	template<class L, class T>
+	static constexpr bool contains_v = false;
+
+	template<template<class...> class L, class... Args, class T>
+	static constexpr bool contains_v<L<Args...>, T> = (std::same_as<Args, T> || ...);
+
 
 	template<class T>
 	struct is_std_fun;
@@ -516,7 +602,8 @@ namespace te
 	template<int I, class T>
 	struct replicate
 	{
-		using type = typename replicate<I - 1, T>::type::template prepend_t<T>;
+		using next = typename replicate<I - 1, T>::type;
+		using type = prepend_t<next, T>;
 	};
 
 	template<class T, int I>

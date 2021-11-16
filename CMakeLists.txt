@@ -6,7 +6,6 @@ project(${MODULE_NAME} LANGUAGES CXX)
 
 add_library(${MODULE_NAME}
 	tepp.cpp include/tepp/tepp.h
-	bind.cpp include/tepp/bind.h
 	dest.cpp include/tepp/dest.h
 )
 

@@ -24,7 +24,7 @@ namespace te
 {
 	template<class... T>
 	static auto convert(T... es) {
-		return std::declval<te::list<std::remove_cvref_t<T>...>>();
+		return std::declval<te::list_type<te::Type_t<std::remove_cvref_t<T>>...>>();
 	}
 
 	template<class T>
@@ -48,7 +48,7 @@ namespace te
 	struct has_members_t;
 
 	template<class T, class... S>
-	struct has_members_t<T, te::list<S...>>
+	struct has_members_t<T, te::list_type<S...>>
 	{
 		constexpr static bool value = has_members<T, S...>;
 	};
@@ -63,10 +63,10 @@ namespace te
 	struct Dest;
 
 	template<class T>
-	requires std::is_empty_v<T>
+		requires std::is_empty_v<T>
 	struct Dest<T>
 	{
-		using type = te::list<>;
+		using type = list_type<>;
 	};
 
 	UNPACK(1, x1);
@@ -85,5 +85,9 @@ namespace te
 	UNPACK(14, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14);
 
 	template<class T>
-	using get_members = Dest<T>::type;
+	using get_members_t = Dest<T>::type;
+
+	constexpr auto get_members = []<class T>(Type_t<T>) {
+		return Type<get_members_t<T>>;
+	};
 }
