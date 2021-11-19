@@ -46,7 +46,7 @@ namespace te
 		namespace detail
 		{
 			template<class T, class... S>
-			concept has_members = requires (T) { T{ std::declval<S>()... }; };
+			concept has_members = requires (T t) { t = { std::declval<S>()... }; };
 		}
 
 		template<class T, list L>
@@ -105,7 +105,7 @@ namespace te
 	template<class T>
 	struct Dest
 	{
-		using type = void;
+		using type = list_type<>;
 	};
 
 	template<class T>
