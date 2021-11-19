@@ -24,7 +24,7 @@ namespace te
 {
 	template<class... T>
 	static auto convert(T... es) {
-		return std::declval<te::list_type<te::Type_t<std::remove_cvref_t<T>>...>>();
+		return std::declval<te::list_type<std::remove_cvref_t<T>...>>();
 	}
 
 	template<class T>
@@ -36,27 +36,45 @@ namespace te
 	struct WildCard
 	{
 		template<class T>
-		operator T () const {
+		operator T() const {
 			return T();
 		};
 	};
 
-	template<class T, class... S>
-	concept has_members = requires (T) { T(std::declval<S>()...); };
-
-	template<class T, class L>
-	struct has_members_t;
-
-	template<class T, class... S>
-	struct has_members_t<T, te::list_type<S...>>
+	namespace detail
 	{
-		constexpr static bool value = has_members<T, S...>;
+		namespace detail
+		{
+			template<class T, class... S>
+			concept has_members = requires (T) { T{ std::declval<S>()... }; };
+		}
+
+		template<class T, list L>
+		struct has_members;
+
+		template<class T, template<class...>class L, class... Args>
+		struct has_members<T, L<Args...>>
+		{
+			constexpr static bool value = detail::has_members<T, Args...>;
+		};
+	}
+
+	constexpr auto has_atleast_n_members = []<int N, class T>(te::Value_t<N>, te::Type_t<T>) {
+		return Value<detail::has_members<T, te::replicate_t<N, WildCard>>::value>;
 	};
+
+	constexpr auto has_n_members_f = []<class T, int N>(te::Type_t<T>, te::Value_t<N>) {
+		return has_atleast_n_members(te::Value<N>, te::Type<T>) &&
+			!has_atleast_n_members(te::Value<N + 1>, te::Type<T>);
+	};
+
+	template<class T, int N>
+	constexpr static bool has_n_members_v = Getvalue(has_n_members_f(te::Type<T>, te::Value<N>));
 
 	template<class T, int N>
 	struct has_n_members
 	{
-		constexpr static bool value = has_members_t<T, te::replicate_t<N, WildCard>>::value && !has_members_t<T, te::replicate_t<N + 1, WildCard>>::value;
+		constexpr static bool value = has_n_members_v<T, N>;
 	};
 
 	template<class T>
@@ -83,6 +101,12 @@ namespace te
 	UNPACK(12, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12);
 	UNPACK(13, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13);
 	UNPACK(14, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14);
+
+	template<class T>
+	struct Dest
+	{
+		using type = void;
+	};
 
 	template<class T>
 	using get_members_t = Dest<T>::type;

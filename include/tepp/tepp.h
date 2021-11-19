@@ -42,20 +42,70 @@ namespace te
 
 	namespace detail
 	{
+		template<auto v>
+		struct Value
+		{
+			using value_type = decltype(v);
+			static constexpr value_type value = v;
+
+			constexpr operator value_type() {
+				return value;
+			}
+		};
+
+		template<class V>
+		struct is_value;
+
+		template<auto v>
+		struct is_value<Value<v>> : std::true_type
+		{
+		};
+
+		template<class V>
+		struct is_value : std::false_type
+		{
+		};
+	}
+
+	template<auto v>
+	using Value_t = detail::Type<detail::Value<v>>;
+
+	template<auto v>
+	constexpr auto Value = Value_t<v>();
+
+	template<class V>
+	concept value = detail::is_value<V>::value;
+
+#define Getvalue(X) decltype(X)::type::value
+
+	namespace detail
+	{
+		template<template<class...> class F, bool returns_value>
+		struct type_function;
+
 		template<template<class...> class F>
-		struct type_function
+		struct type_function<F, false>
 		{
 			template<class... T>
-			constexpr auto operator()(Type_t<T>...) {
+			constexpr auto operator()(Type_t<T>...) const {
 				return detail::Type<F<T...>>();
+			}
+		};
+
+		template<template<class...> class F>
+		struct type_function<F, true>
+		{
+			template<class... T>
+			constexpr auto operator()(Type_t<T>...) const {
+				return detail::Type<detail::Value<F<T...>::value>>();
 			}
 		};
 
 		template<class T>
 		struct is_type_function;
 
-		template<template<class...> class T>
-		struct is_type_function<type_function<T>> : std::true_type
+		template<template<class...> class T, bool returns_value>
+		struct is_type_function<type_function<T, returns_value>> : std::true_type
 		{
 		};
 
@@ -69,10 +119,16 @@ namespace te
 	concept type_function_c = detail::is_type_function<T>::value;
 
 	template<template<class...> class F>
-	using type_function_t = detail::type_function<F>;
+	using type_function_t = detail::type_function<F, false>;
 
 	template<template<class...> class F>
 	constexpr auto Type_function = type_function_t<F>();
+
+	template<template<class...> class F>
+	using value_function_t = detail::type_function<F, true>;
+
+	template<template<class...> class F>
+	constexpr auto Value_function = value_function_t<F>();
 
 	template<class... Args>
 	using list_type = std::tuple<Args...>;
@@ -123,7 +179,7 @@ namespace te
 		template<template<class...> class From, class... Args, type_function_c To>
 		struct convert_list<From<Args...>, To>
 		{
-			using type = std::invoke_result_t<To, Args...>;
+			using type = std::invoke_result_t<To, Type_t<Args>...>::type;
 		};
 
 		template<list L, class... Args>
@@ -172,8 +228,12 @@ namespace te
 		};
 	}
 
-	template<template<class...> class To, list L>
+	template<type_function_c To, list L>
 	using convert_to_t = detail::convert_list<L, To>::type;
+
+	constexpr auto convert_to = []<type_function_c To, list List>(Type_t<To>, Type_t<List>) {
+		return Type<convert_to_t<To, List>>;
+	};
 
 	template<list L, class... Args>
 	using same_type_list_t = detail::same_type_list<L, Args...>::type;
@@ -220,42 +280,6 @@ namespace te
 
 	template<list List>
 	using list_cat_t = typename detail::list_cat<List>::type;
-
-	namespace detail
-	{
-		template<auto v>
-		struct Value
-		{
-			using value_type = decltype(v);
-			static constexpr value_type value = v;
-
-			constexpr operator value_type() {
-				return value;
-			}
-		};
-
-		template<class V>
-		struct is_value;
-
-		template<auto v>
-		struct is_value<Value<v>> : std::true_type
-		{
-		};
-
-		template<class V>
-		struct is_value : std::false_type
-		{
-		};
-	}
-
-	template<auto v>
-	constexpr auto Value = detail::Value<v>();
-
-	template<auto v>
-	using Value_t = detail::Value<v>;
-
-	template<class V>
-	concept value = detail::is_value<V>::value;
 
 	template<class T>
 	concept meta = value<T> || type<T>;
@@ -339,6 +363,10 @@ namespace te
 		return Type<filter_t<F, L>>;
 	}
 
+	constexpr auto apply = []<type_function_c F, template<class...> class L, class... Ls> (F f, Type_t<L<Ls...>>) {
+		return f(Type<Ls>...);
+	};
+
 	namespace detail
 	{
 		template<class F, list L>
@@ -378,42 +406,19 @@ namespace te
 
 	namespace detail
 	{
-		constexpr auto brute_compose_test(auto f1, auto f2) {
-			return [=](auto x) {
-				return f1(f2(x));
-			};
-		}
-	}
-
-	template<class F1, class F2>
-	concept can_compose = requires(F1 f1, F2 f2) {
-		detail::brute_compose_test(f1, f2);
-	};
-
-	template<class F1, class F2>
-		requires can_compose<F1, F2>
-	constexpr auto operator|(F1 f1, F2 f2) {
-		return [=](auto x) {
-			return f1(f2(x));
-		};
-	}
-
-	namespace detail
-	{
 		constexpr auto brute_apply_test(auto f, auto arg) {
 			return f(arg);
 		}
 	}
 
-	template<class F, class Arg>
-	concept can_apply = requires(F f, Arg arg) {
-		detail::brute_apply_test(f, arg);
-	};
+	template<auto v1, auto v2>
+	constexpr auto operator&&(Value_t<v1>, Value_t<v2>) {
+		return Value<v1&& v2>;
+	}
 
-	template<class F, class Arg>
-		requires can_apply<F, Arg>
-	constexpr auto operator&&(F f, Arg arg) {
-		return f(arg);
+	template<auto v>
+	constexpr auto operator!(Value_t<v>) {
+		return Value<!v>;
 	}
 
 	namespace detail
