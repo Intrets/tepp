@@ -6,6 +6,16 @@
 
 namespace te
 {
+	template<size_t N>
+	struct StringLiteral
+	{
+		constexpr StringLiteral(const char(&str)[N]) {
+			std::copy_n(str, N, value);
+		}
+
+		char value[N];
+	};
+
 	namespace detail
 	{
 		template<class T>
@@ -412,6 +422,11 @@ namespace te
 	}
 
 	template<auto v1, auto v2>
+	constexpr auto operator||(Value_t<v1>, Value_t<v2>) {
+		return Value<v1 || v2>;
+	}
+
+	template<auto v1, auto v2>
 	constexpr auto operator&&(Value_t<v1>, Value_t<v2>) {
 		return Value<v1&& v2>;
 	}
@@ -686,4 +701,52 @@ namespace te
 		impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
 		((requires (T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
 		((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
+
+
+	namespace detail
+	{
+		template<class T1, class T2, class IS>
+		struct tuple_zip;
+
+		template<class T1, class T2, size_t... I>
+		struct tuple_zip<T1, T2, std::index_sequence<I...>>
+		{
+			constexpr static auto apply(T1&& t1, T2&& t2) {
+				return std::make_tuple(std::make_tuple(std::get<I>(t1), std::get<I>(t2))...);
+			}
+		};
+	}
+
+	template<class T1, class T2>
+		requires (std::tuple_size_v<std::remove_cvref_t<T1>> == std::tuple_size_v<std::remove_cvref_t<T2>>)
+	constexpr static auto tuple_zip(T1&& t1, T2&& t2) {
+		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<T1>>;
+
+		return detail::tuple_zip<
+			T1,
+			T2,
+			std::make_index_sequence<size>
+		>::apply(std::forward<T1>(t1), std::forward<T2>(t2));
+	}
+
+	namespace detail
+	{
+		template<class F, class T, class IS>
+		struct for_each;
+
+		template<class F, class T, size_t... I>
+		struct for_each<F, T, std::index_sequence<I...>>
+		{
+			constexpr static auto apply(F&& f, T&& t) {
+				(f(std::get<I>(t)), ...);
+			}
+		};
+	}
+
+	template<class F, class Tuple>
+	constexpr static auto tuple_for_each(F&& f, Tuple&& t) {
+		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<Tuple>>;
+
+		detail::for_each<F, Tuple, std::make_index_sequence<size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
+	}
 }
