@@ -749,4 +749,26 @@ namespace te
 
 		detail::for_each<F, Tuple, std::make_index_sequence<size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
 	}
+
+	constexpr static auto for_each(auto&& f, auto&&... args) {
+		(f(args), ...);
+	}
+
+	namespace detail
+	{
+		template<class F, list L>
+		struct for_each_type;
+
+		template<class F, template<class...> class L, class... Args>
+		struct for_each_type<F, L<Args...>>
+		{
+			static void apply(F&& f) {
+				(f(Type<Args>()), ...);
+			}
+		};
+	}
+
+	static auto for_each_type = []<list L, class F>(F&& f, Type_t<L>) {
+		detail::for_each_type<F, L>::apply(std::forward<F>(f));
+	};
 }
