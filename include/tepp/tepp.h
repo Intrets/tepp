@@ -201,6 +201,15 @@ namespace te
 			using type = L<Args...>;
 		};
 
+		template<template<class...> class T2, list L>
+		struct is_same_list_type;
+
+		template< template<class...> class T2, template<class...> class T1, class... Args>
+		struct is_same_list_type<T2, T1<Args...>>
+		{
+			constexpr static bool value = std::same_as<T1<Args...>, T2<Args...>>;
+		};
+
 		template<class T, list L>
 		struct append;
 
@@ -247,6 +256,13 @@ namespace te
 
 	template<list L, class... Args>
 	using same_type_list_t = detail::same_type_list<L, Args...>::type;
+
+	template<template<class...> class T2, list L>
+	constexpr bool is_same_list_type_v = detail::is_same_list_type<T2, L>::value;
+
+	template<class L, template<class...> class T2>
+	concept same_list_type = is_same_list_type_v<T2, L>;
+
 
 	template<list L>
 	using head_t = detail::head<L>::type;
@@ -711,8 +727,16 @@ namespace te
 		template<class T1, class T2, size_t... I>
 		struct tuple_zip<T1, T2, std::index_sequence<I...>>
 		{
+			using T1_pure = std::remove_cvref_t<T1>;
+			using T2_pure = std::remove_cvref_t<T2>;
+
 			constexpr static auto apply(T1&& t1, T2&& t2) {
-				return std::make_tuple(std::make_tuple(std::get<I>(t1), std::get<I>(t2))...);
+				return std::make_tuple(
+					std::tuple<std::tuple_element_t<I, T1_pure>, std::tuple_element_t<I, T2_pure>>(
+						std::get<I>(t1),
+						std::get<I>(t2))
+					...
+				);
 			}
 		};
 	}
@@ -770,5 +794,45 @@ namespace te
 
 	static auto for_each_type = []<list L, class F>(F&& f, Type_t<L>) {
 		detail::for_each_type<F, L>::apply(std::forward<F>(f));
+	};
+
+	template<class T>
+	struct optional_ref
+	{
+		T const* object = nullptr;
+
+		bool has_value() const {
+			return this->object != nullptr;
+		}
+
+		T& value() const {
+			return *this->object;
+		}
+
+		optional_ref() = default;
+		optional_ref(T const& object_) : object(&object_) {};
+		optional_ref<T>& operator=(T const& object_) {
+			this->object = &object_;
+		};
+		~optional_ref() = default;
+	};
+
+	namespace detail
+	{
+		template<class F, class Tuple>
+		struct tie_tuple_elements
+		{
+			constexpr static auto apply(F&& f, Tuple&& tuple) {
+
+			}
+		};
+	}
+
+	constexpr static auto tie_tuple_elements = [](auto&& tuple) {
+		return std::apply(
+			[](auto&&... es) {
+				return std::tie(std::forward<decltype(es)>(es)...);
+			},
+			std::forward<decltype(tuple)>(tuple));
 	};
 }
