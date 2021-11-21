@@ -19,10 +19,22 @@ namespace te
 	namespace detail
 	{
 		template<class T>
+		struct Type;
+
+		template<class T>
+			requires requires (T) { T::value; }
+		struct Type<T>
+		{
+			using type = T;
+			constexpr static auto value = T::value;
+		};
+
+		template<class T>
 		struct Type
 		{
 			using type = T;
 		};
+
 
 		template<class T>
 		struct is_type;
@@ -143,6 +155,9 @@ namespace te
 	template<class... Args>
 	using list_type = std::tuple<Args...>;
 
+	template<class... Args>
+	constexpr auto List = Type<te::list_type<Args...>>;
+
 	namespace detail
 	{
 		template<class L>
@@ -177,6 +192,13 @@ namespace te
 
 	template<list L>
 	constexpr auto list_size_v = detail::list_size<L>::value;
+
+	template<list L>
+	constexpr auto List_size = Value<list_size_v<L>>;
+
+	constexpr auto list_size = []<list L>(Type_t<L>) {
+		return Value<list_size_v<L>>;
+	};
 
 	template<list L>
 	constexpr bool is_empty_v = detail::list_size<L>::value == 0;
@@ -299,7 +321,7 @@ namespace te
 			using type = std::conditional_t<
 				list_size_v<Arg> == 0,
 				next,
-				typename detail::prepend<next, Arg>::type
+				typename detail::prepend<Arg, next>::type
 			>;
 		};
 	}
@@ -311,7 +333,7 @@ namespace te
 	concept meta = value<T> || type<T>;
 
 	template<auto... values>
-	constexpr auto value_list = Type<std::tuple<Value_t<values>...>>;
+	constexpr auto value_list = Type<list_type<detail::Value<values>...>>;
 
 	template<class... Args>
 	using type_list_t = te::list_type<Args...>;
@@ -362,7 +384,7 @@ namespace te
 		struct filter<F, L<Arg>>
 		{
 			using type = std::conditional_t<
-				std::invoke_result_t<F, Arg>::value,
+				std::invoke_result_t<F, Type_t<Arg>>::value,
 				L<Arg>,
 				L<>
 			>;
@@ -374,8 +396,8 @@ namespace te
 			using next = typename detail::filter<F, L<Args...>>::type;
 
 			using type = std::conditional_t<
-				std::invoke_result_t<F, Arg>::value,
-				typename detail::prepend<next, Arg>::type,
+				std::invoke_result_t<F, Type_t<Arg>>::value,
+				prepend_t<Arg, next>,
 				next
 			>;
 		};
@@ -386,7 +408,7 @@ namespace te
 
 	template<class F, list L>
 	constexpr auto filter(F, Type_t<L>) {
-		return Type<filter_t<F, L>>;
+		return Type<typename detail::filter<F, L>::type>;
 	}
 
 	constexpr auto apply = []<type_function_c F, template<class...> class L, class... Ls> (F f, Type_t<L<Ls...>>) {
@@ -521,9 +543,23 @@ namespace te
 		using type = list_type<enumeration<Args, Is>...>;
 	};
 
+	namespace detail
+	{
+		constexpr static auto convert_index_sequence = []<auto... Is>(Type_t<std::index_sequence<Is...>>) {
+			return value_list<Is...>;
+		};
+	}
+
+	constexpr static auto index_sequence = []<auto I>(Value_t<I>) {
+		return detail::convert_index_sequence(Type<std::make_index_sequence<I>>);
+	};
+
 	template<class List>
 	using enumerate_t = typename enumerate<List, std::make_index_sequence<List::size>>::type;
 
+	constexpr static auto enumerate_in_list = []<list L>(Type_t<L>) {
+		return zip(Type<L>, index_sequence(List_size<L>));
+	};
 
 	template<class L, class T>
 	static constexpr bool contains_v = false;
@@ -712,6 +748,22 @@ namespace te
 		using type = prepend_t<T, next>;
 	};
 
+	namespace detail
+	{
+		template<list L1, list L2>
+		struct zip;
+
+		template<template<class...> class L1, template<class...> class L2, class... Args1, class... Args2>
+		struct zip<L1<Args1...>, L2<Args2...>>
+		{
+			using type = te::list_type<te::list_type<Args1, Args2>...>;
+		};
+	}
+
+	constexpr static auto zip = []<list L1, list L2>(Type_t<L1>, Type_t<L2>) {
+		return Type<detail::zip<L1, L2>::type>;
+	};
+
 	template<class T, int I>
 	concept number_of_arguments_is =
 		impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
@@ -816,17 +868,6 @@ namespace te
 		};
 		~optional_ref() = default;
 	};
-
-	namespace detail
-	{
-		template<class F, class Tuple>
-		struct tie_tuple_elements
-		{
-			constexpr static auto apply(F&& f, Tuple&& tuple) {
-
-			}
-		};
-	}
 
 	constexpr static auto tie_tuple_elements = [](auto&& tuple) {
 		return std::apply(
