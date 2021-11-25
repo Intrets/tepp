@@ -7,6 +7,8 @@ project(${MODULE_NAME} LANGUAGES CXX)
 add_library(${MODULE_NAME}
 	tepp.cpp include/tepp/tepp.h
 	dest.cpp include/tepp/dest.h
+	enum_array.cpp include/tepp/enum_array.h
+	enum_bitflags.cpp include/tepp/enum_bitflags.h
 )
 
 target_include_directories(${MODULE_NAME} PUBLIC include)
