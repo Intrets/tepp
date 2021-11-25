@@ -26,7 +26,7 @@ namespace te
 	struct enum_bitflags
 	{
 	private:
-		T data;
+		T data{};
 		enum_bitflags(T data_) : data(data_) {};
 
 	public:
