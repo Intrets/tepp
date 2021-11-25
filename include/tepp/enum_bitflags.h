@@ -22,7 +22,7 @@
 
 namespace te
 {
-	template<class Enum, class T = int32_t>
+	template<class Enum, class T = std::underlying_type_t<Enum>>
 	struct enum_bitflags
 	{
 	private:
@@ -75,17 +75,4 @@ namespace te
 			return this->data & other.data;
 		}
 	};
-}
-
-template<class T>
-concept enum_c = std::is_enum_v<T>;
-
-template<enum_c E1, std::same_as<E1> E2>
-constexpr E1 operator|(E1 e1, E2 e2) {
-	return static_cast<E1>(static_cast<size_t>(e1) | static_cast<size_t>(e2));
-}
-
-template<enum_c E>
-constexpr E operator~(E e) {
-	return static_cast<E>(~static_cast<size_t>(e));
 }
