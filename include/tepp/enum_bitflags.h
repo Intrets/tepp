@@ -17,14 +17,19 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
+#include <concepts>
 
 namespace te
 {
 	template<class Enum, class T = int32_t>
 	struct enum_bitflags
 	{
+	private:
 		T data;
+		enum_bitflags(T data_) : data(data) {};
 
+	public:
 		enum_bitflags() = default;
 		enum_bitflags(Enum e) {
 			this->data = static_cast<T>(e);
@@ -32,34 +37,34 @@ namespace te
 		~enum_bitflags() = default;
 
 		constexpr enum_bitflags operator&(enum_bitflags other) const {
-			return { .data = this->data & other.data };
+			return enum_bitflags{ this->data & other.data };
 		}
 
-		constexpr enum_bitflags& operator&=(enum_bitflags other) const {
+		constexpr enum_bitflags& operator&=(enum_bitflags other) {
 			this->data &= other.data;
 			return *this;
 		}
 
 		constexpr enum_bitflags operator|(enum_bitflags other) const {
-			return { .data = this->data | other.data };
+			return enum_bitflags{ this->data | other.data };
 		}
 
-		constexpr enum_bitflags& operator|=(enum_bitflags other) const {
+		constexpr enum_bitflags& operator|=(enum_bitflags other) {
 			this->data |= other.data;
 			return *this;
 		}
 
 		constexpr enum_bitflags operator^(enum_bitflags other) const {
-			return { .data = this->data ^ other.data };
+			return enum_bitflags{ this->data ^ other.data };
 		}
 
-		constexpr enum_bitflags& operator^=(enum_bitflags other) const {
+		constexpr enum_bitflags& operator^=(enum_bitflags other) {
 			this->data ^= other.data;
 			return *this;
 		}
 
 		constexpr enum_bitflags operator~() {
-			return { .data = ~this->data };
+			return enum_bitflags{ ~this->data };
 		}
 
 		constexpr operator bool() const {
@@ -70,4 +75,12 @@ namespace te
 			return this->data & other.data;
 		}
 	};
+}
+
+template<class T>
+concept enum_c = std::is_enum_v<T>;
+
+template<enum_c E1, std::same_as<E1> E2>
+constexpr E1 operator|(E1 e1, E2 e2) {
+	return static_cast<E1>(static_cast<size_t>(e1) | static_cast<size_t>(e2));
 }
