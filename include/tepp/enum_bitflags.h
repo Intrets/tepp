@@ -18,53 +18,56 @@
 
 #include <cstdint>
 
-template<class Enum, class T = int32_t>
-struct enum_bitflags
+namespace te
 {
-	T data;
+	template<class Enum, class T = int32_t>
+	struct enum_bitflags
+	{
+		T data;
 
-	enum_bitflags() = default;
-	enum_bitflags(Enum e) {
-		this->data = static_cast<T>(e);
-	}
-	~enum_bitflags() = default;
+		enum_bitflags() = default;
+		enum_bitflags(Enum e) {
+			this->data = static_cast<T>(e);
+		}
+		~enum_bitflags() = default;
 
-	constexpr enum_bitflags operator&(enum_bitflags other) const {
-		return { .data = this->data & other.data };
-	}
+		constexpr enum_bitflags operator&(enum_bitflags other) const {
+			return { .data = this->data & other.data };
+		}
 
-	constexpr enum_bitflags& operator&=(enum_bitflags other) const {
-		this->data &= other.data;
-		return *this;
-	}
+		constexpr enum_bitflags& operator&=(enum_bitflags other) const {
+			this->data &= other.data;
+			return *this;
+		}
 
-	constexpr enum_bitflags operator|(enum_bitflags other) const {
-		return { .data = this->data | other.data };
-	}
+		constexpr enum_bitflags operator|(enum_bitflags other) const {
+			return { .data = this->data | other.data };
+		}
 
-	constexpr enum_bitflags& operator|=(enum_bitflags other) const {
-		this->data |= other.data;
-		return *this;
-	}
+		constexpr enum_bitflags& operator|=(enum_bitflags other) const {
+			this->data |= other.data;
+			return *this;
+		}
 
-	constexpr enum_bitflags operator^(enum_bitflags other) const {
-		return { .data = this->data ^ other.data };
-	}
+		constexpr enum_bitflags operator^(enum_bitflags other) const {
+			return { .data = this->data ^ other.data };
+		}
 
-	constexpr enum_bitflags& operator^=(enum_bitflags other) const {
-		this->data ^= other.data;
-		return *this;
-	}
+		constexpr enum_bitflags& operator^=(enum_bitflags other) const {
+			this->data ^= other.data;
+			return *this;
+		}
 
-	constexpr enum_bitflags operator~() {
-		return { .data = ~this->data };
-	}
+		constexpr enum_bitflags operator~() {
+			return { .data = ~this->data };
+		}
 
-	constexpr operator bool() const {
-		return this->data != 0;
-	}
+		constexpr operator bool() const {
+			return this->data != 0;
+		}
 
-	constexpr bool test(enum_bitflags other) {
-		return this->data & other.data;
-	}
-};
+		constexpr bool test(enum_bitflags other) {
+			return this->data & other.data;
+		}
+	};
+}
