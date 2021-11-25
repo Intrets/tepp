@@ -22,17 +22,19 @@
 
 namespace te
 {
-	template<class Enum, class T = std::underlying_type_t<Enum>>
+	template<class Enum>
 	struct enum_bitflags
 	{
 	private:
-		T data{};
-		enum_bitflags(T data_) : data(data_) {};
+		using value_type = std::underlying_type_t<Enum>;
+
+		value_type data{};
+		enum_bitflags(value_type data_) : data(data_) {};
 
 	public:
 		enum_bitflags() = default;
 		enum_bitflags(Enum e) {
-			this->data = static_cast<T>(e);
+			this->data = static_cast<value_type>(e);
 		}
 		~enum_bitflags() = default;
 
@@ -68,7 +70,7 @@ namespace te
 		}
 
 		constexpr operator bool() const {
-			return this->data != 0;
+			return this->data != value_type{};
 		}
 
 		constexpr bool test(enum_bitflags other) {
