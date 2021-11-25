@@ -25,12 +25,30 @@ namespace te
 	struct enum_array
 	{
 	private:
-		std::array<T, size> data;
+		std::array<T, size> data{};
 
 	public:
 		constexpr T& operator[](EnumType i) {
 			assert(static_cast<size_t>(i) < size);
 			return this->data[static_cast<size_t>(i)];
+		}
+
+		using A = std::array<T, size>;
+
+		constexpr A::const_iterator begin() const noexcept {
+			return data.begin();
+		}
+
+		constexpr A::iterator begin() noexcept {
+			return data.begin();
+		}
+
+		constexpr A::const_iterator end() const noexcept {
+			return data.end();
+		}
+
+		constexpr A::iterator end() noexcept {
+			return data.end();
 		}
 	};
 }
