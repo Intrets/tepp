@@ -131,7 +131,7 @@ namespace te
 	UNPACK(14, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14);
 
 	template<class T>
-	using get_members_t = Dest<T>::type;
+	using get_members_t = typename Dest<T>::type;
 
 	constexpr auto get_members = []<class T>(Type_t<T>) {
 		return Type<get_members_t<T>>;

@@ -34,20 +34,22 @@ namespace te
 		}
 
 		using A = std::array<T, size>;
+		using const_iterator = typename A::const_iterator;
+		using iterator = typename A::iterator;
 
-		constexpr A::const_iterator begin() const noexcept {
+		constexpr const_iterator begin() const noexcept {
 			return data.begin();
 		}
 
-		constexpr A::iterator begin() noexcept {
+		constexpr iterator begin() noexcept {
 			return data.begin();
 		}
 
-		constexpr A::const_iterator end() const noexcept {
+		constexpr const_iterator end() const noexcept {
 			return data.end();
 		}
 
-		constexpr A::iterator end() noexcept {
+		constexpr iterator end() noexcept {
 			return data.end();
 		}
 	};

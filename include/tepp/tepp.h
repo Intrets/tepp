@@ -70,7 +70,7 @@ namespace te
 	using Type_t = detail::Type<T>;
 
 #define Decltype(X) te::Type<decltype(X)>
-#define Gettype(X) decltype(X)::type
+#define Gettype(X) typename decltype(X)::type
 
 	template<class T>
 	constexpr auto Type = detail::Type<T>();
@@ -227,7 +227,7 @@ namespace te
 		template<template<class...> class From, class... Args, type_function_c To>
 		struct convert_list<From<Args...>, To>
 		{
-			using type = std::invoke_result_t<To, Type_t<Args>...>::type;
+			using type = typename std::invoke_result_t<To, Type_t<Args>...>::type;
 		};
 
 		template<list L, class... Args>
@@ -286,14 +286,14 @@ namespace te
 	}
 
 	template<type_function_c To, list L>
-	using convert_to_t = detail::convert_list<L, To>::type;
+	using convert_to_t = typename detail::convert_list<L, To>::type;
 
 	constexpr auto convert_to = []<type_function_c To, list List>(Type_t<To>, Type_t<List>) {
 		return Type<convert_to_t<To, List>>;
 	};
 
 	template<list L, class... Args>
-	using same_type_list_t = detail::same_type_list<L, Args...>::type;
+	using same_type_list_t = typename detail::same_type_list<L, Args...>::type;
 
 	template<template<class...> class T2, list L>
 	constexpr bool is_same_list_type_v = detail::is_same_list_type<T2, L>::value;
@@ -303,23 +303,23 @@ namespace te
 
 
 	template<list L>
-	using head_t = detail::head<L>::type;
+	using head_t = typename detail::head<L>::type;
 
 	template<list L>
-	using tail_t = detail::tail<L>::type;
+	using tail_t = typename detail::tail<L>::type;
 
 	template<class T, list L>
-	using prepend_t = detail::prepend<T, L>::type;
+	using prepend_t = typename detail::prepend<T, L>::type;
 
 	template<class T, list L>
-	using append_t = detail::append<T, L>::type;
+	using append_t = typename detail::append<T, L>::type;
 
 	namespace detail
 	{
 		template<list L>
 		struct list_cat;
 
-		template<template<list...> class L, list Arg>
+		template<template<class...> class L, list Arg>
 		struct list_cat<L<Arg>>
 		{
 			using type = std::conditional_t<
@@ -329,7 +329,7 @@ namespace te
 			>;
 		};
 
-		template<template<list...> class L, list Arg, list... Args>
+		template<template<class...> class L, list Arg, list... Args>
 		struct list_cat<L<Arg, Args...>>
 		{
 			using next = typename detail::list_cat<L<Args...>>::type;
@@ -376,7 +376,7 @@ namespace te
 		{
 		private:
 			template<class F1, class Arg1>
-			using applied = std::invoke_result_t<F1, Type_t<Arg1>>::type;
+			using applied = typename std::invoke_result_t<F1, Type_t<Arg1>>::type;
 
 		public:
 			using type = L<applied<F, Args>...>;
@@ -384,7 +384,7 @@ namespace te
 	}
 
 	template<class F, list L>
-	using map_t = detail::map<F, L>::type;
+	using map_t = typename detail::map<F, L>::type;
 
 	template<class F, list L>
 	constexpr auto map(F, Type_t<L>) {
@@ -572,10 +572,6 @@ namespace te
 
 	template<class List>
 	using enumerate_t = typename enumerate<List, std::make_index_sequence<List::size>>::type;
-
-	constexpr static auto enumerate_in_list = []<list L>(Type_t<L>) {
-		return zip(Type<L>, index_sequence(List_size<L>));
-	};
 
 	template<class L, class T>
 	static constexpr bool contains_v = false;
@@ -777,7 +773,11 @@ namespace te
 	}
 
 	constexpr static auto zip = []<list L1, list L2>(Type_t<L1>, Type_t<L2>) {
-		return Type<detail::zip<L1, L2>::type>;
+		return Type<typename detail::zip<L1, L2>::type>;
+	};
+
+	constexpr static auto enumerate_in_list = []<list L>(Type_t<L>) {
+		return zip(Type<L>, index_sequence(List_size<L>));
 	};
 
 	template<class T, int I>
