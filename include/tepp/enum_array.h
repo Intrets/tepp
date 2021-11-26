@@ -37,6 +37,10 @@ namespace te
 		using const_iterator = typename A::const_iterator;
 		using iterator = typename A::iterator;
 
+		void fill(T const& value) {
+			data.fill(value);
+		}
+
 		constexpr const_iterator begin() const noexcept {
 			return data.begin();
 		}
