@@ -504,8 +504,6 @@ namespace te
 		};
 	}
 
-#define String(X) Value<detail::string(X)>
-
 	namespace detail
 	{
 		template<int I, list L, list R>
