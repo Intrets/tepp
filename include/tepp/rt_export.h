@@ -72,6 +72,13 @@ namespace te
 				auto i = this->index % this->parent.getBufferSize();
 				return this->parent.data[i];
 			}
+
+			const_iterator& operator=(const_iterator const& other) {
+				assert(&this->parent == &other.parent);
+
+				this->index = other.index;
+				return *this;
+			}
 		};
 
 		struct rt_export_access
@@ -102,6 +109,10 @@ namespace te
 
 			const_iterator end() const noexcept {
 				return const_iterator(this->parent, this->endIndex);
+			}
+
+			const_iterator middle() const noexcept {
+				return const_iterator(this->parent, (this->beginIndex + this->endIndex) / 2);
 			}
 		};
 
@@ -159,6 +170,18 @@ namespace te
 			this->currentlyAccessed = false;
 
 			this->readI.store(newBegin % this->getBufferSize());
+		}
+
+		int getCurrentSize() const {
+			auto writeIndex = this->writeI.load();
+			auto readIndex = this->readI.load();
+
+			auto d = writeIndex - readIndex;
+			if (d < 0) {
+				d += static_cast<int>(this->getBufferSize());
+			}
+
+			return d;
 		}
 
 		~rt_export() {
