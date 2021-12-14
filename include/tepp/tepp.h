@@ -852,13 +852,13 @@ namespace te
 		template<class F, template<class...> class L, class... Args>
 		struct for_each_type<F, L<Args...>>
 		{
-			static void apply(F&& f) {
+			constexpr static void apply(F&& f) {
 				(f(Type<Args>()), ...);
 			}
 		};
 	}
 
-	static auto for_each_type = []<list L, class F>(F&& f, Type_t<L>) {
+	constexpr static auto for_each_type = []<list L, class F>(F&& f, Type_t<L>) {
 		detail::for_each_type<F, L>::apply(std::forward<F>(f));
 	};
 
