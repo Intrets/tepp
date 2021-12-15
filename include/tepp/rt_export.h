@@ -32,8 +32,9 @@ namespace te
 	template<class T>
 	struct rt_export
 	{
-		struct const_iterator : std::input_iterator_tag
+		struct const_iterator
 		{
+			using iterator_category = std::random_access_iterator_tag;
 			using value_type = T;
 			using difference_type = std::ptrdiff_t;
 			using pointer = T*;
@@ -57,6 +58,26 @@ namespace te
 			const_iterator operator++(int) noexcept {
 				auto r = *this;
 				this->index++;
+				return r;
+			}
+
+			difference_type operator-(const_iterator const& other) const noexcept {
+				return this->index - other.index;
+			}
+
+			const_iterator& operator--() noexcept {
+				this->index--;
+				return *this;
+			}
+
+			const_iterator& operator+=(int inc) noexcept {
+				this->index += inc;
+				return *this;
+			}
+
+			const_iterator operator--(int) noexcept {
+				auto r = *this;
+				this->index--;
 				return r;
 			}
 
@@ -188,5 +209,9 @@ namespace te
 			assert(!this->currentlyAccessed);
 		}
 	};
+}
 
+template<class T>
+te::rt_export<T>::const_iterator::difference_type distance(typename te::rt_export<T>::const_iterator const& it1, typename te::rt_export<T>::const_iterator const& it2) {
+	return it2 - it1;
 }
