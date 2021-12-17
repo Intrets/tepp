@@ -18,6 +18,8 @@
 
 #include <array>
 #include <cassert>
+#include <ranges>
+#include <algorithm>
 
 namespace te
 {
@@ -32,6 +34,16 @@ namespace te
 			assert(static_cast<size_t>(i) < size);
 			return this->data[static_cast<size_t>(i)];
 		}
+
+		constexpr T const& operator[](EnumType i) const {
+			assert(static_cast<size_t>(i) < size);
+			return this->data[static_cast<size_t>(i)];
+		}
+
+		constexpr enum_array() = default;
+
+		template<class... Args>
+		constexpr enum_array(Args&&... args) : data{ args... } {}
 
 		using A = std::array<T, size>;
 		using const_iterator = typename A::const_iterator;
