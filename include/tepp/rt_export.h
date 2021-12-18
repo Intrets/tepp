@@ -212,6 +212,6 @@ namespace te
 }
 
 template<class T>
-te::rt_export<T>::const_iterator::difference_type distance(typename te::rt_export<T>::const_iterator const& it1, typename te::rt_export<T>::const_iterator const& it2) {
+typename te::rt_export<T>::const_iterator::difference_type distance(typename te::rt_export<T>::const_iterator const& it1, typename te::rt_export<T>::const_iterator const& it2) {
 	return it2 - it1;
 }
