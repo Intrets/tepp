@@ -11,6 +11,7 @@ add_library(${MODULE_NAME}
 	enum_bitflags.cpp include/tepp/enum_bitflags.h
 	rt_export.cpp include/tepp/rt_export.h
 	numeric_type.cpp include/tepp/numeric_type.h
+	angle.cpp include/tepp/angle.h
 )
 
 target_include_directories(${MODULE_NAME} PUBLIC include)
