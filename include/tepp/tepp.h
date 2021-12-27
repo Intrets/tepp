@@ -1,4 +1,4 @@
-// tepp - A template library for C++
+// tepp - a template library for c++
 // Copyright (C) 2021  Intrets
 //
 // This program is free software: you can redistribute it and/or modify

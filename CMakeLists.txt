@@ -10,6 +10,7 @@ add_library(${MODULE_NAME}
 	enum_array.cpp include/tepp/enum_array.h
 	enum_bitflags.cpp include/tepp/enum_bitflags.h
 	rt_export.cpp include/tepp/rt_export.h
+	numeric_type.cpp include/tepp/numeric_type.h
 )
 
 target_include_directories(${MODULE_NAME} PUBLIC include)
