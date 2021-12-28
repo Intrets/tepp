@@ -133,7 +133,7 @@ namespace te
 
 		template<class N>
 		constexpr S operator/(N n) const {
-			return { .data = this->data / n };
+			return S(this->data / n);
 		}
 
 		template<class N>
