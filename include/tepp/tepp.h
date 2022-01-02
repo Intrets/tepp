@@ -35,10 +35,12 @@ namespace te
 	namespace detail
 	{
 		template<class T>
-		struct Type;
+		concept has_value = requires (T) { T::value; };
 
 		template<class T>
-			requires requires (T) { T::value; }
+		struct Type;
+
+		template<has_value T>
 		struct Type<T>
 		{
 			using type = T;
@@ -349,7 +351,10 @@ namespace te
 	concept meta = value<T> || type<T>;
 
 	template<auto... values>
-	constexpr auto value_list = Type<list_type<detail::Value<values>...>>;
+	using value_list_t = detail::Type<list_type<detail::Value<values>...>>;
+
+	template<auto... values>
+	constexpr auto value_list = value_list_t<values...>();
 
 	template<class... Args>
 	using type_list_t = te::list_type<Args...>;
