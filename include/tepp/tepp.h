@@ -1,5 +1,5 @@
 // tepp - a template library for c++
-// Copyright (C) 2021  Intrets
+// Copyright (C) 2022  Intrets
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -581,6 +581,9 @@ namespace te
 
 	template<template<class...> class L, class... Args, class T>
 	static constexpr bool contains_v<L<Args...>, T> = (std::same_as<Args, T> || ...);
+
+	template<class T, class L>
+	concept member_of = contains_v<L, T>;
 
 
 	template<class T>
