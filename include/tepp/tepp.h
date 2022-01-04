@@ -776,10 +776,23 @@ namespace te
 		{
 			using type = te::list_type<te::list_type<Args1, Args2>...>;
 		};
+
+		template<list L1, list L2, list L3>
+		struct zip3;
+
+		template<template<class...> class L1, template<class...> class L2, class... Args1, class... Args2, template<class...> class L3, class... Args3>
+		struct zip3<L1<Args1...>, L2<Args2...>, L3<Args3...>>
+		{
+			using type = te::list_type<te::list_type<Args1, Args2, Args3>...>;
+		};
 	}
 
 	constexpr static auto zip = []<list L1, list L2>(Type_t<L1>, Type_t<L2>) {
 		return Type<typename detail::zip<L1, L2>::type>;
+	};
+
+	constexpr static auto zip3 = []<list L1, list L2, list L3>(Type_t<L1>, Type_t<L2>, Type_t<L3>) {
+		return Type<typename detail::zip3<L1, L2, L3>::type>;
 	};
 
 	constexpr static auto enumerate_in_list = []<list L>(Type_t<L>) {
