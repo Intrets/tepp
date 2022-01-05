@@ -785,6 +785,24 @@ namespace te
 		{
 			using type = te::list_type<te::list_type<Args1, Args2, Args3>...>;
 		};
+
+		template<list L1, list L2, list L3, list L4>
+		struct zip4;
+
+		template<template<class...> class L1, template<class...> class L2, class... Args1, class... Args2, template<class...> class L3, class... Args3, template<class...> class L4, class... Args4>
+		struct zip4<L1<Args1...>, L2<Args2...>, L3<Args3...>, L4<Args4...>>
+		{
+			using type = te::list_type<te::list_type<Args1, Args2, Args3, Args4>...>;
+		};
+
+		template<list L1, list L2, list L3, list L4, list L5>
+		struct zip5;
+
+		template<template<class...> class L1, template<class...> class L2, class... Args1, class... Args2, template<class...> class L3, class... Args3, template<class...> class L4, class... Args4, template<class...> class L5, class... Args5>
+		struct zip5<L1<Args1...>, L2<Args2...>, L3<Args3...>, L4<Args4...>, L5<Args5...>>
+		{
+			using type = te::list_type<te::list_type<Args1, Args2, Args3, Args4, Args5>...>;
+		};
 	}
 
 	constexpr static auto zip = []<list L1, list L2>(Type_t<L1>, Type_t<L2>) {
@@ -793,6 +811,14 @@ namespace te
 
 	constexpr static auto zip3 = []<list L1, list L2, list L3>(Type_t<L1>, Type_t<L2>, Type_t<L3>) {
 		return Type<typename detail::zip3<L1, L2, L3>::type>;
+	};
+
+	constexpr static auto zip4 = []<list L1, list L2, list L3, list L4>(Type_t<L1>, Type_t<L2>, Type_t<L3>, Type_t<L4>) {
+		return Type<typename detail::zip4<L1, L2, L3, L4>::type>;
+	};
+
+	constexpr static auto zip5 = []<list L1, list L2, list L3, list L4, list L5>(Type_t<L1>, Type_t<L2>, Type_t<L3>, Type_t<L4>, Type_t<L5>) {
+		return Type<typename detail::zip5<L1, L2, L3, L4, L5>::type>;
 	};
 
 	constexpr static auto enumerate_in_list = []<list L>(Type_t<L>) {
