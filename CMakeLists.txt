@@ -12,6 +12,7 @@ add_library(${MODULE_NAME}
 	rt_export.cpp include/tepp/rt_export.h
 	numeric_type.cpp include/tepp/numeric_type.h
 	angle.cpp include/tepp/angle.h
+	heap_object.cpp include/tepp/heap_object.h
 )
 
 target_include_directories(${MODULE_NAME} PUBLIC include)
