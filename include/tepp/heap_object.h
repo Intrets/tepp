@@ -56,8 +56,7 @@ namespace te
 		}
 
 		heap_object(heap_object&& other) {
-			this->object = new T();
-			*this->object = std::move(*other.object);
+			this->object = new T(std::move(*other.object));
 		}
 
 
