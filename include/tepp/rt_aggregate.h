@@ -37,9 +37,6 @@ namespace te
 		std::tuple<typename Args::nonrt...> nonrt_objects;
 
 		template<size_t N>
-		void add(std::tuple_element_t<N, std::tuple<typename Args::Update...>> update);
-
-		template<size_t N>
 		auto& modify();
 
 		void clean();
@@ -51,6 +48,9 @@ namespace te
 		std::atomic<Updates*> updates;
 
 		void processUpdates();
+
+		template<size_t N>
+		auto& use();
 
 
 		rt_aggregate();
@@ -124,13 +124,13 @@ namespace te
 
 	template<class... Args>
 	template<size_t N>
-	inline void rt_aggregate<Args...>::add(std::tuple_element_t<N, std::tuple<typename Args::Update...>> update) {
-		std::get<N>(this->queue).push_back(update);
+	inline auto& rt_aggregate<Args...>::modify() {
+		return std::get<N>(this->nonrt_objects);
 	}
 
 	template<class... Args>
 	template<size_t N>
-	inline auto& rt_aggregate<Args...>::modify() {
-		return std::get<N>(this->nonrt_objects);
+	inline auto& rt_aggregate<Args...>::use() {
+		return std::get<N>(this->rt_objects);
 	}
 }
