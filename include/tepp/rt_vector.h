@@ -98,7 +98,7 @@ namespace te
 	};
 
 	template<class T>
-	struct rt_pod_vector
+	struct rt_vector
 	{
 		struct Move
 		{
@@ -214,7 +214,7 @@ namespace te
 	};
 
 	template<class T>
-	inline void rt_pod_vector<T>::nonrt::clear() {
+	inline void rt_vector<T>::nonrt::clear() {
 		Clear c{ 10 };
 		this->size = 0;
 		this->capacity = 10;
@@ -222,8 +222,8 @@ namespace te
 	}
 
 	template<class T>
-	inline void rt_pod_vector<T>::nonrt::add(T&& v) {
-		std::vector<typename rt_pod_vector<T>::Update> updates;
+	inline void rt_vector<T>::nonrt::add(T&& v) {
+		std::vector<typename rt_vector<T>::Update> updates;
 		if (this->size == this->capacity) {
 			this->capacity *= 2;
 
