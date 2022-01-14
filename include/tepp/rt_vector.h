@@ -21,7 +21,82 @@
 
 namespace te
 {
-	// No heap allocation in objects T
+	template<class T>
+	struct simple_vector
+	{
+		T* data = nullptr;
+		size_t capacity = 0;
+		size_t size = 0;
+
+		inline T& operator[](size_t i) {
+			assert(i >= 0);
+			assert(i < this->size);
+
+			return data[i];
+		}
+
+		auto begin() {
+			return &data[0];
+		}
+
+		auto end() {
+			return &data[this->size];
+		}
+
+		inline T pop() {
+			assert(this->size > 0);
+			this->size--;
+			return std::move(this->data[this->size]);
+		}
+
+		inline void push_back(T&& v) {
+			assert(this->size < this->capacity);
+
+			data[this->size] = std::move(v);
+			this->size++;
+		}
+
+		simple_vector(simple_vector&& other) {
+			this->data = other.data;
+			other.data = nullptr;
+
+			this->capacity = other.capacity;
+			other.capacity = 0;
+
+			this->size = other.size;
+			other.size = 0;
+		}
+
+		simple_vector(simple_vector const& other) = delete;
+
+		simple_vector& operator=(simple_vector&& other) {
+			assert(this->data == nullptr);
+
+			this->data = other.data;
+			other.data = nullptr;
+
+			this->capacity = other.capacity;
+			other.capacity = 0;
+
+			this->size = other.size;
+			other.size = 0;
+
+			return *this;
+		}
+
+		simple_vector& operator=(simple_vector const& other) = delete;
+
+		simple_vector() = default;
+		simple_vector(size_t capacity_) {
+			this->capacity = capacity_;
+			this->data = new T[capacity];
+		}
+
+		~simple_vector() {
+			delete[] this->data;
+		}
+	};
+
 	template<class T>
 	struct rt_pod_vector
 	{
@@ -45,14 +120,18 @@ namespace te
 
 		struct ReplaceStorage
 		{
-			std::vector<T> storage{};
-			std::vector<T> tmp{};
+			simple_vector<T> storage;
+
+			ReplaceStorage(size_t size) : storage(size) {
+			}
 		};
 
 		struct Clear
 		{
-			std::vector<T> storage{};
-			std::vector<T> tmp{};
+			simple_vector<T> storage;
+
+			Clear(size_t size) : storage(size) {
+			}
 		};
 
 		using Update = std::variant<Move, Add, Pop, ReplaceStorage, Clear>;
@@ -70,33 +149,27 @@ namespace te
 
 		struct rt
 		{
-			std::vector<T> data{};
-			size_t size = 0;
-
-			rt() {
-				data.resize(10);
-			}
+			simple_vector<T> data{ 10 };
 
 			auto begin() {
 				return this->data.begin();
 			}
 
 			auto end() {
-				return this->data.begin() + this->size;
+				return this->data.begin() + this->data.size;
 			}
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
 					std::visit([this]<class S_>(S_ && update) {
 						using S = std::remove_cvref_t<S_>;
+
 						if constexpr (std::same_as<S, Add>) {
-							assert(this->size < this->data.size());
-							this->data[this->size] = std::move(update.datum);
-							this->size++;
+							this->data.push_back(std::move(update.datum));
 						}
 						else if constexpr (std::same_as<S, Move>) {
-							assert(update.to < this->size);
-							assert(update.from < this->size);
+							assert(update.to < this->data.size);
+							assert(update.from < this->data.size);
 							if constexpr (std::is_trivial_v<T>) {
 								this->data[update.to] = std::move(this->data[update.from]);
 							}
@@ -106,35 +179,32 @@ namespace te
 							}
 						}
 						else if constexpr (std::same_as<S, Pop>) {
-							assert(this->size > 0);
 							if constexpr (std::is_trivial_v<T>) {
-								this->size--;
+								this->data.pop();
 							}
 							else {
-								this->size--;
-								update.storage = std::move(this->data[this->size]);
+								update.storage = std::move(this->data.pop());
 							}
 						}
 						else if constexpr (std::same_as<S, ReplaceStorage>) {
-							assert(this->size <= update.storage.size());
+							assert(this->data.size <= update.storage.capacity);
+							update.storage.size = this->data.size;
 
 							if constexpr (std::copyable<T>) {
-								std::copy_n(this->data.begin(), this->size, update.storage.begin());
+								std::copy_n(this->data.begin(), this->data.size, update.storage.begin());
 							}
 							else {
-								std::copy_n(std::move_iterator(this->data.begin()), this->size, update.storage.begin());
+								std::copy_n(std::move_iterator(this->data.begin()), this->data.size, update.storage.begin());
 							}
 
-							update.tmp = std::move(this->data);
-							this->data = std::move(update.storage);
-							update.storage = std::move(update.tmp);
+							std::swap(this->data, update.storage);
 						}
 						else if constexpr (std::same_as<S, Clear>) {
-							this->size = 0;
-
-							if constexpr (!std::is_trivial_v<T>) {
-								update.tmp = std::move(this->data);
-								this->data = std::move(update.storage);
+							if constexpr (std::is_trivial_v<T>) {
+								this->data.size = 0;
+							}
+							else {
+								std::swap(this->data, update.storage);
 							}
 						}
 					}, update);
@@ -145,11 +215,10 @@ namespace te
 
 	template<class T>
 	inline void rt_pod_vector<T>::nonrt::clear() {
-		Clear c{};
-		c.storage.resize(10);
-		this->queue->push_back(std::move(c));
+		Clear c{ 10 };
 		this->size = 0;
 		this->capacity = 10;
+		this->queue->push_back(std::move(c));
 	}
 
 	template<class T>
@@ -158,8 +227,7 @@ namespace te
 		if (this->size == this->capacity) {
 			this->capacity *= 2;
 
-			ReplaceStorage replacement{};
-			replacement.storage.resize(this->capacity);
+			ReplaceStorage replacement(this->capacity);
 
 			this->queue->push_back(std::move(replacement));
 		}

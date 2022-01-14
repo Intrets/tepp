@@ -13,7 +13,7 @@ add_library(${MODULE_NAME}
 	numeric_type.cpp include/tepp/numeric_type.h
 	angle.cpp include/tepp/angle.h
 	heap_object.cpp include/tepp/heap_object.h
-	rt_pod_vector.cpp include/tepp/rt_pod_vector.h
+	rt_vector.cpp include/tepp/rt_vector.h
 	rt_aggregate.cpp include/tepp/rt_aggregate.h
 )
 
