@@ -215,9 +215,8 @@ namespace te
 
 	template<class T>
 	inline void rt_vector<T>::nonrt::clear() {
-		Clear c{ 10 };
+		Clear c{ this->capacity };
 		this->size = 0;
-		this->capacity = 10;
 		this->queue->push_back(std::move(c));
 	}
 

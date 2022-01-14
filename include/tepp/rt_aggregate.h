@@ -47,7 +47,7 @@ namespace te
 		std::tuple<typename Args::rt...> rt_objects;
 		std::atomic<Updates*> updates;
 
-		void processUpdates();
+		bool processUpdates();
 
 		template<size_t N>
 		auto& use();
@@ -80,19 +80,19 @@ namespace te
 	}
 
 	template<class... Args>
-	inline void rt_aggregate<Args...>::processUpdates() {
+	inline bool rt_aggregate<Args...>::processUpdates() {
 		auto maybeCleanup = this->cleanup.load();
 
 		// No space in the clean up channel,
 		// wont have space to deposit heap allocated storage from a potential update
 		if (maybeCleanup != nullptr) {
-			return;
+			return false;
 		}
 
 		auto maybeUpdates = this->updates.exchange(nullptr);
 
 		if (maybeUpdates == nullptr) {
-			return;
+			return false;
 		}
 
 		te::tuple_for_each(
@@ -106,6 +106,8 @@ namespace te
 			));
 
 		this->cleanup.store(maybeUpdates);
+
+		return true;
 	}
 
 	template<class... Args>
