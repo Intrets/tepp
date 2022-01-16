@@ -93,7 +93,9 @@ namespace te
 		}
 
 		~simple_vector() {
-			delete[] this->data;
+			if (this->data != nullptr) {
+				delete[] this->data;
+			}
 		}
 	};
 
