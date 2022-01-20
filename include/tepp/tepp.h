@@ -35,7 +35,10 @@ namespace te
 	namespace detail
 	{
 		template<class T>
-		concept has_value = requires (T) { T::value; };
+		concept has_value = requires (T t) {
+			T::value;
+			t.value;
+		};
 
 		template<class T>
 		struct Type;
@@ -597,7 +600,9 @@ namespace te
 	};
 
 	template<class T>
-	struct is_std_fun : std::false_type {};
+	struct is_std_fun : std::false_type
+	{
+	};
 
 	template<class T>
 	inline constexpr bool is_std_fun_v = is_std_fun<T>::value;
@@ -617,7 +622,9 @@ namespace te
 	};
 
 	template<class T>
-	struct is_c_fun : std::false_type {};
+	struct is_c_fun : std::false_type
+	{
+	};
 
 	template<class T>
 	inline constexpr bool is_c_fun_v = is_c_fun<T>::value;
@@ -638,7 +645,9 @@ namespace te
 	};
 
 	template<class T>
-	struct is_member_fun : std::false_type {};
+	struct is_member_fun : std::false_type
+	{
+	};
 
 	template<class T>
 	inline constexpr bool is_member_fun_v = is_member_fun<T>::value;
@@ -648,7 +657,9 @@ namespace te
 
 
 	template<class, class = void>
-	struct is_lambda_fun : std::false_type {};
+	struct is_lambda_fun : std::false_type
+	{
+	};
 
 	template<class T>
 	struct is_lambda_fun<T, std::void_t<decltype(&T::operator())>>
@@ -726,10 +737,14 @@ namespace te
 
 	namespace impl
 	{
-		struct nothing {};
+		struct nothing
+		{
+		};
 
 		template<class T, class... Args>
-		concept number_arguments_concept = requires (T t) { t(std::declval<Args>()...); };
+		concept number_arguments_concept = requires (T t) {
+			t(std::declval<Args>()...);
+		};
 
 		template<class T, list List>
 		struct number_arguments_test;
@@ -828,7 +843,9 @@ namespace te
 	template<class T, int I>
 	concept number_of_arguments_is =
 		impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
-		((requires (T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
+		((requires (T t) {
+		&T::operator();
+	}) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
 		((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
 
 
@@ -923,7 +940,8 @@ namespace te
 		}
 
 		optional_ref() = default;
-		optional_ref(T const& object_) : object(&object_) {};
+		optional_ref(T const& object_) : object(&object_) {
+		};
 		optional_ref<T>& operator=(T const& object_) {
 			this->object = &object_;
 		};
