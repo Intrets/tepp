@@ -39,23 +39,20 @@ namespace te
 		auto one_over_360 = T(0.002777777777777777777777777778);
 		return angle<T>::make(a * one_over_360 * 2 * std::numbers::pi_v<T>);
 	}
+}
 
-	namespace literals
-	{
-		constexpr angle<float> operator "" _deg(long double angle) {
-			return fromDegrees<float>(static_cast<float>(angle));
-		}
+constexpr te::angle<float> operator "" _deg(long double angle) {
+	return te::fromDegrees<float>(static_cast<float>(angle));
+}
 
-		constexpr angle<float> operator "" _rad(long double angle) {
-			return fromRadians<float>(static_cast<float>(angle));
-		}
+constexpr te::angle<float> operator "" _rad(long double angle) {
+	return te::fromRadians<float>(static_cast<float>(angle));
+}
 
-		constexpr angle<long double> operator "" _ddeg(long double angle) {
-			return fromDegrees<long double>(angle);
-		}
+constexpr te::angle<long double> operator "" _ddeg(long double angle) {
+	return te::fromDegrees<long double>(angle);
+}
 
-		constexpr angle<long double> operator "" _drad(long double angle) {
-			return fromRadians<long double>(angle);
-		}
-	}
+constexpr te::angle<long double> operator "" _drad(long double angle) {
+	return te::fromRadians<long double>(angle);
 }
