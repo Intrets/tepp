@@ -102,7 +102,7 @@ namespace te
 	template<class T>
 	struct rt_vector
 	{
-		struct Move
+		struct Swap
 		{
 			size_t from{};
 			size_t to{};
@@ -136,7 +136,7 @@ namespace te
 			}
 		};
 
-		using Update = std::variant<Move, Add, Pop, ReplaceStorage, Clear>;
+		using Update = std::variant<Swap, Add, Pop, ReplaceStorage, Clear>;
 
 		struct nonrt
 		{
@@ -145,6 +145,8 @@ namespace te
 
 			std::vector<Update>* queue{};
 			void add(T&& value);
+			void swap(size_t from, size_t to);
+			void pop();
 			void clear();
 		};
 
@@ -169,24 +171,15 @@ namespace te
 						if constexpr (std::same_as<S, Add>) {
 							this->data.push_back(std::move(update.datum));
 						}
-						else if constexpr (std::same_as<S, Move>) {
+						else if constexpr (std::same_as<S, Swap>) {
 							assert(update.to < this->data.size);
 							assert(update.from < this->data.size);
-							if constexpr (std::is_trivial_v<T>) {
-								this->data[update.to] = std::move(this->data[update.from]);
-							}
-							else {
-								update.storage = std::move(this->data[update.to]);
-								this->data[update.to] = std::move(this->data[update.from]);
-							}
+							update.storage = std::move(this->data[update.to]);
+							this->data[update.to] = std::move(this->data[update.from]);
+							this->data[update.from] = std::move(update.storage);
 						}
 						else if constexpr (std::same_as<S, Pop>) {
-							if constexpr (std::is_trivial_v<T>) {
-								this->data.pop();
-							}
-							else {
-								update.storage = std::move(this->data.pop());
-							}
+							update.storage = std::move(this->data.pop());
 						}
 						else if constexpr (std::same_as<S, ReplaceStorage>) {
 							assert(this->data.size <= update.storage.capacity);
@@ -235,5 +228,16 @@ namespace te
 
 		this->size++;
 		this->queue->push_back(Add{ std::move(v) });
+	}
+
+	template<class T>
+	inline void rt_vector<T>::nonrt::swap(size_t from, size_t to) {
+		this->queue->push_back(Swap{ .from = from, .to = to });
+	}
+
+	template<class T>
+	inline void rt_vector<T>::nonrt::pop() {
+		this->size--;
+		this->queue->push_back(Pop{});
 	}
 }

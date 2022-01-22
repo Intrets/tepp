@@ -20,6 +20,7 @@
 #include <vector>
 #include <atomic>
 #include <cassert>
+#include <optional>
 
 #include <tepp/tepp.h>
 
@@ -39,6 +40,8 @@ namespace te
 		template<size_t N>
 		auto& modify();
 
+		[[nodiscard]]
+		std::optional<std::unique_ptr<Updates>> handleCleanup();
 		void clean();
 		bool sendQueue();
 
@@ -55,6 +58,17 @@ namespace te
 
 		rt_aggregate();
 	};
+
+	template<class... Args>
+	inline std::optional<std::unique_ptr<typename rt_aggregate<Args...>::Updates>> rt_aggregate<Args...>::handleCleanup() {
+		auto ptr = this->cleanup.exchange(nullptr);
+		if (ptr == nullptr) {
+			return std::nullopt;
+		}
+		else {
+			return std::unique_ptr<Updates>(ptr);
+		}
+	}
 
 	template<class... Args>
 	inline void rt_aggregate<Args...>::clean() {
