@@ -29,7 +29,7 @@ namespace te
 		using value_type = std::underlying_type_t<Enum>;
 
 		value_type data{};
-		enum_bitflags(value_type data_) : data(data_) {};
+		explicit enum_bitflags(value_type data_) : data(data_) {};
 
 	public:
 		enum_bitflags() = default;
@@ -65,7 +65,7 @@ namespace te
 			return *this;
 		}
 
-		constexpr enum_bitflags operator~() {
+		constexpr enum_bitflags operator~() const {
 			return enum_bitflags{ ~this->data };
 		}
 
@@ -73,7 +73,7 @@ namespace te
 			return this->data != value_type{};
 		}
 
-		constexpr bool test(enum_bitflags other) {
+		constexpr bool test(enum_bitflags other) const {
 			return this->data & other.data;
 		}
 	};
