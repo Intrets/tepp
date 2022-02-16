@@ -76,5 +76,13 @@ namespace te
 		constexpr bool test(enum_bitflags other) const {
 			return this->data & other.data;
 		}
+
+		constexpr void set(Enum d) {
+			*this |= enum_bitflags(d);
+		}
+
+		constexpr void clear(Enum d) {
+			*this &= ~enum_bitflags(d);
+		}
 	};
 }
