@@ -905,7 +905,7 @@ namespace te
 	}
 
 	constexpr static auto for_each(auto&& f, auto&&... args) {
-		(f(args), ...);
+		(f(std::forward<decltype(args)>(args)), ...);
 	}
 
 	namespace detail
