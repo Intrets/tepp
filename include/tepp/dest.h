@@ -24,9 +24,9 @@
 #define UNPACK(n, ...)\
 template<class T>\
 static auto dest##n() {\
-	auto [__VA_ARGS__] = std::declval<T>();\
+	auto [__VA_ARGS__] = T();\
 \
-	return std::declval<decltype(convert(__VA_ARGS__))>();\
+	return decltype(convert(__VA_ARGS__))();\
 }\
 \
 template<class T>\
@@ -49,7 +49,7 @@ namespace te
 {
 	template<class... T>
 	static auto convert(T... es) {
-		return std::declval<te::list_type<std::remove_cvref_t<T>...>>();
+		return te::list_type<std::remove_cvref_t<T>...>();
 	}
 
 	template<class T>
