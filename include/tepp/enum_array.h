@@ -43,13 +43,49 @@ namespace te
 		constexpr enum_array() = default;
 
 		template<class... Args>
-		constexpr enum_array(Args&&... args) : data{ args... } {}
+		constexpr enum_array(Args&&... args) : data{ args... } {
+		}
 
 		using A = std::array<T, size>;
 		using const_iterator = typename A::const_iterator;
 		using iterator = typename A::iterator;
 
-		void fill(T const& v) {
+		template<EnumType start, size_t N>
+		constexpr void write(std::span<T, N> values) {
+			if constexpr (N == std::dynamic_extent) {
+				constexpr auto end = std::min(size, N);
+				assert(end == N);
+
+				std::copy(values.begin(), values.begin() + end, this->data.begin());
+			}
+			else {
+				static_assert(static_cast<size_t>(start) + N <= size, "Too many values in span");
+
+				std::copy(values.begin(), values.end(), this->data.begin());
+			}
+		}
+
+		template<EnumType begin, EnumType end>
+		constexpr auto getSpan() {
+			constexpr auto beginI = static_cast<size_t>(begin);
+			constexpr auto endI = static_cast<size_t>(end) + 1;
+			constexpr auto N = endI - beginI;
+			static_assert(N > 0);
+			static_assert(N <= size);
+
+			return std::span<T, N>{ this->data.begin() + beginI, this->data.begin() + endI };
+		}
+
+		template<EnumType begin>
+		constexpr auto getSpan(size_t N) {
+			constexpr auto beginI = static_cast<size_t>(begin);
+			auto endI = beginI + N;
+			assert(N <= size);
+
+			return std::span<T>{ this->data.begin() + beginI, this->data.begin() + endI };
+		}
+
+		constexpr void fill(T const& v) noexcept {
 			data.fill(v);
 		}
 
