@@ -926,28 +926,6 @@ namespace te
 		detail::for_each_type<F, L>::apply(std::forward<F>(f));
 	};
 
-	template<class T>
-	struct optional_ref
-	{
-		T const* object = nullptr;
-
-		bool has_value() const {
-			return this->object != nullptr;
-		}
-
-		T& value() const {
-			return *this->object;
-		}
-
-		optional_ref() = default;
-		optional_ref(T const& object_) : object(&object_) {
-		};
-		optional_ref<T>& operator=(T const& object_) {
-			this->object = &object_;
-		};
-		~optional_ref() = default;
-	};
-
 	constexpr static auto tie_tuple_elements = [](auto&& tuple) {
 		return std::apply(
 			[](auto&&... es) {

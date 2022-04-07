@@ -18,6 +18,7 @@ make_module(
 		rt_vector
 		rt_aggregate
 		cached_heap_object
+		bi_map
+		optional_ref
 	CXX_STANDARD 23
 )
-
