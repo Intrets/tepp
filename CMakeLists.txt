@@ -20,5 +20,7 @@ make_module(
 		cached_heap_object
 		bi_map
 		optional_ref
+		switched_vector
+		call_once
 	CXX_STANDARD 23
 )
