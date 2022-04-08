@@ -44,7 +44,7 @@ namespace te
 		constexpr numeric_type() = default;
 		~numeric_type() = default;
 
-		static numeric_type<T, Label> make(T t) {
+		constexpr static numeric_type<T, Label> make(T t) {
 			return numeric_type<T, Label>(t);
 		}
 

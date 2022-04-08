@@ -36,7 +36,7 @@ namespace te
 
 	template<std::floating_point T>
 	constexpr static angle<T> fromDegrees(T a) {
-		auto one_over_360 = T(0.002777777777777777777777777778);
+		constexpr auto one_over_360 = T(0.002777777777777777777777777778);
 		return angle<T>::make(a * one_over_360 * 2 * std::numbers::pi_v<T>);
 	}
 }

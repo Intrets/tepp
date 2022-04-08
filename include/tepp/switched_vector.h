@@ -30,10 +30,18 @@ namespace te
 
 	public:
 		switched_vector() = delete;
+		switched_vector(std::vector<T>&& es) {
+			this->data = std::move(es);
+		}
 		switched_vector(T&& e) {
 			this->add(std::forward<T>(e));
 		}
 		~switched_vector() = default;
+
+		switched_vector& operator=(std::vector<T>&& es) {
+			this->data = std::move(es);
+			return *this;
+		}
 
 		T& get() {
 			return this->data[this->index];
