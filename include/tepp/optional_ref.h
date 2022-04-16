@@ -43,6 +43,10 @@ namespace te
 			return ptr != nullptr;
 		}
 
+		bool has_no_value() const {
+			return ptr == nullptr;
+		}
+
 		operator bool() const {
 			return this->has_value();
 		}
@@ -60,7 +64,9 @@ namespace te
 			this->ptr = nullptr;
 		}
 
+		optional_ref() = default;
 		optional_ref(te::nullopt_t) {
 		}
+		~optional_ref() = default;
 	};
 }
