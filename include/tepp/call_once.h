@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <utility>
+
 namespace te
 {
 	namespace detail
