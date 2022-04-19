@@ -55,6 +55,41 @@ namespace te
 			this->data.push_back(std::forward<T>(e));
 		}
 
+		auto size() const {
+			return this->data.size();
+		}
+
+		bool empty() const {
+			return this->data.empty();
+		}
+
+		bool not_empty() const {
+			return !this->empty();
+		}
+
+		template<class F>
+		void select_if(F&& f) {
+			auto i = 0;
+			for (auto& d : this->data) {
+				if (f(d)) {
+					this->index = i;
+					break;
+				}
+
+				i++;
+			}
+		}
+
+		void select(std::integral auto i) {
+			if (i < this->size()) {
+				this->index = i;
+			}
+		}
+
+		auto get_selected_index() const{
+			return this->index;
+		}
+
 		void selectLast() {
 			assert(this->data.size() > 0);
 			this->index = this->data.size() - 1;
