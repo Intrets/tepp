@@ -195,12 +195,7 @@ namespace te
 							std::swap(this->data, update.storage);
 						}
 						else if constexpr (std::same_as<S, Clear>) {
-							if constexpr (std::is_trivial_v<T>) {
-								this->data.size = 0;
-							}
-							else {
-								std::swap(this->data, update.storage);
-							}
+							std::swap(this->data, update.storage);
 						}
 					}, update);
 				}

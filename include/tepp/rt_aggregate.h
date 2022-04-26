@@ -47,6 +47,7 @@ namespace te
 		std::optional<intrusive_list_owned<Updates>> handleCleanup();
 		void clean();
 		void sendQueue();
+		void clear();
 
 
 		// rt
@@ -94,6 +95,12 @@ namespace te
 		}
 
 		this->updates.store(current);
+	}
+
+	template<class... Args>
+	inline void rt_aggregate<Args...>::clear() {
+		te::tuple_for_each([](auto& t) { t.clear(); }, this->nonrt_objects);
+		this->sendQueue();
 	}
 
 	template<class... Args>
