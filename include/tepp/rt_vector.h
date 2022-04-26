@@ -56,7 +56,7 @@ namespace te
 			this->size++;
 		}
 
-		simple_vector(simple_vector&& other) {
+		simple_vector(simple_vector&& other) noexcept {
 			this->data = other.data;
 			other.data = nullptr;
 

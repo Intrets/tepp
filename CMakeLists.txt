@@ -7,6 +7,7 @@ project(${MODULE_NAME} LANGUAGES CXX)
 make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
+		misc
 		tepp
 		dest
 		enum_array
@@ -22,5 +23,6 @@ make_module(
 		optional_ref
 		switched_vector
 		call_once
+		intrusive_list
 	CXX_STANDARD 23
 )

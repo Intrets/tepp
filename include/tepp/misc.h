@@ -16,38 +16,14 @@
 
 #pragma once
 
-#include "misc.h"
-#include "heap_object.h"
-
-#include <optional>
+#define DEFAULT_COPY(T) T(const T&) = default; T& operator=(const T&) = default;
+#define NO_COPY(T) T(const T&) = delete; T& operator=(const T&) = delete;
+#define DEFAULT_MOVE(T) T(T&&) = default; T& operator=(T&&) = default;
+#define NO_MOVE(T) T(T&&) = delete; T& operator=(T&&) = delete;
+#define DEFAULT_COPY_MOVE(T) DEFAULT_COPY(T) DEFAULT_MOVE(T)
+#define NO_COPY_MOVE(T) NO_COPY(T) NO_MOVE(T)
 
 namespace te
 {
-	template<class T>
-	struct cached_heap_object
-	{
-		std::optional<heap_object<T>> object;
 
-		std::optional<T*> tryGet() {
-			if (this->has_value()) {
-				return this->object.value().get();
-			}
-			else {
-				return std::nullopt;
-			}
-		}
-
-		bool has_value() {
-			return this->object.has_value();
-		};
-
-		void reset() {
-			this->object.reset();
-		}
-
-		template<class... Args>
-		T& emplace(Args&&... args) {
-			return this->object.emplace(std::forward<Args>(args)...);
-		}
-	};
 }

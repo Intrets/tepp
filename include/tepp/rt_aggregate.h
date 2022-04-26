@@ -19,10 +19,13 @@
 #include <tuple>
 #include <vector>
 #include <atomic>
-#include <cassert>
 #include <optional>
+#include <list>
+#include <memory>
 
-#include <tepp/tepp.h>
+#include "intrusive_list.h"
+#include "tepp.h"
+#include "misc.h"
 
 namespace te
 {
@@ -34,22 +37,23 @@ namespace te
 
 		// non-rt
 		Updates queue;
-		std::atomic<Updates*> cleanup;
+		std::atomic<intrusive_list<Updates>*> cleanup;
 		std::tuple<typename Args::nonrt...> nonrt_objects;
 
 		template<size_t N>
 		auto& modify();
 
 		[[nodiscard]]
-		std::optional<std::unique_ptr<Updates>> handleCleanup();
+		std::optional<intrusive_list_owned<Updates>> handleCleanup();
 		void clean();
-		bool sendQueue();
+		void sendQueue();
 
 
 		// rt
 		std::tuple<typename Args::rt...> rt_objects;
-		std::atomic<Updates*> updates;
+		std::atomic<intrusive_list<Updates>*> updates;
 
+		// returns true if there were updates, and always processes the updates if there are any
 		bool processUpdates();
 
 		template<size_t N>
@@ -57,16 +61,19 @@ namespace te
 
 
 		rt_aggregate();
+		~rt_aggregate() = default;
+
+		NO_COPY_MOVE(rt_aggregate);
 	};
 
 	template<class... Args>
-	inline std::optional<std::unique_ptr<typename rt_aggregate<Args...>::Updates>> rt_aggregate<Args...>::handleCleanup() {
+	inline std::optional<intrusive_list_owned<typename rt_aggregate<Args...>::Updates>> rt_aggregate<Args...>::handleCleanup() {
 		auto ptr = this->cleanup.exchange(nullptr);
 		if (ptr == nullptr) {
 			return std::nullopt;
 		}
 		else {
-			return std::unique_ptr<Updates>(ptr);
+			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Args...>::Updates>>(ptr);
 		}
 	}
 
@@ -76,50 +83,52 @@ namespace te
 	}
 
 	template<class... Args>
-	inline bool rt_aggregate<Args...>::sendQueue() {
+	inline void rt_aggregate<Args...>::sendQueue() {
 		auto current = this->updates.load();
 
 		if (current == nullptr) {
-			auto payload = new Updates;
-
-			*payload = std::move(this->queue);
-
-			this->updates.store(payload);
-
-			return true;
+			current = new te::intrusive_list<Updates>(std::move(this->queue));
 		}
 		else {
-			return false;
+			current = current->back().insert_after(std::move(this->queue));
 		}
+
+		this->updates.store(current);
 	}
 
 	template<class... Args>
 	inline bool rt_aggregate<Args...>::processUpdates() {
-		auto maybeCleanup = this->cleanup.load();
-
-		// No space in the clean up channel,
-		// wont have space to deposit heap allocated storage from a potential update
-		if (maybeCleanup != nullptr) {
-			return false;
-		}
-
 		auto maybeUpdates = this->updates.exchange(nullptr);
 
 		if (maybeUpdates == nullptr) {
 			return false;
 		}
 
-		te::tuple_for_each(
-			[](auto&& e) {
-				auto&& [object, updates] = e;
-				object.processUpdates(updates);
-			},
-			te::tuple_zip(
-				te::tie_tuple_elements(this->rt_objects),
-				te::tie_tuple_elements(*maybeUpdates)
-			));
+		auto maybeCleanup = this->cleanup.exchange(nullptr);
 
-		this->cleanup.store(maybeUpdates);
+		using T = std::decay_t<decltype(*maybeCleanup)>::data_type;
+		maybeUpdates->front().for_each_forward(
+			[&](T& updates) {
+				te::tuple_for_each(
+					[](auto&& e) {
+						auto&& [object, updates] = e;
+						object.processUpdates(updates);
+					},
+					te::tuple_zip(
+						te::tie_tuple_elements(this->rt_objects),
+						te::tie_tuple_elements(updates)
+					));
+			}
+		);
+
+		if (maybeCleanup == nullptr) {
+			maybeCleanup = maybeUpdates;
+		}
+		else {
+			maybeCleanup->back().insert_after(maybeUpdates);
+		}
+
+		this->cleanup.store(maybeCleanup);
 
 		return true;
 	}
@@ -128,7 +137,6 @@ namespace te
 	inline rt_aggregate<Args...>::rt_aggregate() {
 		te::tuple_for_each(
 			[](auto&& e) {
-				[[maybe_unused]]
 				auto&& [nonrt, updates] = e;
 				nonrt.queue = &updates;
 			},
