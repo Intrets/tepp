@@ -85,7 +85,7 @@ namespace te
 
 	template<class... Args>
 	inline void rt_aggregate<Args...>::sendQueue() {
-		auto current = this->updates.load();
+		auto current = this->updates.exchange(nullptr);
 
 		if (current == nullptr) {
 			current = new te::intrusive_list<Updates>(std::move(this->queue));
@@ -94,7 +94,9 @@ namespace te
 			current = current->back().insert_after(std::move(this->queue));
 		}
 
-		this->updates.store(current);
+		[[maybe_unused]]
+		auto old = this->updates.exchange(current);
+		assert(old == nullptr);
 	}
 
 	template<class... Args>
@@ -135,13 +137,18 @@ namespace te
 			maybeCleanup->back().insert_after(maybeUpdates);
 		}
 
-		this->cleanup.store(maybeCleanup);
+		[[maybe_unused]]
+		auto oldCleanup = this->cleanup.exchange(maybeCleanup);
+		assert(oldCleanup == nullptr);
 
 		return true;
 	}
 
 	template<class... Args>
 	inline rt_aggregate<Args...>::rt_aggregate() {
+		static_assert(this->cleanup.is_always_lock_free);
+		static_assert(this->updates.is_always_lock_free);
+
 		te::tuple_for_each(
 			[](auto&& e) {
 				auto&& [nonrt, updates] = e;
