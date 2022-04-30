@@ -29,6 +29,11 @@
 
 namespace te
 {
+	template<class T>
+	concept has_process_updates = requires (T t) {
+		std::decay_t<T>::process_tag;
+	};
+
 	template<class... Args>
 	struct rt_aggregate
 	{
@@ -74,6 +79,22 @@ namespace te
 			return std::nullopt;
 		}
 		else {
+			using T = std::decay_t<decltype(*ptr)>::data_type;
+			ptr->front().for_each_forward(
+				[&](T& updates) {
+					te::tuple_for_each(
+						[](auto&& e) {
+							auto&& [object, update] = e;
+							if constexpr (has_process_updates<decltype(object)>) {
+								object.processUpdates(update);
+							}
+						},
+						te::tuple_zip(
+							te::tie_tuple_elements(this->nonrt_objects),
+							te::tie_tuple_elements(updates)
+						));
+				}
+			);
 			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Args...>::Updates>>(ptr);
 		}
 	}

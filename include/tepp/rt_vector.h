@@ -19,6 +19,8 @@
 #include <atomic>
 #include <cassert>
 
+#include "tepp.h"
+
 namespace te
 {
 	template<class T>
@@ -99,11 +101,33 @@ namespace te
 		}
 	};
 
-	template<class T>
+	template<class T, class S>
+	concept has_rt_vector_run = requires (te::simple_vector<T> v, S s) {
+		s.run(v);
+	};
+
+	enum class rt_vector_tag
+	{
+		swap,
+		add,
+		pop,
+		replaceStorage,
+		clear,
+		copy
+	};
+
+	template<class T, rt_vector_tag tag>
+	concept has_rt_vector_tag = requires (T t) {
+		T::tag;
+	}&& T::tag == tag;
+
+	template<class T, class... Extended>
 	struct rt_vector
 	{
 		struct Swap
 		{
+			static constexpr auto tag = rt_vector_tag::swap;
+
 			size_t from{};
 			size_t to{};
 
@@ -112,16 +136,22 @@ namespace te
 
 		struct Add
 		{
+			static constexpr auto tag = rt_vector_tag::add;
+
 			T datum{};
 		};
 
 		struct Pop
 		{
+			static constexpr auto tag = rt_vector_tag::pop;
+
 			T storage{};
 		};
 
 		struct ReplaceStorage
 		{
+			static constexpr auto tag = rt_vector_tag::replaceStorage;
+
 			simple_vector<T> storage;
 
 			ReplaceStorage(size_t size) : storage(size) {
@@ -130,13 +160,25 @@ namespace te
 
 		struct Clear
 		{
+			static constexpr auto tag = rt_vector_tag::clear;
+
 			simple_vector<T> storage;
 
 			Clear(size_t size) : storage(size) {
 			}
 		};
 
-		using Update = std::variant<Swap, Add, Pop, ReplaceStorage, Clear>;
+		struct Copy
+		{
+			static constexpr auto tag = rt_vector_tag::copy;
+
+			simple_vector<T> storage;
+
+			Copy(size_t size) : storage(size) {
+			}
+		};
+
+		using Update = std::variant<Swap, Add, Pop, ReplaceStorage, Clear, Copy, Extended...>;
 
 		struct nonrt
 		{
@@ -148,6 +190,12 @@ namespace te
 			void swap(size_t from, size_t to);
 			void pop();
 			void clear();
+			void getCopy();
+
+			template<te::member_of<Update> S>
+			void addUpdate(S&& s) {
+				this->queue->push_back(std::forward<S>(s));
+			}
 		};
 
 
@@ -197,22 +245,39 @@ namespace te
 						else if constexpr (std::same_as<S, Clear>) {
 							std::swap(this->data, update.storage);
 						}
+						else if constexpr (std::same_as<S, Copy> && std::copyable<T>) {
+							assert(this->data.size <= update.storage.capacity);
+							std::copy_n(this->data.begin(), this->data.size, update.storage.begin());
+							update.storage.size = this->data.size;
+						}
+						else if constexpr (has_rt_vector_run<T, S>) {
+							update.run(this->data);
+						}
+						else {
+							rand();
+						}
 					}, update);
 				}
 			}
 		};
 	};
 
-	template<class T>
-	inline void rt_vector<T>::nonrt::clear() {
+	template<class T, class... Extended>
+	inline void rt_vector<T, Extended...>::nonrt::clear() {
 		Clear c{ this->capacity };
 		this->size = 0;
 		this->queue->push_back(std::move(c));
 	}
 
-	template<class T>
-	inline void rt_vector<T>::nonrt::add(T&& v) {
-		std::vector<typename rt_vector<T>::Update> updates;
+	template<class T, class... Extended>
+	inline void rt_vector<T, Extended...>::nonrt::getCopy() {
+		static_assert(std::is_trivially_copyable_v<T>);
+		Copy c{ this->size };
+		this->queue->push_back(std::move(c));
+	}
+
+	template<class T, class... Extended>
+	inline void rt_vector<T, Extended...>::nonrt::add(T&& v) {
 		if (this->size == this->capacity) {
 			this->capacity *= 2;
 
@@ -225,13 +290,13 @@ namespace te
 		this->queue->push_back(Add{ std::move(v) });
 	}
 
-	template<class T>
-	inline void rt_vector<T>::nonrt::swap(size_t from, size_t to) {
+	template<class T, class... Extended>
+	inline void rt_vector<T, Extended...>::nonrt::swap(size_t from, size_t to) {
 		this->queue->push_back(Swap{ .from = from, .to = to });
 	}
 
-	template<class T>
-	inline void rt_vector<T>::nonrt::pop() {
+	template<class T, class... Extended>
+	inline void rt_vector<T, Extended...>::nonrt::pop() {
 		this->size--;
 		this->queue->push_back(Pop{});
 	}

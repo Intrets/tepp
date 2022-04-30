@@ -933,4 +933,29 @@ namespace te
 			},
 			std::forward<decltype(tuple)>(tuple));
 	};
+
+	namespace detail
+	{
+		template<auto... Xs>
+		struct max;
+
+		template<auto X>
+		struct max<X>
+		{
+			static constexpr auto value = X;
+		};
+
+		template<auto X, auto... Xs>
+		struct max<X, Xs...>
+		{
+			static constexpr auto value = std::max(X, detail::max<Xs...>::value);
+		};
+	}
+
+	template<auto... Xs>
+	using max_t = detail::max<Xs...>;
+
+	template<auto... Xs>
+	constexpr static auto max_v = detail::max<Xs...>::value;
+
 }

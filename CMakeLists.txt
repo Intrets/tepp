@@ -18,11 +18,14 @@ make_module(
 		heap_object
 		rt_vector
 		rt_aggregate
+		rt_value
 		cached_heap_object
 		bi_map
 		optional_ref
 		switched_vector
 		call_once
 		intrusive_list
+		string_literal
+		atomic_value
 	CXX_STANDARD 23
 )
