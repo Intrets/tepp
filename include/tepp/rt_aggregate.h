@@ -34,7 +34,7 @@ namespace te
 		std::decay_t<T>::process_tag;
 	};
 
-	template<class... Args>
+	template<class Enum, class... Args>
 	struct rt_aggregate
 	{
 		using Updates = std::tuple<std::vector<typename Args::Update>...>;
@@ -45,8 +45,8 @@ namespace te
 		std::atomic<intrusive_list<Updates>*> cleanup;
 		std::tuple<typename Args::nonrt...> nonrt_objects;
 
-		template<size_t N>
-		auto& modify();
+		template<Enum e>
+		auto& nonrtAccess();
 
 		[[nodiscard]]
 		std::optional<intrusive_list_owned<Updates>> handleCleanup();
@@ -62,7 +62,7 @@ namespace te
 		// returns true if there were updates, and always processes the updates if there are any
 		bool processUpdates();
 
-		template<size_t N>
+		template<Enum e>
 		auto& use();
 
 
@@ -72,8 +72,8 @@ namespace te
 		NO_COPY_MOVE(rt_aggregate);
 	};
 
-	template<class... Args>
-	inline std::optional<intrusive_list_owned<typename rt_aggregate<Args...>::Updates>> rt_aggregate<Args...>::handleCleanup() {
+	template<class Enum, class... Args>
+	inline std::optional<intrusive_list_owned<typename rt_aggregate<Enum, Args...>::Updates>> rt_aggregate<Enum, Args...>::handleCleanup() {
 		auto ptr = this->cleanup.exchange(nullptr);
 		if (ptr == nullptr) {
 			return std::nullopt;
@@ -95,17 +95,17 @@ namespace te
 						));
 				}
 			);
-			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Args...>::Updates>>(ptr);
+			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Enum, Args...>::Updates>>(ptr);
 		}
 	}
 
-	template<class... Args>
-	inline void rt_aggregate<Args...>::clean() {
+	template<class Enum, class... Args>
+	inline void rt_aggregate<Enum, Args...>::clean() {
 		delete this->cleanup.exchange(nullptr);
 	}
 
-	template<class... Args>
-	inline void rt_aggregate<Args...>::sendQueue() {
+	template<class Enum, class... Args>
+	inline void rt_aggregate<Enum, Args...>::sendQueue() {
 		auto current = this->updates.exchange(nullptr);
 
 		if (current == nullptr) {
@@ -120,14 +120,14 @@ namespace te
 		assert(old == nullptr);
 	}
 
-	template<class... Args>
-	inline void rt_aggregate<Args...>::clear() {
+	template<class Enum, class... Args>
+	inline void rt_aggregate<Enum, Args...>::clear() {
 		te::tuple_for_each([](auto& t) { t.clear(); }, this->nonrt_objects);
 		this->sendQueue();
 	}
 
-	template<class... Args>
-	inline bool rt_aggregate<Args...>::processUpdates() {
+	template<class Enum, class... Args>
+	inline bool rt_aggregate<Enum, Args...>::processUpdates() {
 		auto maybeUpdates = this->updates.exchange(nullptr);
 
 		if (maybeUpdates == nullptr) {
@@ -165,8 +165,8 @@ namespace te
 		return true;
 	}
 
-	template<class... Args>
-	inline rt_aggregate<Args...>::rt_aggregate() {
+	template<class Enum, class... Args>
+	inline rt_aggregate<Enum, Args...>::rt_aggregate() {
 		static_assert(this->cleanup.is_always_lock_free);
 		static_assert(this->updates.is_always_lock_free);
 
@@ -181,15 +181,21 @@ namespace te
 			));
 	}
 
-	template<class... Args>
-	template<size_t N>
-	inline auto& rt_aggregate<Args...>::modify() {
-		return std::get<N>(this->nonrt_objects);
+	template<class Enum, class... Args>
+	template<Enum e>
+	inline auto& rt_aggregate<Enum, Args...>::nonrtAccess() {
+		constexpr auto index = static_cast<int>(e);
+		static_assert(index >= 0);
+		static_assert(index < sizeof...(Args));
+		return std::get<index>(this->nonrt_objects);
 	}
 
-	template<class... Args>
-	template<size_t N>
-	inline auto& rt_aggregate<Args...>::use() {
-		return std::get<N>(this->rt_objects);
+	template<class Enum, class... Args>
+	template<Enum e>
+	inline auto& rt_aggregate<Enum, Args...>::use() {
+		constexpr auto index = static_cast<int>(e);
+		static_assert(index >= 0);
+		static_assert(index < sizeof...(Args));
+		return std::get<index>(this->rt_objects);
 	}
 }
