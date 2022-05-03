@@ -58,6 +58,11 @@ namespace te
 			this->size++;
 		}
 
+		inline void fillToCapacity(T const& v) {
+			std::fill(this->data, this->data + this->capacity, v);
+			this->size = this->capacity;
+		}
+
 		simple_vector(simple_vector&& other) noexcept {
 			this->data = other.data;
 			other.data = nullptr;
@@ -71,7 +76,7 @@ namespace te
 
 		simple_vector(simple_vector const& other) = delete;
 
-		simple_vector& operator=(simple_vector&& other) {
+		simple_vector& operator=(simple_vector&& other) noexcept {
 			assert(this->data == nullptr);
 
 			this->data = other.data;
@@ -111,6 +116,7 @@ namespace te
 		swap,
 		add,
 		pop,
+		set,
 		replaceStorage,
 		clear,
 		copy
@@ -158,6 +164,16 @@ namespace te
 			}
 		};
 
+		struct Set
+		{
+			static constexpr auto tag = rt_vector_tag::set;
+
+			simple_vector<T> storage;
+
+			Set(simple_vector<T>&& storage_) : storage(std::move(storage_)) {
+			}
+		};
+
 		struct Clear
 		{
 			static constexpr auto tag = rt_vector_tag::clear;
@@ -178,7 +194,7 @@ namespace te
 			}
 		};
 
-		using Update = std::variant<Swap, Add, Pop, ReplaceStorage, Clear, Copy, Extended...>;
+		using Update = std::variant<Swap, Add, Pop, Set, ReplaceStorage, Clear, Copy, Extended...>;
 
 		struct nonrt
 		{
@@ -191,6 +207,7 @@ namespace te
 			void pop();
 			void clear();
 			void getCopy();
+			void set(simple_vector<T>&& v);
 
 			template<te::member_of<Update> S>
 			void addUpdate(S&& s) {
@@ -228,6 +245,9 @@ namespace te
 						}
 						else if constexpr (std::same_as<S, Pop>) {
 							update.storage = std::move(this->data.pop());
+						}
+						else if constexpr (std::same_as<S, Set>) {
+							std::swap(this->data, update.storage);
 						}
 						else if constexpr (std::same_as<S, ReplaceStorage>) {
 							assert(this->data.size <= update.storage.capacity);
@@ -274,6 +294,11 @@ namespace te
 		static_assert(std::is_trivially_copyable_v<T>);
 		Copy c{ this->size };
 		this->queue->push_back(std::move(c));
+	}
+
+	template<class T, class... Extended>
+	inline void rt_vector<T, Extended...>::nonrt::set(simple_vector<T>&& v) {
+		this->queue->push_back(Set(std::move(v)));
 	}
 
 	template<class T, class... Extended>
