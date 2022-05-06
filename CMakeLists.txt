@@ -27,5 +27,6 @@ make_module(
 		intrusive_list
 		string_literal
 		atomic_value
+		indexed_vector
 	CXX_STANDARD 23
 )
