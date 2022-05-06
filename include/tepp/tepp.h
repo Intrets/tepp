@@ -841,7 +841,7 @@ namespace te
 
 	namespace detail
 	{
-		template<class Is, class T1, class T2>
+		template<class Is, class... Ts>
 		struct tuple_zip;
 
 		template<class... Ts, size_t... I>
