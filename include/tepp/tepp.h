@@ -841,36 +841,37 @@ namespace te
 
 	namespace detail
 	{
-		template<class T1, class T2, class IS>
+		template<class Is, class T1, class T2>
 		struct tuple_zip;
 
-		template<class T1, class T2, size_t... I>
-		struct tuple_zip<T1, T2, std::index_sequence<I...>>
+		template<class... Ts, size_t... I>
+		struct tuple_zip<std::index_sequence<I...>, Ts...>
 		{
-			using T1_pure = std::remove_cvref_t<T1>;
-			using T2_pure = std::remove_cvref_t<T2>;
+			template<size_t i>
+			constexpr static auto apply2(Ts&&... ts) {
+				return std::tuple<std::tuple_element_t<i, std::remove_cvref_t<Ts>>...>(std::get<i>(ts)...);
+			}
 
-			constexpr static auto apply(T1&& t1, T2&& t2) {
+			constexpr static auto apply(Ts&&... ts) {
 				return std::make_tuple(
-					std::tuple<std::tuple_element_t<I, T1_pure>, std::tuple_element_t<I, T2_pure>>(
-						std::get<I>(t1),
-						std::get<I>(t2))
-					...
+					apply2<I>(std::forward<Ts>(ts)...)...
 				);
 			}
 		};
 	}
 
 	template<class T1, class T2>
-		requires (std::tuple_size_v<std::remove_cvref_t<T1>> == std::tuple_size_v<std::remove_cvref_t<T2>>)
-	constexpr static auto tuple_zip(T1&& t1, T2&& t2) {
-		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<T1>>;
+	concept same_tuple_size = (std::tuple_size_v<std::remove_cvref_t<T1>> == std::tuple_size_v<std::remove_cvref_t<T2>>);
+
+	template<class T, same_tuple_size<T>... Ts>
+	constexpr static auto tuple_zip(T&& t, Ts&&... ts) {
+		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<T>>;
 
 		return detail::tuple_zip<
-			T1,
-			T2,
-			std::make_index_sequence<size>
-		>::apply(std::forward<T1>(t1), std::forward<T2>(t2));
+			std::make_index_sequence<size>,
+			T,
+			Ts...
+		>::apply(std::forward<T>(t), std::forward<Ts>(ts)...);
 	}
 
 	namespace detail
