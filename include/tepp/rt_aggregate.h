@@ -42,6 +42,7 @@ namespace te
 
 		// non-rt
 		Updates queue;
+		int inQueueCount = 0;
 		std::atomic<intrusive_list<Updates>*> cleanup;
 		std::tuple<typename Args::nonrt...> nonrt_objects;
 
@@ -93,6 +94,8 @@ namespace te
 							te::tie_tuple_elements(this->nonrt_objects),
 							te::tie_tuple_elements(updates)
 						));
+
+					this->inQueueCount--;
 				}
 			);
 			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Enum, Args...>::Updates>>(ptr);
@@ -118,6 +121,8 @@ namespace te
 		[[maybe_unused]]
 		auto old = this->updates.exchange(current);
 		assert(old == nullptr);
+
+		this->inQueueCount++;
 	}
 
 	template<class Enum, class... Args>
