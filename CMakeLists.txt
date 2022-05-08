@@ -19,6 +19,7 @@ make_module(
 		rt_vector
 		rt_aggregate
 		rt_value
+		rt_queue
 		cached_heap_object
 		bi_map
 		optional_ref
