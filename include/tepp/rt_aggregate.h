@@ -63,7 +63,7 @@ namespace te
 		bool processUpdates();
 
 		template<Enum e>
-		auto& use();
+		auto& rtAccess();
 
 
 		rt_aggregate();
@@ -192,7 +192,7 @@ namespace te
 
 	template<class Enum, class... Args>
 	template<Enum e>
-	inline auto& rt_aggregate<Enum, Args...>::use() {
+	inline auto& rt_aggregate<Enum, Args...>::rtAccess() {
 		constexpr auto index = static_cast<int>(e);
 		static_assert(index >= 0);
 		static_assert(index < sizeof...(Args));
