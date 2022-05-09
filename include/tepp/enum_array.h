@@ -20,6 +20,7 @@
 #include <cassert>
 #include <ranges>
 #include <algorithm>
+#include <optional>
 
 namespace te
 {
@@ -38,6 +39,19 @@ namespace te
 		constexpr T const& operator[](EnumType i) const {
 			assert(static_cast<size_t>(i) < size);
 			return this->data[static_cast<size_t>(i)];
+		}
+
+		template<class S>
+		std::optional<EnumType> getEnum(S&& value) const {
+			for (size_t i = 0; i < size; i++) {
+				auto e = static_cast<EnumType>(i);
+
+				if (this->operator[](e) == value) {
+					return e;
+				}
+			}
+
+			return std::nullopt;
 		}
 
 		constexpr enum_array() = default;

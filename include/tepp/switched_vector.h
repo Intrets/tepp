@@ -68,16 +68,18 @@ namespace te
 		}
 
 		template<class F>
-		void select_if(F&& f) {
+		bool select_if(F&& f) {
 			auto i = 0;
 			for (auto& d : this->data) {
 				if (f(d)) {
 					this->index = i;
-					break;
+					return true;
 				}
 
 				i++;
 			}
+
+			return false;
 		}
 
 		void select(std::integral auto i) {
