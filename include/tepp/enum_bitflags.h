@@ -87,6 +87,10 @@ namespace te
 		constexpr void clear(Enum d) {
 			*this &= ~enum_bitflags(d);
 		}
+
+		constexpr value_type getData() const {
+			return this->data;
+		}
 	};
 
 	template<class T, class... Ts>
