@@ -14,38 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <vector>
-
-#include "intrusive_list.h"
+#include "simple_vector.h"
 
 namespace te
 {
-	template<class T>
-	struct rt_queue
-	{
-		using Update = T;
 
-		struct rt
-		{
-			void processUpdates(std::vector<Update>& updates) {
-				for (auto& update : updates) {
-					update.run();
-				}
-			};
-		};
-
-		struct nonrt
-		{
-			std::vector<Update>* queue{};
-
-			void add(T&& v) {
-				this->queue->push_back(std::move(v));
-			}
-
-			void clear() {
-			};
-		};
-	};
 }

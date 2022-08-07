@@ -67,12 +67,23 @@ namespace te
 			size_t size = 0;
 
 			std::vector<Update>* queue{};
-			void retrieve();
 			void clear();
 
 			template<te::member_of<Update> S>
 			void addUpdate(S&& s) {
 				this->queue->push_back(std::forward<S>(s));
+			}
+
+			void send(T&& t) {
+				this->addUpdate(Send{ std::forward<T>(t) });
+			}
+
+			void send(T const& t) {
+				this->addUpdate(Send{ t });
+			}
+
+			void retrieve() {
+				this->addUpdate(Retrieve{});
 			}
 
 			using process_tag = void;
@@ -89,11 +100,6 @@ namespace te
 			}
 		};
 	};
-
-	template<class T>
-	inline void rt_value<T>::nonrt::retrieve() {
-		this->addUpdate(Retrieve());
-	}
 
 	template<class T>
 	inline void rt_value<T>::nonrt::clear() {
