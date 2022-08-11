@@ -39,6 +39,10 @@ namespace te
 			return this->value();
 		}
 
+		T* operator->() const {
+			return &this->value();
+		}
+
 		bool has_value() const {
 			return ptr != nullptr;
 		}

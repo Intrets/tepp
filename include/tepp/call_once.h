@@ -27,7 +27,7 @@ namespace te
 		{
 			call_once_t() = delete;
 			call_once_t(F&& f) {
-				f();
+				std::forward<F>(f)();
 			}
 			~call_once_t() = default;
 		};
