@@ -139,6 +139,15 @@ namespace te
 			return this->data;
 		}
 
+		template<class F>
+		void for_each(F&& f) {
+			if (this->data == nullptr) {
+				return;
+			}
+
+			this->data->front().for_each_backward(std::forward<F>(f));
+		}
+
 		intrusive_list_owned<T>& insert_before(intrusive_list<T>* l) {
 			if (this->data == nullptr) {
 				this->data = l;

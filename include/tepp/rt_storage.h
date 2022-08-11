@@ -69,7 +69,11 @@ namespace te
 			intrusive_list_owned<FreeMemory> frees;
 		};
 
-		using Update = std::variant<Add, RetrieveFrees, Extended...>;
+		struct Clear
+		{
+		};
+
+		using Update = std::variant<Add, RetrieveFrees, Clear, Extended...>;
 
 		struct nonrt
 		{
@@ -94,7 +98,7 @@ namespace te
 						.data = std::move(value)
 					},
 					.index = index,
-					.freeMemory = intrusive_list_owned<FreeMemory>(new intrusive_list<FreeMemory>())
+					.freeMemory = intrusive_list_owned<FreeMemory>(new intrusive_list<FreeMemory>({ index }))
 					});
 
 				return qualified<IndexType>{
@@ -103,9 +107,35 @@ namespace te
 				};
 			};
 
+			void retrieveFrees() {
+				this->addUpdate(RetrieveFrees{});
+			}
+
+			void clear() {
+				this->addUpdate(Clear{});
+			}
+
 			template<te::member_of<Update> S>
 			void addUpdate(S&& s) {
 				this->queue->push_back(std::forward<S>(s));
+			}
+
+			using process_tag = void;
+			void processUpdates(std::vector<Update>& updates) {
+				for (auto& update : updates) {
+					std::visit(overloaded{
+						[&](RetrieveFrees& retrieveFrees) {
+							retrieveFrees.frees.for_each(
+								[&](auto freeMemory) {
+									this->freeStorage.push_back(freeMemory.free);
+								}
+							);
+
+						},
+						[](auto&) {}
+						},
+						update);
+				}
 			}
 
 			nonrt() {
@@ -140,6 +170,17 @@ namespace te
 						[this](RetrieveFrees& retrieveFrees) {
 							assert(retrieveFrees.frees.empty());
 							retrieveFrees.frees.data = this->freeMemoryQueue.release();
+						},
+						[this](Clear) {
+							for (size_t i = 0; i < size; i++) {
+								auto& entry = this->data[i];
+								entry.qualifier = {};
+								auto free = this->freeMemory[i];
+								this->freeMemory[i] = nullptr;
+								if (free != nullptr) {
+									this->freeMemoryQueue.insert_before(free);
+								}
+							}
 						},
 						[](auto& extended) {
 							extended.run();
