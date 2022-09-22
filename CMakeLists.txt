@@ -20,6 +20,7 @@ make_module(
 		rt_aggregate
 		rt_value
 		rt_queue
+		rt_storage
 		cached_heap_object
 		bi_map
 		optional_ref
@@ -30,5 +31,6 @@ make_module(
 		atomic_value
 		indexed_vector
 		cheated_storage
+		simple_vector
 	CXX_STANDARD 23
 )

@@ -20,92 +20,10 @@
 #include <cassert>
 
 #include "tepp.h"
+#include "simple_vector.h"
 
 namespace te
 {
-	template<class T>
-	struct simple_vector
-	{
-		T* data = nullptr;
-		size_t capacity = 0;
-		size_t size = 0;
-
-		inline T& operator[](size_t i) {
-			assert(i >= 0);
-			assert(i < this->size);
-
-			return data[i];
-		}
-
-		auto begin() {
-			return &data[0];
-		}
-
-		auto end() {
-			return &data[this->size];
-		}
-
-		inline T pop() {
-			assert(this->size > 0);
-			this->size--;
-			return std::move(this->data[this->size]);
-		}
-
-		inline void push_back(T&& v) {
-			assert(this->size < this->capacity);
-
-			data[this->size] = std::move(v);
-			this->size++;
-		}
-
-		inline void fillToCapacity(T const& v) {
-			std::fill(this->data, this->data + this->capacity, v);
-			this->size = this->capacity;
-		}
-
-		simple_vector(simple_vector&& other) noexcept {
-			this->data = other.data;
-			other.data = nullptr;
-
-			this->capacity = other.capacity;
-			other.capacity = 0;
-
-			this->size = other.size;
-			other.size = 0;
-		}
-
-		simple_vector(simple_vector const& other) = delete;
-
-		simple_vector& operator=(simple_vector&& other) noexcept {
-			assert(this->data == nullptr);
-
-			this->data = other.data;
-			other.data = nullptr;
-
-			this->capacity = other.capacity;
-			other.capacity = 0;
-
-			this->size = other.size;
-			other.size = 0;
-
-			return *this;
-		}
-
-		simple_vector& operator=(simple_vector const& other) = delete;
-
-		simple_vector() = default;
-		simple_vector(size_t capacity_) {
-			this->capacity = capacity_;
-			this->data = new T[capacity];
-		}
-
-		~simple_vector() {
-			if (this->data != nullptr) {
-				delete[] this->data;
-			}
-		}
-	};
-
 	template<class T, class S>
 	concept has_rt_vector_run = requires (te::simple_vector<T> v, S s) {
 		s.run(v);
@@ -127,15 +45,15 @@ namespace te
 		T::tag;
 	}&& T::tag == tag;
 
-	template<class T, class... Extended>
+	template<class T, class IndexType = size_t, class... Extended>
 	struct rt_vector
 	{
 		struct Swap
 		{
 			static constexpr auto tag = rt_vector_tag::swap;
 
-			size_t from{};
-			size_t to{};
+			IndexType from{};
+			IndexType to{};
 
 			T storage{};
 		};
@@ -203,7 +121,7 @@ namespace te
 
 			std::vector<Update>* queue{};
 			void add(T&& value);
-			void swap(size_t from, size_t to);
+			void swap(IndexType from, IndexType to);
 			void pop();
 			void clear();
 			void getCopy();
@@ -282,27 +200,27 @@ namespace te
 		};
 	};
 
-	template<class T, class... Extended>
-	inline void rt_vector<T, Extended...>::nonrt::clear() {
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::clear() {
 		Clear c{ this->capacity };
 		this->size = 0;
 		this->queue->push_back(std::move(c));
 	}
 
-	template<class T, class... Extended>
-	inline void rt_vector<T, Extended...>::nonrt::getCopy() {
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::getCopy() {
 		static_assert(std::is_trivially_copyable_v<T>);
 		Copy c{ this->size };
 		this->queue->push_back(std::move(c));
 	}
 
-	template<class T, class... Extended>
-	inline void rt_vector<T, Extended...>::nonrt::set(simple_vector<T>&& v) {
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::set(simple_vector<T>&& v) {
 		this->queue->push_back(Set(std::move(v)));
 	}
 
-	template<class T, class... Extended>
-	inline void rt_vector<T, Extended...>::nonrt::add(T&& v) {
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::add(T&& v) {
 		if (this->size == this->capacity) {
 			this->capacity *= 2;
 
@@ -315,13 +233,13 @@ namespace te
 		this->queue->push_back(Add{ std::move(v) });
 	}
 
-	template<class T, class... Extended>
-	inline void rt_vector<T, Extended...>::nonrt::swap(size_t from, size_t to) {
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::swap(IndexType from, IndexType to) {
 		this->queue->push_back(Swap{ .from = from, .to = to });
 	}
 
-	template<class T, class... Extended>
-	inline void rt_vector<T, Extended...>::nonrt::pop() {
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::pop() {
 		this->size--;
 		this->queue->push_back(Pop{});
 	}

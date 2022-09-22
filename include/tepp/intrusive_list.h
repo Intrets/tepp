@@ -36,7 +36,7 @@ namespace te
 		intrusive_list<T>* next = nullptr;
 		intrusive_list<T>* previous = nullptr;
 
-		T data;
+		T data{};
 
 		template<class F>
 		void for_each_forward(F&& f) {
@@ -122,7 +122,7 @@ namespace te
 			return this->insert_before(new intrusive_list<T>(std::forward<T>(t)));
 		}
 
-		intrusive_list() = delete;
+		intrusive_list() = default;
 		intrusive_list(T&& t) : data(std::forward<T>(t)) {
 		}
 		DEFAULT_MOVE(intrusive_list);
@@ -139,10 +139,52 @@ namespace te
 			return this->data;
 		}
 
+		template<class F>
+		void for_each(F&& f) {
+			if (this->data == nullptr) {
+				return;
+			}
+
+			this->data->front().for_each_backward(std::forward<F>(f));
+		}
+
+		intrusive_list_owned<T>& insert_before(intrusive_list<T>* l) {
+			if (this->data == nullptr) {
+				this->data = l;
+			}
+			else {
+				this->data = this->data->insert_before(l);
+			}
+
+			return *this;
+		}
+
+		bool empty() const {
+			return this->data == nullptr;
+		}
+
+		intrusive_list<T>* release() {
+			auto ptr = this->data;
+			this->data = nullptr;
+			return ptr;
+		}
+
 		intrusive_list_owned() = default;
 		intrusive_list_owned(intrusive_list<T>* ptr) : data(ptr) {
 		}
-		DEFAULT_MOVE(intrusive_list_owned);
+		intrusive_list_owned(intrusive_list_owned&& other) {
+			this->data = other.data;
+			other.data = nullptr;
+		}
+		intrusive_list_owned& operator=(intrusive_list_owned&& other) {
+			if (this == &other) {
+				return *this;
+			}
+
+			delete this->data;
+			this->data = other.data;
+			other.data = nullptr;
+		}
 		NO_COPY(intrusive_list_owned);
 		~intrusive_list_owned() {
 			if (this->data != nullptr) {

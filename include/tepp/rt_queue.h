@@ -43,6 +43,7 @@ namespace te
 			void add(T&& v) {
 				this->queue->push_back(std::move(v));
 			}
+
 			void clear() {
 			};
 		};

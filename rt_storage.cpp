@@ -14,27 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <utility>
+#include "rt_storage.h"
 
 namespace te
 {
-	namespace detail
-	{
-		template<class F>
-		struct call_once_t
-		{
-			call_once_t() = delete;
-			call_once_t(F&& f) {
-				std::forward<F>(f)();
-			}
-			~call_once_t() = default;
-		};
-	}
 
-	template<class F>
-	static void call_once(F&& f) {
-		static auto once = detail::call_once_t(std::forward<F>(f));
-	}
 }
