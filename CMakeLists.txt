@@ -29,5 +29,6 @@ make_module(
 		string_literal
 		atomic_value
 		indexed_vector
+		cheated_storage
 	CXX_STANDARD 23
 )
