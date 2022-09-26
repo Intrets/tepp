@@ -31,6 +31,10 @@ namespace te
 		std::array<T, size> data{};
 
 	public:
+		size_t getSize() const noexcept {
+			return size;
+		}
+
 		constexpr T& operator[](EnumType i) {
 			assert(static_cast<size_t>(i) < size);
 			return this->data[static_cast<size_t>(i)];
