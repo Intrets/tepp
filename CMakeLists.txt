@@ -32,5 +32,6 @@ make_module(
 		indexed_vector
 		cheated_storage
 		simple_vector
+		mutex
 	CXX_STANDARD 23
 )
