@@ -60,7 +60,11 @@ namespace te
 		}
 
 		constexpr operator bool() const {
-			return this->data != value_type{};
+			return !this->empty();
+		}
+
+		constexpr bool empty() const {
+			return this->data == value_type{};
 		}
 
 		constexpr bool test(enum_bitflags other) const {
