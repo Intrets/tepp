@@ -53,15 +53,10 @@ namespace te
 			static_assert(alignof(T) == align);
 
 #if DEBUG_BUILD
-			if (this->typeIndex == debug::getTypeIndex<void>()) {
-				this->typeIndex = debug::getTypeIndex<T>();
-			}
-			else {
-				assert(this->typeIndex == debug::getTypeIndex<T>());
-			}
+			assert(this->typeIndex == debug::getTypeIndex<T>());
 #endif // DEBUG_BUILD
 
-			return *reinterpret_cast<T*>(&this->storage);
+			return *std::launder(reinterpret_cast<T*>(&this->storage));
 		}
 
 		template<class T>
@@ -70,15 +65,10 @@ namespace te
 			static_assert(alignof(T) == align);
 
 #if DEBUG_BUILD
-			if (this->typeIndex == debug::getTypeIndex<void>()) {
-				this->typeIndex = debug::getTypeIndex<T>();
-			}
-			else {
-				assert(this->typeIndex == debug::getTypeIndex<T>());
-			}
+			assert(this->typeIndex == debug::getTypeIndex<T>());
 #endif // DEBUG_BUILD
 
-			return *reinterpret_cast<T const*>(&this->storage);
+			return *std::launder(reinterpret_cast<T const*>(&this->storage));
 		}
 	};
 }

@@ -17,6 +17,7 @@ namespace te
 	}
 
 	mutex::mutex() {
+		this->criticalSection.init<CRITICAL_SECTION>();
 		InitializeCriticalSection(&this->criticalSection.access<CRITICAL_SECTION>());
 	}
 
