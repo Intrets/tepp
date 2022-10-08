@@ -73,12 +73,16 @@ namespace te
 			return index<name>(this->data.size());
 		};
 
-		void push_back(T const& v) {
+		index<name> push_back(T const& v) {
+			auto index = this->size();
 			this->data.push_back(v);
+			return index;
 		}
 
-		void push_back(T&& v) {
+		index<name> push_back(T&& v) {
+			auto index = this->size();
 			this->data.push_back(std::move(v));
+			return index;
 		}
 	};
 }
