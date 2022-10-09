@@ -53,6 +53,8 @@ namespace te
 
 		optional_ref& operator=(te::nullopt_t) {
 			this->ptr = nullptr;
+
+			return *this;
 		}
 
 		optional_ref() = default;

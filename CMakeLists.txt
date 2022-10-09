@@ -33,5 +33,6 @@ make_module(
 		cheated_storage
 		simple_vector
 		mutex
+		call_on_scope_exit
 	CXX_STANDARD 23
 )

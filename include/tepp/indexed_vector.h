@@ -84,6 +84,22 @@ namespace te
 			this->data.push_back(std::move(v));
 			return index;
 		}
+
+		auto begin() {
+			return this->data.begin();
+		}
+
+		auto begin() const {
+			return this->data.begin();
+		}
+
+		auto end() {
+			return this->data.end();
+		}
+
+		auto end() const {
+			return this->data.end();
+		}
 	};
 }
 
