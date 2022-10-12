@@ -5,9 +5,9 @@
 
 #include <atomic>
 #include <vector>
-#include <variant>
 
-#include <tepp/tepp.h>
+#include "tepp.h"
+#include "variant.h"
 
 namespace te
 {
@@ -24,7 +24,7 @@ namespace te
 			T storage{};
 		};
 
-		using Update = std::variant<Retrieve, Send>;
+		using Update = te::variant<Retrieve, Send>;
 
 		struct rt
 		{
@@ -32,7 +32,7 @@ namespace te
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::visit([this]<class S_>(S_ && update) {
+					te::visit(update, [this]<class S_>(S_ && update) {
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Send>) {
@@ -41,7 +41,7 @@ namespace te
 						else if constexpr (std::same_as<S, Retrieve>) {
 							update.storage = this->value;
 						}
-					}, update);
+					});
 				}
 			}
 		};
@@ -76,13 +76,13 @@ namespace te
 			using process_tag = void;
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::visit([this]<class S_>(S_ && update) {
+					te::visit(update, [this]<class S_>(S_ && update) {
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Retrieve>) {
 							this->value = update.storage;
 						}
-					}, update);
+					});
 				}
 			}
 		};

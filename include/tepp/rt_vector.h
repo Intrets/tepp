@@ -2,12 +2,12 @@
 // Copyright (C) 2022 intrets
 
 #include <vector>
-#include <variant>
 #include <atomic>
 #include <cassert>
 
 #include "tepp.h"
 #include "simple_vector.h"
+#include "variant.h"
 
 namespace te
 {
@@ -99,7 +99,7 @@ namespace te
 			}
 		};
 
-		using Update = std::variant<Swap, Add, Pop, Set, ReplaceStorage, Clear, Copy, Extended...>;
+		using Update = te::variant<Swap, Add, Pop, Set, ReplaceStorage, Clear, Copy, Extended...>;
 
 		struct nonrt
 		{
@@ -135,7 +135,7 @@ namespace te
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::visit([this]<class S_>(S_ && update) {
+					te::visit(update, [this]<class S_>(S_ && update) {
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Add>) {
@@ -181,7 +181,7 @@ namespace te
 						else {
 							rand();
 						}
-					}, update);
+					});
 				}
 			}
 		};

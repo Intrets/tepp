@@ -3,14 +3,12 @@
 
 #pragma once
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-
 #include "intrusive_list.h"
 #include "simple_vector.h"
 #include "tepp.h"
+#include "variant.h"
 
 #include <vector>
-#include <variant>
 #include <numeric>
 #include <optional>
 
@@ -60,7 +58,7 @@ namespace te
 		{
 		};
 
-		using Update = std::variant<Add, RetrieveFrees, Clear, Extended...>;
+		using Update = te::variant<Add, RetrieveFrees, Clear, Extended...>;
 
 		struct nonrt
 		{
@@ -110,18 +108,16 @@ namespace te
 			using process_tag = void;
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::visit(overloaded{
+					te::visit(update,
 						[&](RetrieveFrees& retrieveFrees) {
 							retrieveFrees.frees.for_each(
 								[&](auto freeMemory) {
 									this->freeStorage.push_back(freeMemory.free);
 								}
 							);
-
 						},
 						[](auto&) {}
-						},
-						update);
+						);
 				}
 			}
 
@@ -148,17 +144,15 @@ namespace te
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::visit(overloaded{
+					te::visit(update,
 						[this](Add& add) {
 							this->data[add.index] = std::move(add.data);
 							assert(this->freeMemory[add.index] == nullptr);
 							this->freeMemory[add.index] = add.freeMemory.release();
-						},
-						[this](RetrieveFrees& retrieveFrees) {
+						}, [this](RetrieveFrees& retrieveFrees) {
 							assert(retrieveFrees.frees.empty());
 							retrieveFrees.frees.data = this->freeMemoryQueue.release();
-						},
-						[this](Clear) {
+						}, [this](Clear) {
 							for (size_t i = 0; i < size; i++) {
 								auto& entry = this->data[i];
 								entry.qualifier = {};
@@ -168,12 +162,9 @@ namespace te
 									this->freeMemoryQueue.insert_before(free);
 								}
 							}
-						},
-						[](auto& extended) {
+						}, [](auto& extended) {
 							extended.run();
-						}
-						},
-						update);
+						});
 				}
 			}
 		};

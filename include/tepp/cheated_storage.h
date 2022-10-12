@@ -3,6 +3,7 @@
 #include <type_traits>
 
 #include <cassert>
+#include <new>
 
 #if DEBUG_BUILD
 #include <mutex>

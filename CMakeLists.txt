@@ -34,5 +34,6 @@ make_module(
 		simple_vector
 		mutex
 		call_on_scope_exit
+		variant
 	CXX_STANDARD 23
 )
