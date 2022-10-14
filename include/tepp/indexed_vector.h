@@ -44,7 +44,7 @@ namespace te
 	struct indexed_vector
 	{
 	private:
-		using T = std::conditional_t<std::same_as<T_, bool>, int, T_>;
+		using T = std::conditional_t<std::same_as<T_, bool>, int8_t, T_>;
 
 		using data_type = std::vector<T>;
 		data_type data{};
