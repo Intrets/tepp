@@ -179,7 +179,6 @@ namespace te
 							update.run(this->data);
 						}
 						else {
-							rand();
 						}
 					});
 				}
