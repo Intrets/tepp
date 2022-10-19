@@ -1,9 +1,13 @@
 #pragma once
 
 #include <type_traits>
+#include <functional>
 
 #include <cassert>
 #include <new>
+
+#include "tepp/misc.h"
+#include "tepp/tepp.h"
 
 #if DEBUG_BUILD
 #include <mutex>
@@ -26,8 +30,42 @@ namespace te::debug
 
 namespace te
 {
-	template <size_t size, size_t align = alignof(max_align_t)>
-	struct cheated_storage
+	struct trivial_destructor {};
+	struct custom_destructor
+	{
+		std::function<void(void*)> f;
+	};
+	struct automatic_destructor
+	{
+		void (*f)(void*) = nullptr;
+	};
+
+	namespace detail
+	{
+		template<class T, size_t size, size_t align, te::member_of<te::list_type<trivial_destructor, custom_destructor, automatic_destructor>> destructor>
+		struct is_valid_storage
+		{
+			inline constexpr static bool valid_alignnment_and_size = [] {
+				return sizeof(T) <= size && alignof(T) == align;
+			}();
+
+			inline constexpr static bool valid_destructor = [] {
+				if constexpr (std::same_as<trivial_destructor, destructor>) {
+					return std::is_trivially_destructible_v<T>;
+				}
+
+				return true;
+			}();
+
+			inline constexpr static bool value = valid_destructor && valid_alignnment_and_size;
+		};
+	}
+
+	template<class T, size_t size, size_t align, class destructor>
+	concept valid_storage = detail::is_valid_storage<T, size, align, destructor>::value;
+
+	template <size_t size, size_t align, class destructor = trivial_destructor>
+	struct cheated_storage : destructor
 	{
 		alignas(align) std::byte storage[size];
 
@@ -35,24 +73,40 @@ namespace te
 		int typeIndex = debug::getTypeIndex<void>();
 #endif // DEBUG_BUILD
 
-		template<class T, class... Args>
+		template<te::valid_storage<size, align, destructor> T, class... Args>
+			requires (!std::same_as<destructor, custom_destructor>)
 		void init(Args&&... args) {
-			static_assert(sizeof(T) <= size);
-			static_assert(alignof(T) == align);
-
 #if DEBUG_BUILD
 			assert(this->typeIndex == debug::getTypeIndex<void>());
 			this->typeIndex = debug::getTypeIndex<T>();
 #endif // DEBUG_BUILD
 
+			if constexpr (std::same_as<destructor, automatic_destructor>) {
+				this->f = [](void* object) {
+					reinterpret_cast<T*>(object)->~T();
+				};
+			}
+
 			::new(&this->storage) T(std::forward<Args>(args)...);
 		}
 
-		template<class T>
-		T& access() {
-			static_assert(sizeof(T) <= size);
-			static_assert(alignof(T) == align);
+		template<te::valid_storage<size, align, destructor> T, class F, class... Args>
+			requires (std::same_as<destructor, custom_destructor>)
+		void init(F&& d, Args&&... args) {
+#if DEBUG_BUILD
+			assert(this->typeIndex == debug::getTypeIndex<void>());
+			this->typeIndex = debug::getTypeIndex<T>();
+#endif // DEBUG_BUILD
 
+			this->f = [d = std::forward<F>(d)](void* object) {
+				std::invoke(d, *reinterpret_cast<T*>(object));
+			};
+
+			::new(&this->storage) T(std::forward<Args>(args)...);
+		}
+
+		template<te::valid_storage<size, align, destructor> T>
+		T& access() {
 #if DEBUG_BUILD
 			assert(this->typeIndex == debug::getTypeIndex<T>());
 #endif // DEBUG_BUILD
@@ -60,16 +114,29 @@ namespace te
 			return *std::launder(reinterpret_cast<T*>(&this->storage));
 		}
 
-		template<class T>
+		template<te::valid_storage<size, align, destructor> T>
 		T const& access() const {
-			static_assert(sizeof(T) <= size);
-			static_assert(alignof(T) == align);
-
 #if DEBUG_BUILD
 			assert(this->typeIndex == debug::getTypeIndex<T>());
 #endif // DEBUG_BUILD
 
 			return *std::launder(reinterpret_cast<T const*>(&this->storage));
 		}
+
+		NO_COPY_MOVE(cheated_storage);
+
+		cheated_storage() = default;
+		~cheated_storage() {
+#if DEBUG_BUILD
+			assert(this->typeIndex != debug::getTypeIndex<void>());
+#endif // DEBUG_BUILD
+
+			if constexpr (std::same_as<destructor, automatic_destructor>) {
+				this->f(this->storage);
+			}
+			else if constexpr (std::same_as<destructor, custom_destructor>) {
+				this->f(this->storage);
+			}
+		};
 	};
 }
