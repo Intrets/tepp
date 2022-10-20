@@ -35,5 +35,6 @@ make_module(
 		mutex
 		call_on_scope_exit
 		variant
+		binary_semaphore
 	CXX_STANDARD 23
 )
