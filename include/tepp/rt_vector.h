@@ -133,6 +133,14 @@ namespace te
 				return this->data.begin() + this->data.size;
 			}
 
+			T& operator[](IndexType i) {
+				return this->data[i];
+			}
+
+			T const& operator[](IndexType i) const {
+				return this->data[i];
+			}
+
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
 					te::visit(update, [this]<class S_>(S_ && update) {
