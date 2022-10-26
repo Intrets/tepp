@@ -49,6 +49,10 @@ namespace te
 			this->size = this->capacity;
 		}
 
+		inline bool isAtCapacity() const {
+			return this->size == this->capacity;
+		}
+
 		simple_vector(simple_vector&& other) noexcept {
 			this->data = other.data;
 			other.data = nullptr;
