@@ -44,12 +44,12 @@ namespace te
 			this->size++;
 		}
 
-		inline void fillToCapacity(T const& v) {
+		inline void fill_to_capacity(T const& v) {
 			std::fill(this->data, this->data + this->capacity, v);
 			this->size = this->capacity;
 		}
 
-		inline bool isAtCapacity() const {
+		inline bool is_at_capacity() const {
 			return this->size == this->capacity;
 		}
 
