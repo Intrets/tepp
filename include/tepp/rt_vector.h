@@ -141,6 +141,10 @@ namespace te
 				return this->data[i];
 			}
 
+			auto size() const {
+				return this->data.size();
+			}
+
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
 					te::visit(update, [this]<class S_>(S_ && update) {
@@ -210,6 +214,8 @@ namespace te
 
 	template<class T, class IndexType, class... Extended>
 	inline void rt_vector<T, IndexType, Extended...>::nonrt::set(simple_vector<T>&& v) {
+		this->size = v.size;
+		this->capacity = v.capacity;
 		this->queue->push_back(Set(std::move(v)));
 	}
 
