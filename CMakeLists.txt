@@ -19,6 +19,7 @@ make_module(
 		rt_vector
 		rt_aggregate
 		rt_value
+		rt_move_value
 		rt_queue
 		rt_storage
 		cached_heap_object
