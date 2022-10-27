@@ -123,8 +123,6 @@ namespace te
 			return *std::launder(reinterpret_cast<T const*>(&this->storage));
 		}
 
-		NO_COPY_MOVE(cheated_storage);
-
 		cheated_storage() = default;
 		~cheated_storage() {
 #if DEBUG_BUILD
