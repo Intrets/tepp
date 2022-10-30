@@ -5,28 +5,59 @@
 
 #include <vector>
 
-#include "tepp.h"
-#include "variant.h"
+#include "tepp/tepp.h"
+#include "tepp/variant.h"
 
 namespace te
 {
 	template<class T>
 	struct rt_move_value
 	{
-		struct Swap
+		struct Storage
 		{
-			T storage{};
+			T value{};
+			bool ready{};
 		};
 
-		using Update = Swap;
+		struct Swap
+		{
+			Storage storage{};
+		};
+
+		struct Clear
+		{
+			Storage storage{};
+		};
+
+		using Update = te::variant<Swap, Clear>;
 
 		struct rt
 		{
-			T value{};
+			Storage storage{};
+
+			void send() {
+				this->storage.ready = true;
+			}
+
+			T& getValue() {
+				return this->storage.value;
+			}
+
+			T const& getValue() const {
+				return this->storage.value;
+			}
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::swap(this->value, update.storage);
+					te::visit(update,
+						[this](Swap& swap_) {
+							if (this->storage.ready) {
+								std::swap(this->storage, swap_.storage);
+							}
+						},
+						[&](Clear& clear) {
+							std::swap(this->storage, clear.storage);
+						});
 				}
 			}
 		};
@@ -36,23 +67,27 @@ namespace te
 			T value{};
 
 			std::vector<Update>* queue{};
-			void clear();
+			void clear() {
+				this->queue->push_back(Clear{});
+			};
 
 			void swap(T&& t) {
-				this->queue->push_back(Swap{ .storage = std::move(t) });
+				this->queue->push_back(Swap{ .storage = {.value = std::move(t) } });
 			}
 
 			using process_tag = void;
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					std::swap(this->value, update.storage);
+					te::visit(update,
+						[this](Swap& swap_) {
+							if (swap_.storage.ready) {
+								std::swap(this->value, swap_.storage.value);
+							}
+						},
+						[&](Clear& clear) {
+						});
 				}
 			}
 		};
 	};
-
-	template<class T>
-	inline void rt_move_value<T>::nonrt::clear() {
-		this->swap({});
-	}
 }
