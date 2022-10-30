@@ -31,10 +31,27 @@ namespace te
 			return &data[this->size];
 		}
 
+		inline T const& front() const {
+			assert(this->size > 0);
+			return data[0];
+		}
+
+		inline T const& back() const {
+			assert(this->size > 0);
+			return data[this->size - 1];
+		}
+
 		inline T pop() {
 			assert(this->size > 0);
 			this->size--;
 			return std::move(this->data[this->size]);
+		}
+
+		inline void push_back(T const& v) {
+			assert(this->size < this->capacity);
+
+			data[this->size] = v;
+			this->size++;
 		}
 
 		inline void push_back(T&& v) {
@@ -87,6 +104,13 @@ namespace te
 		simple_vector(size_t capacity_) {
 			this->capacity = capacity_;
 			this->data = new T[capacity];
+		}
+
+		void delete_buffer() {
+			this->size = 0;
+			this->capacity = 0;
+			delete[] this->data;
+			this->data = nullptr;
 		}
 
 		~simple_vector() {
