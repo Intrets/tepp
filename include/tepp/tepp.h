@@ -870,7 +870,7 @@ namespace te
 		struct for_each<F, T, std::index_sequence<I...>>
 		{
 			constexpr static auto apply(F&& f, T&& t) {
-				(f(std::get<I>(t)), ...);
+				(f(std::get<I>(std::forward<T>(t))), ...);
 			}
 		};
 	}
