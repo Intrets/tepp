@@ -11,7 +11,12 @@
 
 namespace te
 {
-	template<class T>
+	template<class T, class S>
+	concept has_rt_value_run = requires (T v, S s) {
+		s.run(v);
+	};
+
+	template<class T, class... Extended>
 	struct rt_value
 	{
 		struct Retrieve
@@ -24,7 +29,7 @@ namespace te
 			T storage{};
 		};
 
-		using Update = te::variant<Retrieve, Send>;
+		using Update = te::variant<Retrieve, Send, Extended...>;
 
 		struct rt
 		{
@@ -40,6 +45,9 @@ namespace te
 						}
 						else if constexpr (std::same_as<S, Retrieve>) {
 							update.storage = this->value;
+						}
+						else if constexpr (has_rt_value_run<T, S>) {
+							update.run(this->value);
 						}
 					});
 				}
@@ -88,8 +96,8 @@ namespace te
 		};
 	};
 
-	template<class T>
-	inline void rt_value<T>::nonrt::clear() {
+	template<class T, class... Extended>
+	inline void rt_value<T, Extended...>::nonrt::clear() {
 		this->addUpdate(Send());
 	}
 }
