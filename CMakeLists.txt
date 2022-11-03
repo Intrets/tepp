@@ -37,5 +37,6 @@ make_module(
 		call_on_scope_exit
 		variant
 		binary_semaphore
+		type_index
 	CXX_STANDARD 23
 )
