@@ -10,6 +10,7 @@ namespace te
 	namespace detail
 	{
 		template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+		template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 	}
 
 	template<class V, class... Visitors>

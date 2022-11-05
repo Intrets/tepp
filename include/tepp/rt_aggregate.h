@@ -67,7 +67,7 @@ namespace te
 			return std::nullopt;
 		}
 		else {
-			using T = std::decay_t<decltype(*ptr)>::data_type;
+			using T = typename std::decay_t<decltype(*ptr)>::data_type;
 			ptr->front().for_each_forward(
 				[&](T& updates) {
 					te::tuple_for_each(
@@ -128,7 +128,7 @@ namespace te
 
 		auto maybeCleanup = this->cleanup.exchange(nullptr);
 
-		using T = std::decay_t<decltype(*maybeCleanup)>::data_type;
+		using T = typename std::decay_t<decltype(*maybeCleanup)>::data_type;
 		maybeUpdates->front().for_each_forward(
 			[&](T& updates) {
 				te::tuple_for_each(

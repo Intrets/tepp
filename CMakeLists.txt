@@ -29,6 +29,7 @@ make_module(
 		call_once
 		intrusive_list
 		string_literal
+		literal
 		atomic_value
 		indexed_vector
 		cheated_storage

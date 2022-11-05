@@ -22,6 +22,7 @@ namespace te
 
 	template<class F>
 	static void call_once(F&& f) {
+		[[maybe_unused]]
 		static auto once = detail::call_once_t(std::forward<F>(f));
 	}
 }
