@@ -118,6 +118,9 @@ namespace te
 			void addUpdate(S&& s) {
 				this->queue->push_back(std::forward<S>(s));
 			}
+
+			void processUpdates(std::vector<Update>& updates) {
+			}
 		};
 
 

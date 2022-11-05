@@ -31,6 +31,9 @@ namespace te
 				this->queue->push_back(std::move(v));
 			}
 
+			void processUpdates(std::vector<Update>& updates) {
+			}
+
 			void clear() {
 			};
 		};

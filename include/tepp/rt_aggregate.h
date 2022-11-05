@@ -73,9 +73,7 @@ namespace te
 					te::tuple_for_each(
 						[](auto&& e) {
 							auto&& [object, update] = e;
-							if constexpr (has_process_updates<decltype(object)>) {
-								object.processUpdates(update);
-							}
+							object.processUpdates(update);
 						},
 						te::tuple_zip(
 							te::tie_tuple_elements(this->nonrt_objects),
