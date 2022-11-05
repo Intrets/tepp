@@ -28,8 +28,8 @@ namespace te
 
 		public:
 			const_iterator(rt_export& parent_, int index_) noexcept :
-				parent(parent_),
-				index(index_) {
+				index(index_) ,
+				parent(parent_){
 			}
 
 			const_iterator& operator++() noexcept {
