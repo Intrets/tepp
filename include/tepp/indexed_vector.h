@@ -9,17 +9,17 @@
 
 namespace te
 {
-	template<string_literal name>
+	template<string_literal name, class T = size_t>
 	struct index
 	{
-		size_t value = 0;
+		T value = 0;
 
 		index() = default;
-		explicit index(size_t v) : value(v) {
+		explicit index(T v) : value(v) {
 		}
 		~index() = default;
 
-		operator size_t() const {
+		operator T() const {
 			return this->value;
 		}
 
@@ -103,10 +103,10 @@ namespace te
 	};
 }
 
-template<te::string_literal name>
-struct std::hash<te::index<name>>
+template<te::string_literal name, class T>
+struct std::hash<te::index<name, T>>
 {
-	size_t operator()(te::index<name> const& index) const {
-		return std::hash<size_t>{}(index.value);
+	T operator()(te::index<name> const& index) const {
+		return std::hash<T>{}(index.value);
 	}
 };
