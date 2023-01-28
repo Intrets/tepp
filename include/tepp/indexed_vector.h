@@ -32,7 +32,8 @@ namespace te
 		}
 
 		index& operator++() {
-			return index(++this->value);
+			++this->value;
+			return *this;
 		}
 
 		index operator++(int) {
