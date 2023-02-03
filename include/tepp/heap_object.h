@@ -22,30 +22,40 @@ namespace te
 			return this->get();
 		}
 
-		operator T& () {
+		operator T&() {
 			return *this->object;
 		}
 
-		T* copy() const {
-			return new T(this->object);
+		operator T const&() const {
+			return *this->object;
 		}
 
-		heap_object() : object(new T) {
+		T& operator*() {
+			return *this->object;
+		}
+
+		T const& operator*() const {
+			return *this->object;
+		}
+
+		heap_object()
+		    : object(new T) {
 		}
 
 		template<class... Args>
-		heap_object(Args&&... args) : object(new T(std::forward<Args>(args)...)) {
+		heap_object(Args&&... args)
+		    : object(new T(std::forward<Args>(args)...)) {
 		}
 
-
-		heap_object(heap_object const& other) {
-			this->object = other.copy();
+		heap_object(heap_object const& other)
+		    : heap_object() {
+			*this->object = *other.object;
 		}
 
-		heap_object(heap_object&& other) {
-			this->object = new T(std::move(*other.object));
+		heap_object(heap_object&& other)
+		    : heap_object() {
+			*this->object = std::move(*other.object);
 		}
-
 
 		heap_object& operator=(heap_object const& other) {
 			*this->object = *other.object;
@@ -54,7 +64,6 @@ namespace te
 		heap_object& operator=(heap_object&& other) {
 			*this->object = std::move(*other.object);
 		}
-
 
 		~heap_object() {
 			delete this->object;
