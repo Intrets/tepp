@@ -886,6 +886,14 @@ namespace te
 		(f(std::forward<decltype(args)>(args)), ...);
 	}
 
+	template<size_t I,class F>
+	constexpr static void repeat(F&& f) {
+		if constexpr (I != 0) {
+			std::invoke(std::forward<F>(f));
+			repeat<I - 1>(std::forward<F>(f));
+		}
+	}
+
 	namespace detail
 	{
 		template<class F, list L>

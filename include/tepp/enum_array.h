@@ -109,5 +109,9 @@ namespace te
 		constexpr iterator end() noexcept {
 			return data.end();
 		}
+
+		auto getRawPtr() noexcept {
+			return this->data.data();
+		}
 	};
 }
