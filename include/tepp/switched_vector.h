@@ -75,13 +75,37 @@ namespace te
 			}
 		}
 
-		auto get_selected_index() const{
+		auto get_selected_index() const {
 			return this->index;
 		}
 
 		void selectLast() {
 			assert(this->data.size() > 0);
 			this->index = this->data.size() - 1;
+		}
+
+		auto begin() const {
+			return this->data.begin();
+		}
+
+		auto end() const {
+			return this->data.begin();
+		}
+
+		auto begin() {
+			return this->data.begin();
+		}
+
+		auto end() {
+			return this->data.begin();
+		}
+
+		auto const& operator[](std::integral auto i) const {
+			return this->data[i];
+		}
+
+		auto& operator[](std::integral auto i) {
+			return this->data[i];
 		}
 	};
 }
