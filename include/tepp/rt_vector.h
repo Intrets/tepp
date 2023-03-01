@@ -145,7 +145,7 @@ namespace te
 			}
 
 			auto size() const {
-				return this->data.size();
+				return this->data.size;
 			}
 
 			void processUpdates(std::vector<Update>& updates) {
