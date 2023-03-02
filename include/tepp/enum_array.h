@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cassert>
-#include <ranges>
-#include <algorithm>
 #include <optional>
+#include <ranges>
 
 namespace te
 {
@@ -48,7 +48,8 @@ namespace te
 		constexpr enum_array() = default;
 
 		template<class... Args>
-		constexpr enum_array(Args&&... args) : data{ args... } {
+		constexpr enum_array(Args&&... args)
+		    : data{ args... } {
 		}
 
 		using A = std::array<T, size>;
@@ -108,6 +109,24 @@ namespace te
 
 		constexpr iterator end() noexcept {
 			return data.end();
+		}
+
+		template<class F>
+		constexpr void forEach(F&& f) const {
+			for (size_t i = 0; i < size; i++) {
+				auto e = static_cast<EnumType>(i);
+
+				std::invoke(std::forward<F>(f), e, this->operator[](e));
+			}
+		}
+
+		template<class F>
+		constexpr void forEach(F&& f) {
+			for (size_t i = 0; i < size; i++) {
+				auto e = static_cast<EnumType>(i);
+
+				std::invoke(std::forward<F>(f), e, this->operator[](e));
+			}
 		}
 
 		auto getRawPtr() noexcept {
