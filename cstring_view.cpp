@@ -1,8 +1,12 @@
 #include "tepp/cstring_view.h"
 
+#include <cassert>
+
 namespace te
 {
-	char const* cstring_view::getData() const {
-		return this->data;
+	cstring_view::cstring_view(char const* str, size_t size_)
+	    : data(str),
+	      size(size_) {
+		assert(str[size_] == '\0');
 	}
 }
