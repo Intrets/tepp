@@ -39,5 +39,6 @@ make_module(
 		variant
 		binary_semaphore
 		type_index
+		cstring_view
 	CXX_STANDARD 23
 )
