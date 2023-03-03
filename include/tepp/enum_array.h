@@ -116,7 +116,7 @@ namespace te
 			for (size_t i = 0; i < size; i++) {
 				auto e = static_cast<EnumType>(i);
 
-				std::invoke(std::forward<F>(f), e, this->operator[](e));
+				f(e, this->operator[](e));
 			}
 		}
 
@@ -125,7 +125,7 @@ namespace te
 			for (size_t i = 0; i < size; i++) {
 				auto e = static_cast<EnumType>(i);
 
-				std::invoke(std::forward<F>(f), e, this->operator[](e));
+				f(e, this->operator[](e));
 			}
 		}
 

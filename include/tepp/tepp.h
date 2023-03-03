@@ -889,7 +889,7 @@ namespace te
 	template<size_t I,class F>
 	constexpr static void repeat(F&& f) {
 		if constexpr (I != 0) {
-			std::invoke(std::forward<F>(f));
+			std::invoke(f);
 			repeat<I - 1>(std::forward<F>(f));
 		}
 	}
