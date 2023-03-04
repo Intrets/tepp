@@ -29,10 +29,19 @@ namespace te
 			value_type value;
 
 			template<std::same_as<T> S>
-				requires (!b)
+			    requires(!b)
 			WrappedValue& operator=(S const* value_) {
 				this->value = value_;
 				return *this;
+			}
+
+			T& get() {
+				if constexpr (b) {
+					return value;
+				}
+				else {
+					return *value;
+				}
 			}
 
 			T const& get() const {
@@ -56,17 +65,45 @@ namespace te
 		te::optional_ref<K1 const> getRight(K2&& k2);
 		te::optional_ref<K2 const> getLeft(K1&& k1);
 
+		te::optional_ref<K1 const> getRight(K2 const& k2);
+		te::optional_ref<K2 const> getLeft(K1 const& k1);
+
 		void removeLeft(K1&& k1);
 		void removeRight(K2&& k2);
 
+		bool insert(K1 const& k1, K2 const& k2);
 		bool insert(K1&& k1, K2&& k2);
 	};
+
+	template<class K1, class K2, class LeftType, class RightType>
+	inline te::optional_ref<K1 const> bi_map<K1, K2, LeftType, RightType>::getRight(K2 const& k2) {
+		auto it = this->right.find(k2);
+
+		if (it != this->right.end()) {
+			return it->second.get();
+		}
+		else {
+			return te::nullopt;
+		}
+	}
 
 	template<class K1, class K2, class LeftType, class RightType>
 	inline te::optional_ref<K1 const> bi_map<K1, K2, LeftType, RightType>::getRight(K2&& k2) {
 		auto it = this->right.find(k2);
 
 		if (it != this->right.end()) {
+			return it->second.get();
+		}
+		else {
+			return te::nullopt;
+		}
+	}
+
+	template<class K1, class K2, class LeftType, class RightType>
+	inline te::optional_ref<K2 const> bi_map<K1, K2, LeftType, RightType>::getLeft(K1 const& k1) {
+		auto it = this->left.find(k1);
+
+		if (it != this->left.end()) {
 			return it->second.get();
 		}
 		else {
@@ -121,6 +158,36 @@ namespace te
 	}
 
 	template<class K1, class K2, class LeftType, class RightType>
+	inline bool bi_map<K1, K2, LeftType, RightType>::insert(K1 const& k1, K2 const& k2) {
+		auto&& [it1, b1] = this->left.insert({ k1, {} });
+		if (!b1) {
+			return false;
+		}
+
+		auto&& [it2, b2] = this->right.insert({ k2, {} });
+		if (!b2) {
+			this->left.erase(k1);
+			return false;
+		}
+
+		 if constexpr (is_value1) {
+			it2->second.value = it1->first;
+		 }
+		 else {
+			it2->second = &it1->first;
+		 }
+
+		 if constexpr (is_value2) {
+			it1->second.value = it2->first;
+		 }
+		 else {
+			it1->second = &it2->first;
+		 }
+
+		return true;
+	}
+
+	template<class K1, class K2, class LeftType, class RightType>
 	inline bool bi_map<K1, K2, LeftType, RightType>::insert(K1&& k1, K2&& k2) {
 		auto&& [it1, b1] = this->left.insert({ k1, {} });
 		if (!b1) {
@@ -129,19 +196,19 @@ namespace te
 
 		auto&& [it2, b2] = this->right.insert({ k2, {} });
 		if (!b2) {
-			this->left.erase(std::forward<K1>(k1));
+			this->left.erase(k1);
 			return false;
 		}
 
 		if constexpr (is_value1) {
-			it2->second = it1->first;
+			it2->second.value = it1->first;
 		}
 		else {
 			it2->second = &it1->first;
 		}
 
 		if constexpr (is_value2) {
-			it1->second = it2->first;
+			it1->second.value = it2->first;
 		}
 		else {
 			it1->second = &it2->first;
