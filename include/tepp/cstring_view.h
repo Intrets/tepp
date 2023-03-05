@@ -23,6 +23,10 @@ namespace te
 		template<size_t N>
 		constexpr cstring_view(char const (&str)[N]);
 
+		std::string string() const {
+			return std::string(this->string_view());
+		}
+
 		cstring_view(char const* str, size_t size_);
 		cstring_view() = default;
 		~cstring_view() = default;
