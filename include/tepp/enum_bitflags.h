@@ -28,6 +28,10 @@ namespace te
 
 		~enum_bitflags() = default;
 
+		constexpr bool operator==(enum_bitflags other) const {
+			return this->data == other.data;
+		}
+
 		constexpr enum_bitflags operator&(enum_bitflags other) const {
 			return enum_bitflags{ this->data & other.data };
 		}
