@@ -15,7 +15,8 @@ namespace te
 		T value = 0;
 
 		index() = default;
-		explicit index(T v) : value(v) {
+		explicit index(T v)
+		    : value(v) {
 		}
 		~index() = default;
 
@@ -62,6 +63,12 @@ namespace te
 		}
 		~indexed_vector() = default;
 
+		indexed_vector empty_copy() const {
+			indexed_vector result{};
+			result.data.resize(this->size());
+			return result;
+		}
+
 		T& operator[](index<name> index) {
 			return this->data[index.value];
 		}
@@ -84,6 +91,10 @@ namespace te
 			auto index = this->size();
 			this->data.push_back(std::move(v));
 			return index;
+		}
+
+		index<name> begin_index() const {
+			return te::index<name>(0);
 		}
 
 		auto begin() {
