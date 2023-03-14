@@ -1,20 +1,18 @@
 // tepp - A template library for C++
 // Copyright (C) 2022 intrets
 
-#include <vector>
 #include <atomic>
 #include <cassert>
+#include <vector>
 
-#include "tepp.h"
 #include "simple_vector.h"
+#include "tepp.h"
 #include "variant.h"
 
 namespace te
 {
 	template<class T, class S>
-	concept has_rt_vector_run = requires (te::simple_vector<T> v, S s) {
-		s.run(v);
-	};
+	concept has_rt_vector_run = requires(te::simple_vector<T> v, S s) { s.run(v); };
 
 	enum class rt_vector_tag
 	{
@@ -24,13 +22,12 @@ namespace te
 		set,
 		replaceStorage,
 		clear,
-		copy
+		overwriteClear,
+		copy,
 	};
 
 	template<class T, rt_vector_tag tag>
-	concept has_rt_vector_tag = requires (T t) {
-		T::tag;
-	}&& T::tag == tag;
+	concept has_rt_vector_tag = requires(T t) { T::tag; } && (T::tag == tag);
 
 	template<class T, class IndexType = size_t, class... Extended>
 	struct rt_vector
@@ -65,7 +62,8 @@ namespace te
 
 			simple_vector<T> storage;
 
-			ReplaceStorage(size_t size) : storage(size) {
+			ReplaceStorage(size_t size)
+			    : storage(size) {
 			}
 		};
 
@@ -75,7 +73,8 @@ namespace te
 
 			simple_vector<T> storage;
 
-			Set(simple_vector<T>&& storage_) : storage(std::move(storage_)) {
+			Set(simple_vector<T>&& storage_)
+			    : storage(std::move(storage_)) {
 			}
 		};
 
@@ -85,8 +84,14 @@ namespace te
 
 			simple_vector<T> storage;
 
-			Clear(size_t size) : storage(size) {
+			Clear(size_t size)
+			    : storage(size) {
 			}
+		};
+
+		struct OverwriteClear
+		{
+			static constexpr auto tag = rt_vector_tag::overwriteClear;
 		};
 
 		struct Copy
@@ -95,11 +100,12 @@ namespace te
 
 			simple_vector<T> storage;
 
-			Copy(size_t size) : storage(size) {
+			Copy(size_t size)
+			    : storage(size) {
 			}
 		};
 
-		using Update = te::variant<Swap, Add, Pop, Set, ReplaceStorage, Clear, Copy, Extended...>;
+		using Update = te::variant<Swap, Add, Pop, Set, ReplaceStorage, Clear, OverwriteClear, Copy, Extended...>;
 
 		struct nonrt
 		{
@@ -111,6 +117,7 @@ namespace te
 			void swap(IndexType from, IndexType to);
 			void pop();
 			void clear();
+			void overwriteClear();
 			void getCopy();
 			void set(simple_vector<T>&& v);
 
@@ -122,7 +129,6 @@ namespace te
 			void processUpdates(std::vector<Update>& updates) {
 			}
 		};
-
 
 		struct rt
 		{
@@ -150,7 +156,7 @@ namespace te
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					te::visit(update, [this]<class S_>(S_ && update) {
+					te::visit(update, [this]<class S_>(S_&& update) {
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Add>) {
@@ -185,6 +191,9 @@ namespace te
 						else if constexpr (std::same_as<S, Clear>) {
 							std::swap(this->data, update.storage);
 						}
+						else if constexpr (std::same_as<S, OverwriteClear>) {
+							this->data.size = 0;
+						}
 						else if constexpr (std::same_as<S, Copy> && std::copyable<T>) {
 							assert(this->data.size <= update.storage.capacity);
 							std::copy_n(this->data.begin(), this->data.size, update.storage.begin());
@@ -206,6 +215,12 @@ namespace te
 		Clear c{ this->capacity };
 		this->size = 0;
 		this->queue->push_back(std::move(c));
+	}
+
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::overwriteClear() {
+		this->size = 0;
+		this->queue->push_back(OverwriteClear{});
 	}
 
 	template<class T, class IndexType, class... Extended>
