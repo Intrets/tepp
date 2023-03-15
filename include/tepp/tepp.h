@@ -1,4 +1,4 @@
-/ tepp - a template library for c++
+// tepp - a template library for c++
 // Copyright (C) 2022 intrets
 
 #pragma once
@@ -836,7 +836,7 @@ namespace te
 	concept same_tuple_size = (std::tuple_size_v<std::remove_cvref_t<T1>> == std::tuple_size_v<std::remove_cvref_t<T2>>);
 
 	template<class T, same_tuple_size<T>... Ts>
-	constexpr static auto tuple_zip(T && t, Ts && ... ts) {
+	constexpr static auto tuple_zip(T&& t, Ts&&... ts) {
 		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<T>>;
 
 		return detail::tuple_zip<
@@ -860,7 +860,7 @@ namespace te
 	}
 
 	template<class F, class Tuple>
-	constexpr static auto tuple_for_each(F && f, Tuple && t) {
+	constexpr static auto tuple_for_each(F&& f, Tuple&& t) {
 		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<Tuple>>;
 
 		detail::for_each<F, Tuple, std::make_index_sequence<size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
@@ -871,7 +871,7 @@ namespace te
 	}
 
 	template<size_t I, class F>
-	constexpr static void repeat(F && f) {
+	constexpr static void repeat(F&& f) {
 		if constexpr (I != 0) {
 			std::invoke(f);
 			repeat<I - 1>(std::forward<F>(f));
