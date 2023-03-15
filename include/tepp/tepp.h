@@ -1,21 +1,22 @@
-// tepp - a template library for c++
+/ tepp - a template library for c++
 // Copyright (C) 2022 intrets
 
 #pragma once
 
-#include <type_traits>
 #include <functional>
 #include <tuple>
+#include <type_traits>
 
 namespace te
 {
 	namespace detail
 	{
 		template<class T>
-		concept has_value = requires (T t) {
-			T::value;
-			t.value;
-		};
+		concept has_value =
+		    requires(T t) {
+			    T::value;
+			    t.value;
+		    };
 
 		template<class T>
 		struct Type;
@@ -32,7 +33,6 @@ namespace te
 		{
 			using type = T;
 		};
-
 
 		template<class T>
 		struct is_type;
@@ -175,7 +175,6 @@ namespace te
 	template<class T>
 	concept list = detail::is_list<T>::value;
 
-
 	namespace detail
 	{
 		template<list L>
@@ -224,7 +223,7 @@ namespace te
 		template<template<class...> class T2, list L>
 		struct is_same_list_type;
 
-		template< template<class...> class T2, template<class...> class T1, class... Args>
+		template<template<class...> class T2, template<class...> class T1, class... Args>
 		struct is_same_list_type<T2, T1<Args...>>
 		{
 			constexpr static bool value = std::same_as<T1<Args...>, T2<Args...>>;
@@ -283,7 +282,6 @@ namespace te
 	template<class L, template<class...> class T2>
 	concept same_list_type = is_same_list_type_v<T2, L>;
 
-
 	template<list L>
 	using head_t = typename detail::head<L>::type;
 
@@ -305,10 +303,9 @@ namespace te
 		struct list_cat<L<Arg>>
 		{
 			using type = std::conditional_t<
-				list_size_v<Arg> == 0,
-				L<>,
-				L<Arg>
-			>;
+			    list_size_v<Arg> == 0,
+			    L<>,
+			    L<Arg>>;
 		};
 
 		template<template<class...> class L, list Arg, list... Args>
@@ -317,10 +314,9 @@ namespace te
 			using next = typename detail::list_cat<L<Args...>>::type;
 
 			using type = std::conditional_t<
-				list_size_v<Arg> == 0,
-				next,
-				typename detail::prepend<Arg, next>::type
-			>;
+			    list_size_v<Arg> == 0,
+			    next,
+			    typename detail::prepend<Arg, next>::type>;
 		};
 	}
 
@@ -347,7 +343,7 @@ namespace te
 	};
 
 	template<meta T1, meta T2>
-	consteval auto operator== (T1, T2) {
+	consteval auto operator==(T1, T2) {
 		return Value<std::same_as<T1, T2>>;
 	}
 
@@ -385,10 +381,9 @@ namespace te
 		struct filter<F, L<Arg>>
 		{
 			using type = std::conditional_t<
-				std::invoke_result_t<F, Type_t<Arg>>::value,
-				L<Arg>,
-				L<>
-			>;
+			    std::invoke_result_t<F, Type_t<Arg>>::value,
+			    L<Arg>,
+			    L<>>;
 		};
 
 		template<class F, template<class...> class L, class Arg, class... Args>
@@ -397,10 +392,9 @@ namespace te
 			using next = typename detail::filter<F, L<Args...>>::type;
 
 			using type = std::conditional_t<
-				std::invoke_result_t<F, Type_t<Arg>>::value,
-				prepend_t<Arg, next>,
-				next
-			>;
+			    std::invoke_result_t<F, Type_t<Arg>>::value,
+			    prepend_t<Arg, next>,
+			    next>;
 		};
 	}
 
@@ -412,7 +406,7 @@ namespace te
 		return Type<typename detail::filter<F, L>::type>;
 	}
 
-	constexpr auto apply = []<type_function_c F, template<class...> class L, class... Ls> (F f, Type_t<L<Ls...>>) {
+	constexpr auto apply = []<type_function_c F, template<class...> class L, class... Ls>(F f, Type_t<L<Ls...>>) {
 		return f(Type<Ls>...);
 	};
 
@@ -441,7 +435,7 @@ namespace te
 	};
 
 	constexpr auto is = []<class T>(T) {
-		return[]<class S>(S) {
+		return []<class S>(S) {
 			return Value<std::same_as<S, T>>;
 		};
 	};
@@ -462,12 +456,12 @@ namespace te
 
 	template<auto v1, auto v2>
 	constexpr auto operator||(Value_t<v1>, Value_t<v2>) {
-		return Value<v1 || v2>;
+		return Value < v1 || v2 > ;
 	}
 
 	template<auto v1, auto v2>
 	constexpr auto operator&&(Value_t<v1>, Value_t<v2>) {
-		return Value<v1&& v2>;
+		return Value < v1 && v2 > ;
 	}
 
 	template<auto v>
@@ -480,7 +474,7 @@ namespace te
 		template<size_t N>
 		struct string
 		{
-			constexpr string(const char(&str)[N]) {
+			constexpr string(char const (&str)[N]) {
 				std::copy_n(str, N, value);
 			}
 
@@ -504,10 +498,9 @@ namespace te
 		struct reverse
 		{
 			using value = typename reverse<
-				I - 1,
-				tail_t<L>,
-				prepend_t<head_t<L>, R>
-			>::value;
+			    I - 1,
+			    tail_t<L>,
+			    prepend_t<head_t<L>, R>>::value;
 		};
 	}
 
@@ -565,7 +558,6 @@ namespace te
 	template<class T, class L>
 	concept member_of = contains_v<L, T>;
 
-
 	template<class T>
 	struct is_std_fun;
 
@@ -587,12 +579,11 @@ namespace te
 	template<class T>
 	concept std_fun = is_std_fun_v<T>;
 
-
 	template<class T>
 	struct is_c_fun;
 
 	template<class R, class... Args>
-	struct is_c_fun<R(*)(Args...)> : std::true_type
+	struct is_c_fun<R (*)(Args...)> : std::true_type
 	{
 		using return_type = R;
 		using arguments_list = list_type<Args...>;
@@ -609,12 +600,11 @@ namespace te
 	template<class T>
 	concept c_fun = is_c_fun_v<T>;
 
-
 	template<class T>
 	struct is_member_fun;
 
-	template<class R, class B, class...Args>
-	struct is_member_fun<R(B::*)(Args...)> : std::true_type
+	template<class R, class B, class... Args>
+	struct is_member_fun<R (B::*)(Args...)> : std::true_type
 	{
 		using return_type = R;
 		using arguments_list = list_type<Args...>;
@@ -632,7 +622,6 @@ namespace te
 	template<class T>
 	concept member_fun = is_member_fun_v<T>;
 
-
 	template<class, class = void>
 	struct is_lambda_fun : std::false_type
 	{
@@ -649,7 +638,6 @@ namespace te
 
 	template<class T>
 	concept lambda_fun = is_lambda_fun_v<T>;
-
 
 	template<class T>
 	struct deconstruct_fun;
@@ -672,12 +660,11 @@ namespace te
 	struct deconstruct_lambda_member_fun;
 
 	template<class R, class B, class... Args>
-	struct deconstruct_lambda_member_fun<R(B::*)(Args...) const>
+	struct deconstruct_lambda_member_fun<R (B::*)(Args...) const>
 	{
 		using return_type = R;
 		using arguments_list = list_type<Args...>;
 	};
-
 
 	template<lambda_fun T>
 	struct deconstruct_fun<T>
@@ -719,9 +706,10 @@ namespace te
 		};
 
 		template<class T, class... Args>
-		concept number_arguments_concept = requires (T t) {
-			t(std::declval<Args>()...);
-		};
+		concept number_arguments_concept =
+		    requires(T t) {
+			    t(std::declval<Args>()...);
+		    };
 
 		template<class T, list List>
 		struct number_arguments_test;
@@ -819,12 +807,9 @@ namespace te
 
 	template<class T, int I>
 	concept number_of_arguments_is =
-		impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
-		((requires (T t) {
-		&T::operator();
-	}) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
-		((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
-
+	    impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
+	    ((requires(T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
+	    ((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
 
 	namespace detail
 	{
@@ -841,7 +826,7 @@ namespace te
 
 			constexpr static auto apply(Ts&&... ts) {
 				return std::make_tuple(
-					apply2<I>(std::forward<Ts>(ts)...)...
+				    apply2<I>(std::forward<Ts>(ts)...)...
 				);
 			}
 		};
@@ -851,14 +836,13 @@ namespace te
 	concept same_tuple_size = (std::tuple_size_v<std::remove_cvref_t<T1>> == std::tuple_size_v<std::remove_cvref_t<T2>>);
 
 	template<class T, same_tuple_size<T>... Ts>
-	constexpr static auto tuple_zip(T&& t, Ts&&... ts) {
+	constexpr static auto tuple_zip(T && t, Ts && ... ts) {
 		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<T>>;
 
 		return detail::tuple_zip<
-			std::make_index_sequence<size>,
-			T,
-			Ts...
-		>::apply(std::forward<T>(t), std::forward<Ts>(ts)...);
+		    std::make_index_sequence<size>,
+		    T,
+		    Ts...>::apply(std::forward<T>(t), std::forward<Ts>(ts)...);
 	}
 
 	namespace detail
@@ -870,13 +854,13 @@ namespace te
 		struct for_each<F, T, std::index_sequence<I...>>
 		{
 			constexpr static auto apply(F&& f, T&& t) {
-				(f(std::get<I>(std::forward<T>(t))), ...);
+				(f(std::get<I>(t)), ...);
 			}
 		};
 	}
 
 	template<class F, class Tuple>
-	constexpr static auto tuple_for_each(F&& f, Tuple&& t) {
+	constexpr static auto tuple_for_each(F && f, Tuple && t) {
 		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<Tuple>>;
 
 		detail::for_each<F, Tuple, std::make_index_sequence<size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
@@ -886,8 +870,8 @@ namespace te
 		(f(std::forward<decltype(args)>(args)), ...);
 	}
 
-	template<size_t I,class F>
-	constexpr static void repeat(F&& f) {
+	template<size_t I, class F>
+	constexpr static void repeat(F && f) {
 		if constexpr (I != 0) {
 			std::invoke(f);
 			repeat<I - 1>(std::forward<F>(f));
@@ -914,10 +898,11 @@ namespace te
 
 	constexpr static auto tie_tuple_elements = [](auto&& tuple) {
 		return std::apply(
-			[](auto&&... es) {
-				return std::tie(std::forward<decltype(es)>(es)...);
-			},
-			std::forward<decltype(tuple)>(tuple));
+		    [](auto&&... es) {
+			    return std::tie(std::forward<decltype(es)>(es)...);
+		    },
+		    std::forward<decltype(tuple)>(tuple)
+		);
 	};
 
 	namespace detail
@@ -943,5 +928,4 @@ namespace te
 
 	template<auto... Xs>
 	constexpr static auto max_v = detail::max<Xs...>::value;
-
 }
