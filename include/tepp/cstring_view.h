@@ -11,6 +11,8 @@ namespace te
 		size_t size{};
 
 	public:
+		bool empty() const;
+
 		std::string_view string_view() const {
 			if (size > 0) {
 				return std::string_view(data, size - 1);
@@ -27,7 +29,11 @@ namespace te
 			return std::string(this->string_view());
 		}
 
+		cstring_view(std::string const& str);
 		cstring_view(char const* str, size_t size_);
+
+		cstring_view& set(std::string const& str);
+
 		cstring_view() = default;
 		~cstring_view() = default;
 
