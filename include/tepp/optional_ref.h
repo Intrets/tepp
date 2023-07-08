@@ -38,6 +38,10 @@ namespace te
 			return ptr == nullptr;
 		}
 
+		void reset() {
+			this->ptr = nullptr;
+		}
+
 		operator bool() const {
 			return this->has_value();
 		}
