@@ -14,6 +14,10 @@ namespace te
 		bool empty() const;
 
 		std::string_view string_view() const {
+			return *this;
+		}
+
+		operator std::string_view() const {
 			if (size > 0) {
 				return std::string_view(data, size - 1);
 			}

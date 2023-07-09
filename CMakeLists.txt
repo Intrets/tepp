@@ -40,5 +40,6 @@ make_module(
 		binary_semaphore
 		type_index
 		cstring_view
+		uuid
 	CXX_STANDARD 23
 )
