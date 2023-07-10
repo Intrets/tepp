@@ -31,6 +31,18 @@ namespace te
 		return data == other.data;
 	}
 
+	uint64_t uuid::getLower() const {
+		uint64_t result{};
+		std::memcpy(&result, &this->data[0], sizeof(uint64_t));
+		return result;
+	}
+
+	uint64_t uuid::getUpper() const {
+		uint64_t result{};
+		std::memcpy(&result, &this->data[8], sizeof(uint64_t));
+		return result;
+	}
+
 	std::string uuid::toString() const {
 		std::stringstream result{};
 

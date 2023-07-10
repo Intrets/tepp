@@ -60,6 +60,9 @@ namespace te
 
 		bool operator==(uuid const& other) const;
 
+		uint64_t getLower() const;
+		uint64_t getUpper() const;
+
 		std::size_t getHash() const;
 	};
 }
