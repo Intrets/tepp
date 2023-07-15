@@ -112,6 +112,10 @@ namespace te
 		auto end() const {
 			return this->data.end();
 		}
+
+		void clear() {
+			this->data.clear();
+		}
 	};
 }
 
