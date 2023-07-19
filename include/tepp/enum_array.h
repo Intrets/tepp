@@ -14,10 +14,10 @@ namespace te
 	template<class EnumType, class T, size_t size = static_cast<size_t>(EnumType::MAX)>
 	struct enum_array
 	{
-	private:
+		using enum_type = EnumType;
+
 		std::array<T, size> data{};
 
-	public:
 		size_t getSize() const noexcept {
 			return size;
 		}
@@ -50,6 +50,21 @@ namespace te
 		template<class... Args>
 		constexpr enum_array(Args&&... args)
 		    : data{ args... } {
+		}
+
+		constexpr enum_array(std::initializer_list<std::pair<EnumType, T>> init) {
+			for (auto [e, val] : init) {
+				(*this)[e] = val;
+			}
+		}
+
+		constexpr enum_array(std::initializer_list<T> init) {
+			size_t i = 0;
+			for (auto val : init) {
+				this->data[i] = val;
+
+				i++;
+			}
 		}
 
 		using A = std::array<T, size>;
