@@ -70,6 +70,10 @@ namespace te
 			return this->size == this->capacity;
 		}
 
+		inline void clear() {
+			this->size = 0;
+		}
+
 		simple_vector(simple_vector&& other) noexcept {
 			this->data = other.data;
 			other.data = nullptr;

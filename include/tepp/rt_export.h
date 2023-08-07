@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <vector>
 #include <atomic>
 #include <cassert>
+#include <vector>
 
 #include "misc.h"
 
@@ -27,9 +27,9 @@ namespace te
 			rt_export& parent;
 
 		public:
-			const_iterator(rt_export& parent_, int index_) noexcept :
-				index(index_) ,
-				parent(parent_){
+			const_iterator(rt_export& parent_, int index_) noexcept
+			    : index(index_),
+			      parent(parent_) {
 			}
 
 			const_iterator& operator++() noexcept {
@@ -86,10 +86,10 @@ namespace te
 
 		struct rt_export_access
 		{
-			rt_export_access(int begin_, int end_, rt_export& parent_) :
-				beginIndex(begin_),
-				endIndex(end_),
-				parent(parent_) {
+			rt_export_access(int begin_, int end_, rt_export& parent_)
+			    : beginIndex(begin_),
+			      endIndex(end_),
+			      parent(parent_) {
 			}
 
 			rt_export_access() = delete;
@@ -120,13 +120,15 @@ namespace te
 		};
 
 	private:
-		std::vector<T> data;
-		std::atomic<int> writeI;
-		std::atomic<int> readI;
+		std::vector<T> data{};
+		int batchWriteIndex{};
+		std::atomic<int> writeI{};
+		std::atomic<int> readI{};
 		bool currentlyAccessed = false;
 
 	public:
-		rt_export(size_t size) : data(size) {};
+		rt_export(size_t size)
+		    : data(size){};
 
 		size_t getBufferSize() const noexcept {
 			return this->data.size();
@@ -153,6 +155,38 @@ namespace te
 
 			this->writeI.store(newWriteIndex);
 		};
+
+		void batchWrite(T const& val) noexcept {
+			auto readIndex = this->readI.load();
+
+			if (this->batchWriteIndex < readIndex) {
+				readIndex -= static_cast<int>(this->getBufferSize());
+			}
+
+			auto diff = this->batchWriteIndex - readIndex;
+
+			if (diff == this->getBufferSize() - 1) {
+				return;
+			}
+
+			this->data[this->batchWriteIndex] = val;
+
+			this->batchWriteIndex = (this->batchWriteIndex + 1) % this->getBufferSize();
+		}
+
+		void sendBatch() noexcept {
+			this->writeI.store(this->batchWriteIndex);
+		}
+
+		T const& peek() const noexcept {
+			auto const i = (this->writeI.load() + this->data.size() - 1) % this->data.size();
+			return this->data[i];
+		}
+
+		T const& peekBatch() const noexcept {
+			auto const i = (this->batchWriteIndex + this->data.size() - 1) % this->data.size();
+			return this->data[i];
+		}
 
 		rt_export<T>::rt_export_access consume_buffer() {
 			assert(!this->currentlyAccessed);
@@ -185,6 +219,10 @@ namespace te
 			}
 
 			return d;
+		}
+
+		bool empty() const {
+			return this->writeI.load() == this->readI.load();
 		}
 
 		~rt_export() {
