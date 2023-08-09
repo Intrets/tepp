@@ -857,6 +857,17 @@ namespace te
 				(f(std::get<I>(t)), ...);
 			}
 		};
+
+		template<class IS, class F>
+		struct for_iota;
+
+		template<class F, size_t... I>
+		struct for_iota<std::index_sequence<I...>, F>
+		{
+			constexpr static auto apply(F&& f) {
+				(std::invoke(std::forward<F>(f), te::Value<I>), ...);
+			}
+		};
 	}
 
 	template<class F, class Tuple>
@@ -864,6 +875,11 @@ namespace te
 		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<Tuple>>;
 
 		detail::for_each<F, Tuple, std::make_index_sequence<size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
+	}
+
+	template<size_t I, class F>
+	constexpr static auto for_iota(F&& f) {
+		detail::for_iota<std::make_index_sequence<I>, F>::apply(std::forward<F>(f));
 	}
 
 	constexpr static auto for_each(auto&& f, auto&&... args) {

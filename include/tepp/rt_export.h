@@ -156,7 +156,7 @@ namespace te
 			this->writeI.store(newWriteIndex);
 		};
 
-		void batchWrite(T const& val) noexcept {
+		bool batchWrite(T const& val) noexcept {
 			auto readIndex = this->readI.load();
 
 			if (this->batchWriteIndex < readIndex) {
@@ -166,12 +166,14 @@ namespace te
 			auto diff = this->batchWriteIndex - readIndex;
 
 			if (diff == this->getBufferSize() - 1) {
-				return;
+				return false;
 			}
 
 			this->data[this->batchWriteIndex] = val;
 
 			this->batchWriteIndex = (this->batchWriteIndex + 1) % this->getBufferSize();
+
+			return true;
 		}
 
 		void sendBatch() noexcept {
