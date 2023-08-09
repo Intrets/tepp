@@ -9,10 +9,10 @@ namespace te
 {
 	namespace detail
 	{
-		template<class F>
 		struct call_once_t
 		{
 			call_once_t() = delete;
+			template<class F>
 			call_once_t(F&& f) {
 				std::forward<F>(f)();
 			}
@@ -22,7 +22,8 @@ namespace te
 
 	template<class F>
 	static void call_once(F&& f) {
-		[[maybe_unused]]
-		static auto once = detail::call_once_t(std::forward<F>(f));
+		[[maybe_unused]] static auto once = detail::call_once_t(std::forward<F>(f));
 	}
+
+	using call = detail::call_once_t;
 }
