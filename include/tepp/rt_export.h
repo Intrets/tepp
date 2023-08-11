@@ -23,11 +23,11 @@ namespace te
 			using reference = T const&;
 
 		private:
-			int index;
+			int64_t index;
 			rt_export& parent;
 
 		public:
-			const_iterator(rt_export& parent_, int index_) noexcept
+			const_iterator(rt_export& parent_, int64_t index_) noexcept
 			    : index(index_),
 			      parent(parent_) {
 			}
@@ -86,7 +86,7 @@ namespace te
 
 		struct rt_export_access
 		{
-			rt_export_access(int begin_, int end_, rt_export& parent_)
+			rt_export_access(int64_t begin_, int64_t end_, rt_export& parent_)
 			    : beginIndex(begin_),
 			      endIndex(end_),
 			      parent(parent_) {
@@ -100,8 +100,8 @@ namespace te
 			NO_COPY_MOVE(rt_export_access);
 
 		private:
-			int beginIndex;
-			int endIndex;
+			int64_t beginIndex;
+			int64_t endIndex;
 
 			rt_export& parent;
 
@@ -121,72 +121,65 @@ namespace te
 
 	private:
 		std::vector<T> data{};
-		int batchWriteIndex{};
-		std::atomic<int> writeI{};
-		std::atomic<int> readI{};
+		int64_t batchWriteIndex = 1;
+		std::atomic<int64_t> writeI = 1;
+		std::atomic<int64_t> readI{};
 		bool currentlyAccessed = false;
 
 	public:
 		rt_export(size_t size)
 		    : data(size){};
 
-		size_t getBufferSize() const noexcept {
-			return this->data.size();
+		int64_t getBufferSize() const noexcept {
+			return static_cast<int64_t>(this->data.size());
 		}
 
 		// Silently fails on writing to full buffer
-		void write(T const& val) noexcept {
+		bool write(T const& val) noexcept {
 			auto writeIndex = this->writeI.load();
 			auto readIndex = this->readI.load();
 
-			if (writeIndex < readIndex) {
-				readIndex -= static_cast<int>(this->getBufferSize());
+			if (writeIndex == readIndex + this->getBufferSize()) {
+				return false;
 			}
 
-			auto diff = writeIndex - readIndex;
+			this->data[writeIndex % this->getBufferSize()] = val;
 
-			if (diff == this->getBufferSize() - 1) {
-				return;
-			}
+			this->writeI.store(writeIndex + 1);
 
-			this->data[writeIndex] = val;
-
-			int newWriteIndex = (writeIndex + 1) % this->getBufferSize();
-
-			this->writeI.store(newWriteIndex);
+			return true;
 		};
 
 		bool batchWrite(T const& val) noexcept {
 			auto readIndex = this->readI.load();
 
-			if (this->batchWriteIndex < readIndex) {
-				readIndex -= static_cast<int>(this->getBufferSize());
-			}
-
-			auto diff = this->batchWriteIndex - readIndex;
-
-			if (diff == this->getBufferSize() - 1) {
+			if (this->batchWriteIndex == readIndex + this->getBufferSize()) {
 				return false;
 			}
 
-			this->data[this->batchWriteIndex] = val;
+			this->data[this->batchWriteIndex % this->getBufferSize()] = val;
 
-			this->batchWriteIndex = (this->batchWriteIndex + 1) % this->getBufferSize();
+			this->batchWriteIndex++;
 
 			return true;
 		}
 
 		void sendBatch() noexcept {
 			this->writeI.store(this->batchWriteIndex);
+			if (this->batchWriteIndex > this->getBufferSize() * 2) {
+				this->batchWriteIndex -= this->getBufferSize();
+			}
 		}
 
 		T const& peek() const noexcept {
-			auto const i = (this->writeI.load() + this->data.size() - 1) % this->data.size();
+			// can do this when writeI always starts out as at least 1
+			auto const i = (this->writeI.load() - 1) % this->getBufferSize();
 			return this->data[i];
 		}
 
 		T const& peekBatch() const noexcept {
-			auto const i = (this->batchWriteIndex + this->data.size() - 1) % this->data.size();
+			// can do this when writeI always starts out as at least 1
+			auto const i = (this->batchWriteIndex - 1) % this->getBufferSize();
 			return this->data[i];
 		}
 
@@ -197,34 +190,31 @@ namespace te
 			auto begin = this->readI.load();
 			auto end = this->writeI.load();
 
-			if (end < begin) {
-				end += static_cast<int>(this->data.size());
-			}
-
 			return rt_export_access(begin, end, *this);
 		}
 
-		void reset_buffer(int newBegin) {
+		void reset_buffer(int64_t newBegin) {
 			assert(this->currentlyAccessed);
 			this->currentlyAccessed = false;
 
-			this->readI.store(newBegin % this->getBufferSize());
+			if (newBegin > this->getBufferSize() * 2) {
+				this->readI.store(newBegin - this->getBufferSize());
+				this->writeI.fetch_sub(this->getBufferSize());
+			}
+			else {
+				this->readI.store(newBegin);
+			}
 		}
 
-		int getCurrentSize() const {
+		int64_t getCurrentSize() const {
 			auto writeIndex = this->writeI.load();
 			auto readIndex = this->readI.load();
 
-			auto d = writeIndex - readIndex;
-			if (d < 0) {
-				d += static_cast<int>(this->getBufferSize());
-			}
-
-			return d;
+			return writeIndex - readIndex;
 		}
 
 		bool empty() const {
-			return this->writeI.load() == this->readI.load();
+			return this->getCurrentSize() == 0;
 		}
 
 		~rt_export() {
