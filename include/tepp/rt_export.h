@@ -11,7 +11,48 @@
 
 namespace te
 {
-	template<class T>
+	namespace rt_export_size
+	{
+		struct normal
+		{
+			size_t size;
+		};
+
+		struct power_of_two
+		{
+			size_t power;
+
+			size_t getSize() {
+				assert(power < 64);
+				return 1ULL << power;
+			}
+
+			static constexpr power_of_two at_least(int64_t size) {
+				if (size <= 0) {
+					return { 0 };
+				}
+
+				size_t power = 0;
+
+				size--;
+
+				while (size) {
+					size >>= 1;
+					power++;
+				}
+
+				return { power };
+			}
+		};
+
+		enum class type
+		{
+			normal,
+			restricted
+		};
+	}
+
+	template<class T, rt_export_size::type type = rt_export_size::type::normal>
 	struct rt_export
 	{
 		struct const_iterator
@@ -72,7 +113,7 @@ namespace te
 			}
 
 			reference operator*() const noexcept {
-				auto i = this->index % this->parent.getBufferSize();
+				auto i = this->parent.mod(this->index);
 				return this->parent.data[i];
 			}
 
@@ -126,9 +167,23 @@ namespace te
 		std::atomic<int64_t> readI{};
 		bool currentlyAccessed = false;
 
+		int64_t mod(int64_t i) {
+			if constexpr (type == rt_export_size::type::normal) {
+				return i % this->getBufferSize();
+			}
+			else {
+				return i & (this->getBufferSize() - 1);
+			}
+		}
+
 	public:
-		rt_export(size_t size)
-		    : data(size){};
+		rt_export(rt_export_size::normal size)
+		    : data(size.size) {
+		}
+
+		rt_export(rt_export_size::power_of_two size)
+		    : data(size.getSize()) {
+		}
 
 		int64_t getBufferSize() const noexcept {
 			return static_cast<int64_t>(this->data.size());
@@ -143,7 +198,7 @@ namespace te
 				return false;
 			}
 
-			this->data[writeIndex % this->getBufferSize()] = val;
+			this->data[this->mod(writeIndex)] = val;
 
 			this->writeI.store(writeIndex + 1);
 
@@ -157,7 +212,7 @@ namespace te
 				return false;
 			}
 
-			this->data[this->batchWriteIndex % this->getBufferSize()] = val;
+			this->data[this->mod(this->batchWriteIndex)] = val;
 
 			this->batchWriteIndex++;
 
@@ -173,17 +228,17 @@ namespace te
 
 		T const& peek() const noexcept {
 			// can do this when writeI always starts out as at least 1
-			auto const i = (this->writeI.load() - 1) % this->getBufferSize();
+			auto const i = this->mod(this->writeI.load() - 1);
 			return this->data[i];
 		}
 
 		T const& peekBatch() const noexcept {
 			// can do this when writeI always starts out as at least 1
-			auto const i = (this->batchWriteIndex - 1) % this->getBufferSize();
+			auto const i = this->mod(this->batchWriteIndex - 1);
 			return this->data[i];
 		}
 
-		rt_export<T>::rt_export_access consume_buffer() {
+		rt_export<T, type>::rt_export_access consume_buffer() {
 			assert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
@@ -221,9 +276,10 @@ namespace te
 			assert(!this->currentlyAccessed);
 		}
 	};
-}
 
-template<class T>
-typename te::rt_export<T>::const_iterator::difference_type distance(typename te::rt_export<T>::const_iterator const& it1, typename te::rt_export<T>::const_iterator const& it2) {
-	return it2 - it1;
+	template<class T>
+	rt_export(rt_export_size::normal) -> rt_export<T, rt_export_size::type::normal>;
+
+	template<class T>
+	rt_export(rt_export_size::power_of_two) -> rt_export<T, rt_export_size::type::restricted>;
 }
