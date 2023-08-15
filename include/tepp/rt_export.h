@@ -158,6 +158,10 @@ namespace te
 			const_iterator middle() const noexcept {
 				return const_iterator(this->parent, (this->beginIndex + this->endIndex) / 2);
 			}
+
+			bool empty() const noexcept {
+				return this->beginIndex == this->endIndex;
+			}
 		};
 
 	private:
