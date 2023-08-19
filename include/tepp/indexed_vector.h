@@ -42,6 +42,79 @@ namespace te
 		}
 	};
 
+	template<class T, string_literal name>
+	struct indexed_vector_pair_iterator
+	{
+		using iterator_category = std::random_access_iterator_tag;
+		using value_type = std::pair<index<name>, T>;
+		using difference_type = std::ptrdiff_t;
+		using pointer = std::pair<index<name>, T*>;
+		using reference = std::pair<index<name>, T&>;
+
+	private:
+		using wrapped_iterator_type = std::vector<T>::iterator;
+
+		index<name> i;
+		wrapped_iterator_type it;
+
+	public:
+		indexed_vector_pair_iterator(wrapped_iterator_type it_, index<name> i_) noexcept
+		    : it(it_),
+		      i(i_) {
+		}
+
+		indexed_vector_pair_iterator operator++(int) noexcept {
+			auto r = *this;
+			this->it++;
+			this->i++;
+			return r;
+		}
+
+		indexed_vector_pair_iterator& operator++() noexcept {
+			this->it++;
+			this->i++;
+			return *this;
+		}
+
+		indexed_vector_pair_iterator operator--(int) noexcept {
+			auto r = *this;
+			this->it--;
+			this->i--;
+			return r;
+		}
+
+		indexed_vector_pair_iterator& operator--() noexcept {
+			this->it--;
+			this->i--;
+			return *this;
+		}
+
+		bool operator==(indexed_vector_pair_iterator const& other) const noexcept {
+			return this->it == other.it;
+		}
+
+		reference operator*() noexcept {
+			return { this->i, *this->it };
+		}
+	};
+
+	template<class, string_literal>
+	struct indexed_vector;
+
+	template<class T, string_literal name>
+	struct pair_iterator_helper
+	{
+		indexed_vector<T, name>& vector;
+
+		indexed_vector_pair_iterator<T, name> begin() {
+			return indexed_vector_pair_iterator<T, name>(this->vector.begin(), index<name>(0));
+		}
+
+		indexed_vector_pair_iterator<T, name> end() {
+			return indexed_vector_pair_iterator<T, name>(this->vector.end(), index<name>(this->vector.size()));
+		}
+	};
+
 	template<class T_, string_literal name>
 	struct indexed_vector
 	{
@@ -111,6 +184,10 @@ namespace te
 
 		auto end() const {
 			return this->data.end();
+		}
+
+		pair_iterator_helper<T, name> items() {
+			return { .vector = *this };
 		}
 
 		void clear() {
