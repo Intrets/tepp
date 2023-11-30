@@ -86,6 +86,11 @@ namespace te
 		constexpr value_type getData() const {
 			return this->data;
 		}
+
+		template<class R>
+		static enum_bitflags bit_cast(R data_) {
+			return enum_bitflags(std::bit_cast<value_type>(data_));
+		}
 	};
 
 	template<class T, class... Ts>

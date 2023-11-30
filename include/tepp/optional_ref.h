@@ -55,6 +55,10 @@ namespace te
 			this->ptr = &object;
 		}
 
+		optional_ref(T* ptr_) {
+			this->ptr = ptr_;
+		}
+
 		optional_ref& operator=(te::nullopt_t) {
 			this->ptr = nullptr;
 
