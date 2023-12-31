@@ -41,5 +41,6 @@ make_module(
 		type_index
 		cstring_view
 		uuid
+		limit_finder
 	CXX_STANDARD 23
 )
