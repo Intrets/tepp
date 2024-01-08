@@ -114,6 +114,7 @@ namespace te
 
 			std::vector<Update>* queue{};
 			void add(T&& value);
+			void add(T const& value);
 			void swap(IndexType from, IndexType to);
 			void pop();
 			void clear();
@@ -249,6 +250,20 @@ namespace te
 
 		this->size++;
 		this->queue->push_back(Add{ std::move(v) });
+	}
+
+	template<class T, class IndexType, class... Extended>
+	inline void rt_vector<T, IndexType, Extended...>::nonrt::add(T const& v) {
+		if (this->size == this->capacity) {
+			this->capacity *= 2;
+
+			ReplaceStorage replacement(this->capacity);
+
+			this->queue->push_back(std::move(replacement));
+		}
+
+		this->size++;
+		this->queue->push_back(Add{ v });
 	}
 
 	template<class T, class IndexType, class... Extended>

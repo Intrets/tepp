@@ -9,6 +9,7 @@
 #include "variant.h"
 
 #include <vector>
+#include <array>
 #include <numeric>
 #include <optional>
 
@@ -67,7 +68,7 @@ namespace te
 			int64_t qualifier = 1;
 
 			std::vector<Update>* queue{};
-			std::optional<qualified<IndexType>> add(T&& value) {
+			std::optional<qualified<IndexType>> add(T&& v) {
 				if (this->freeStorage.empty()) {
 					return std::nullopt;
 				}
@@ -80,7 +81,7 @@ namespace te
 				this->queue->push_back(Add{
 					.data = qualified<T>{
 						.qualifier = newQualifier,
-						.data = std::move(value)
+						.data = std::move(v)
 					},
 					.index = index,
 					.freeMemory = intrusive_list_owned<FreeMemory>(new intrusive_list<FreeMemory>({ index }))
