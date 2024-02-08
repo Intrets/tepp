@@ -20,6 +20,9 @@ namespace te
 		switched_vector(std::vector<T>&& es) {
 			this->data = std::move(es);
 		}
+		switched_vector(std::initializer_list<T> init)
+		    : data{ init } {
+		}
 		switched_vector(T&& e) {
 			this->add(std::forward<T>(e));
 		}
@@ -106,6 +109,14 @@ namespace te
 
 		auto& operator[](std::integral auto i) {
 			return this->data[i];
+		}
+
+		auto& advance() {
+			if (!this->empty()) {
+				this->index = (this->index + 1) % this->size();
+			}
+
+			return *this;
 		}
 	};
 }

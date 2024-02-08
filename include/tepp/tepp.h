@@ -285,8 +285,16 @@ namespace te
 	template<list L>
 	using head_t = typename detail::head<L>::type;
 
+	constexpr auto head = []<list List>(Type_t<List>) {
+		return Type<head_t<List>>;
+	};
+
 	template<list L>
 	using tail_t = typename detail::tail<L>::type;
+
+	constexpr auto tail = []<list List>(Type_t<List>) {
+		return Type<tail_t<List>>;
+	};
 
 	template<class T, list L>
 	using prepend_t = typename detail::prepend<T, L>::type;
@@ -340,6 +348,10 @@ namespace te
 
 	constexpr auto type_list = []<class... Args>(Type_t<Args>...) {
 		return Type_list<Args...>;
+	};
+
+	constexpr auto same = []<class T1, class T2>(Type_t<T1>, Type_t<T2>) {
+		return Value<std::same_as<T1, T2>>;
 	};
 
 	template<meta T1, meta T2>
@@ -809,7 +821,7 @@ namespace te
 	concept number_of_arguments_is =
 	    impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
 	    ((requires(T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
-	    ((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
+	    ((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>)&&te::arguments_list_t<T>::size == I);
 
 	namespace detail
 	{
