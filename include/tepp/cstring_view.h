@@ -4,14 +4,17 @@
 
 namespace te
 {
-	struct cstring_view
+	template<class T>
+	struct const_string_view
 	{
 	private:
-		char const* data{};
+		T const* data{};
 		size_t size{};
 
 	public:
-		bool empty() const;
+		bool empty() const {
+			return this->size == 0;
+		}
 
 		std::string_view string_view() const {
 			return *this;
@@ -26,29 +29,42 @@ namespace te
 			}
 		}
 
-		template<size_t N>
-		constexpr cstring_view(char const (&str)[N]);
+		template<class S, size_t N>
+		constexpr const_string_view(S const (&str)[N])
+		    : data(str),
+		      size(N) {
+		}
 
 		std::string string() const {
 			return std::string(this->string_view());
 		}
 
-		cstring_view(std::string const& str);
-		cstring_view(char const* str, size_t size_);
+		const_string_view(std::string const& str)
+		    : data(str.data()),
+		      size(str.size()) {
+		}
 
-		cstring_view& set(std::string const& str);
+		const_string_view(char const* str, size_t size_)
+		    : data(str),
+		      size(size_) {
+			assert(str[size_] == '\0');
+		}
 
-		cstring_view() = default;
-		~cstring_view() = default;
+		const_string_view& set(std::string const& str) {
+			this->data = str.data();
+			this->size = str.size();
+
+			return *this;
+		}
+
+		const_string_view() = default;
+		~const_string_view() = default;
 
 		constexpr char const* getData() const {
-			return this->data;
+			return reinterpret_cast<char const*>(this->data);
 		};
 	};
 
-	template<size_t N>
-	inline constexpr cstring_view::cstring_view(char const (&str)[N])
-	    : data(str),
-	      size(N) {
-	}
+	using cstring_view = const_string_view<char>;
+	using cu8string_view = const_string_view<char8_t>;
 }

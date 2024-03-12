@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <type_traits>
-#include <concepts>
 
 namespace te
 {
@@ -16,14 +16,15 @@ namespace te
 		using value_type = std::underlying_type_t<Enum>;
 
 		value_type data{};
-		explicit enum_bitflags(value_type data_) : data(data_) {
-		};
+		constexpr explicit enum_bitflags(value_type data_)
+		    : data(data_){};
 
 	public:
-		enum_bitflags() = default;
+		constexpr enum_bitflags() = default;
 
 		template<std::same_as<Enum>... Enums>
-		enum_bitflags(Enums... e) : enum_bitflags((static_cast<value_type>(e) | ...)) {
+		constexpr enum_bitflags(Enums... e)
+		    : enum_bitflags(((static_cast<value_type>(1) << static_cast<value_type>(e)) | ...)) {
 		}
 
 		~enum_bitflags() = default;
@@ -91,8 +92,17 @@ namespace te
 		static enum_bitflags bit_cast(R data_) {
 			return enum_bitflags(std::bit_cast<value_type>(data_));
 		}
+
+		template<class F>
+		constexpr void for_each(F&& f) {
+			for (value_type i = 0; i < static_cast<value_type>(Enum::MAX); i++) {
+				if (this->data & (1 << i)) {
+					f(static_cast<Enum>(i));
+				}
+			}
+		}
 	};
 
 	template<class T, class... Ts>
-	enum_bitflags(T, Ts...)->enum_bitflags<T>;
+	enum_bitflags(T, Ts...) -> enum_bitflags<T>;
 }
