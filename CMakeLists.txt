@@ -43,5 +43,7 @@ make_module(
 		cstring_view
 		uuid
 		limit_finder
+		functional
+		pmr_container
 	CXX_STANDARD 23
 )
