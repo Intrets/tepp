@@ -18,7 +18,23 @@ namespace te
 			return this->object;
 		}
 
+		T const* get() const {
+			return this->object;
+		}
+
+		T& getObject() {
+			return *this->get();
+		}
+
+		T const& getObject() const {
+			return *this->get();
+		}
+
 		T* operator->() {
+			return this->get();
+		}
+
+		T const* operator->() const {
 			return this->get();
 		}
 
@@ -59,10 +75,14 @@ namespace te
 
 		heap_object& operator=(heap_object const& other) {
 			*this->object = *other.object;
+
+			return *this;
 		}
 
 		heap_object& operator=(heap_object&& other) {
 			*this->object = std::move(*other.object);
+
+			return *this;
 		}
 
 		~heap_object() {
