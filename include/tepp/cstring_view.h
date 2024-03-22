@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <string_view>
 
 namespace te

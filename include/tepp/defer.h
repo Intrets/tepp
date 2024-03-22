@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 namespace te
 {
 	template<class F>

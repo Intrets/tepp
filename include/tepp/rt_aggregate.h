@@ -3,21 +3,22 @@
 
 #pragma once
 
-#include <tuple>
-#include <vector>
 #include <atomic>
-#include <optional>
+#include <cassert>
 #include <list>
 #include <memory>
+#include <optional>
+#include <tuple>
+#include <vector>
 
 #include "intrusive_list.h"
-#include "tepp.h"
 #include "misc.h"
+#include "tepp.h"
 
 namespace te
 {
 	template<class T>
-	concept has_process_updates = requires (T t) {
+	concept has_process_updates = requires(T t) {
 		std::decay_t<T>::process_tag;
 	};
 
@@ -25,7 +26,6 @@ namespace te
 	struct rt_aggregate
 	{
 		using Updates = std::tuple<std::vector<typename Args::Update>...>;
-
 
 		// non-rt
 		Updates queue;
@@ -36,12 +36,10 @@ namespace te
 		template<Enum e>
 		auto& nonrtAccess();
 
-		[[nodiscard]]
-		std::optional<intrusive_list_owned<Updates>> handleCleanup();
+		[[nodiscard]] std::optional<intrusive_list_owned<Updates>> handleCleanup();
 		void clean();
 		void sendQueue();
 		void clear();
-
 
 		// rt
 		std::tuple<typename Args::rt...> rt_objects;
@@ -52,7 +50,6 @@ namespace te
 
 		template<Enum e>
 		auto& rtAccess();
-
 
 		rt_aggregate();
 		~rt_aggregate() = default;
@@ -69,19 +66,20 @@ namespace te
 		else {
 			using T = typename std::decay_t<decltype(*ptr)>::data_type;
 			ptr->front().for_each_forward(
-				[&](T& updates) {
-					te::tuple_for_each(
-						[](auto&& e) {
-							auto&& [object, update] = e;
-							object.processUpdates(update);
-						},
-						te::tuple_zip(
-							te::tie_tuple_elements(this->nonrt_objects),
-							te::tie_tuple_elements(updates)
-						));
+			    [&](T& updates) {
+				    te::tuple_for_each(
+				        [](auto&& e) {
+					        auto&& [object, update] = e;
+					        object.processUpdates(update);
+				        },
+				        te::tuple_zip(
+				            te::tie_tuple_elements(this->nonrt_objects),
+				            te::tie_tuple_elements(updates)
+				        )
+				    );
 
-					this->inQueueCount--;
-				}
+				    this->inQueueCount--;
+			    }
 			);
 			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Enum, Args...>::Updates>>(ptr);
 		}
@@ -103,8 +101,7 @@ namespace te
 			current = current->back().insert_after(std::move(this->queue));
 		}
 
-		[[maybe_unused]]
-		auto old = this->updates.exchange(current);
+		[[maybe_unused]] auto old = this->updates.exchange(current);
 		assert(old == nullptr);
 
 		this->inQueueCount++;
@@ -128,17 +125,18 @@ namespace te
 
 		using T = typename std::decay_t<decltype(*maybeCleanup)>::data_type;
 		maybeUpdates->front().for_each_forward(
-			[&](T& updates) {
-				te::tuple_for_each(
-					[](auto&& e) {
-						auto&& [object, updates] = e;
-						object.processUpdates(updates);
-					},
-					te::tuple_zip(
-						te::tie_tuple_elements(this->rt_objects),
-						te::tie_tuple_elements(updates)
-					));
-			}
+		    [&](T& updates) {
+			    te::tuple_for_each(
+			        [](auto&& e) {
+				        auto&& [object, updates] = e;
+				        object.processUpdates(updates);
+			        },
+			        te::tuple_zip(
+			            te::tie_tuple_elements(this->rt_objects),
+			            te::tie_tuple_elements(updates)
+			        )
+			    );
+		    }
 		);
 
 		if (maybeCleanup == nullptr) {
@@ -148,8 +146,7 @@ namespace te
 			maybeCleanup->back().insert_after(maybeUpdates);
 		}
 
-		[[maybe_unused]]
-		auto oldCleanup = this->cleanup.exchange(maybeCleanup);
+		[[maybe_unused]] auto oldCleanup = this->cleanup.exchange(maybeCleanup);
 		assert(oldCleanup == nullptr);
 
 		return true;
@@ -161,14 +158,15 @@ namespace te
 		static_assert(this->updates.is_always_lock_free);
 
 		te::tuple_for_each(
-			[](auto&& e) {
-				auto&& [nonrt, updates] = e;
-				nonrt.queue = &updates;
-			},
-			te::tuple_zip(
-				te::tie_tuple_elements(this->nonrt_objects),
-				te::tie_tuple_elements(this->queue)
-			));
+		    [](auto&& e) {
+			    auto&& [nonrt, updates] = e;
+			    nonrt.queue = &updates;
+		    },
+		    te::tuple_zip(
+		        te::tie_tuple_elements(this->nonrt_objects),
+		        te::tie_tuple_elements(this->queue)
+		    )
+		);
 	}
 
 	template<class Enum, class... Args>
