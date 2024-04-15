@@ -81,6 +81,15 @@ namespace te
 			*this |= enum_bitflags(d);
 		}
 
+		constexpr void set(Enum d, bool b) {
+			if (b) {
+				this->set(d);
+			}
+			else {
+				this->clear(d);
+			}
+		}
+
 		constexpr void clear(Enum d) {
 			*this &= ~enum_bitflags(d);
 		}
