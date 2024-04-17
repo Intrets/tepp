@@ -85,6 +85,10 @@ namespace te
 			auto& result = this->data[this->endIndex];
 			result = T(std::forward<Args>(args)...);
 			this->advanceIndex(this->endIndex);
+
+			if (this->endIndex == this->beginIndex) {
+				this->advanceIndex(this->beginIndex);
+			}
 			return result;
 		}
 
@@ -99,13 +103,6 @@ namespace te
 
 		void calculateIndex(int64_t& index, int64_t offset) {
 			index = this->modIndex(index + offset);
-		}
-
-		void advance() {
-			this->advanceIndex(this->endIndex);
-			if (this->endIndex == this->beginIndex) {
-				this->advanceIndex(this->beginIndex);
-			}
 		}
 	};
 }
