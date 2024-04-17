@@ -45,5 +45,6 @@ make_module(
 		limit_finder
 		functional
 		pmr_container
+		ring_buffer
 	CXX_STANDARD 23
 )
