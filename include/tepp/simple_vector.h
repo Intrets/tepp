@@ -61,6 +61,10 @@ namespace te
 			this->size++;
 		}
 
+		inline void fill(T const& t) {
+			std::fill(this->data, this->data + this->size, t);
+		}
+
 		inline void fill_to_capacity(T const& v) {
 			std::fill(this->data, this->data + this->capacity, v);
 			this->size = this->capacity;
