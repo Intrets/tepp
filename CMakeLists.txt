@@ -46,5 +46,6 @@ make_module(
 		functional
 		pmr_container
 		ring_buffer
+		hash
 	CXX_STANDARD 23
 )
