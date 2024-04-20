@@ -21,15 +21,18 @@ namespace te
 
 			size_t hash = offset;
 
-			te::for_each([&hash](auto const& data) {
-				auto constexpr byteSize = sizeof(data);
-				std::byte const* raw = reinterpret_cast<std::byte const*>(&data);
+			te::for_each(
+			    [&hash](auto const& data) {
+				    auto constexpr byteSize = sizeof(data);
+				    std::byte const* raw = reinterpret_cast<std::byte const*>(&data);
 
-				for (auto byte : std::span<std::byte const>(raw, byteSize)) {
-					hash *= prime;
-					hash ^= static_cast<size_t>(std::bit_cast<uint8_t>(byte));
-				}
-			});
+				    for (auto byte : std::span<std::byte const>(raw, byteSize)) {
+					    hash *= prime;
+					    hash ^= static_cast<size_t>(std::bit_cast<uint8_t>(byte));
+				    }
+			    },
+			    data...
+			);
 
 			return hash;
 		}
