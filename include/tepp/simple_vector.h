@@ -74,6 +74,10 @@ namespace te
 			return this->size == this->capacity;
 		}
 
+		inline bool valid_index(std::integral auto i) const {
+			return std::cmp_greater_equal(i, 0) && std::cmp_less(i, this->size);
+		}
+
 		inline void clear() {
 			this->size = 0;
 		}
