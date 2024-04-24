@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <utility>
-#include <algorithm>
 
 namespace te
 {
@@ -31,6 +31,14 @@ namespace te
 			return &data[this->size];
 		}
 
+		operator std::span<T>() {
+			return std::span(this->begin(), this->end());
+		}
+
+		operator std::span<T const>() const {
+			return std::span(this->begin(), this->end());
+		}
+
 		inline T const& front() const {
 			assert(this->size > 0);
 			return data[0];
@@ -44,21 +52,52 @@ namespace te
 		inline T pop() {
 			assert(this->size > 0);
 			this->size--;
-			return std::move(this->data[this->size]);
+			auto test = std::move(this->data[this->size]);
+			return test;
 		}
 
-		inline void push_back(T const& v) {
+	private:
+		inline void ensure_capacity() {
+			if (this->size == this->capacity) {
+				this->capacity = std::max(size_t(1), this->capacity * 2);
+				auto newBuffer = new T[this->capacity];
+
+				auto it = this->data;
+				auto jt = newBuffer;
+				for (size_t i = 0; i < this->size; i++, it++, jt++) {
+					*jt = std::move(*it);
+				}
+				delete[] this->data;
+
+				this->data = newBuffer;
+			}
+		}
+
+	public:
+		inline void add_back(T const& v) {
 			assert(this->size < this->capacity);
 
 			data[this->size] = v;
 			this->size++;
 		}
 
-		inline void push_back(T&& v) {
+		inline void add_back(T&& v) {
 			assert(this->size < this->capacity);
 
 			data[this->size] = std::move(v);
 			this->size++;
+		}
+
+		inline void push_back(T const& v) {
+			this->ensure_capacity();
+
+			this->add_back(v);
+		}
+
+		inline void push_back(T&& v) {
+			this->ensure_capacity();
+
+			this->add_back(std::forward<T>(v));
 		}
 
 		inline void fill(T const& t) {

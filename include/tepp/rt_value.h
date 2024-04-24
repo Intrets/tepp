@@ -12,7 +12,7 @@
 namespace te
 {
 	template<class T, class S>
-	concept has_rt_value_run = requires (T v, S s) {
+	concept has_rt_value_run = requires(T v, S s) {
 		s.run(v);
 	};
 
@@ -29,7 +29,13 @@ namespace te
 			T storage{};
 		};
 
-		using Update = te::variant<Retrieve, Send, Extended...>;
+		struct Swap
+		{
+			T storage{};
+			T temp{};
+		};
+
+		using Update = te::variant<Retrieve, Send, Swap, Extended...>;
 
 		struct rt
 		{
@@ -37,14 +43,19 @@ namespace te
 
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					te::visit(update, [this]<class S_>(S_ && update) {
+					te::visit(update, [this]<class S_>(S_&& update) {
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Send>) {
-							this->value = update.storage;
+							this->value = std::move(update.storage);
 						}
 						else if constexpr (std::same_as<S, Retrieve>) {
-							update.storage = this->value;
+							update.storage = std::move(this->value);
+						}
+						else if constexpr (std::same_as<S, Swap>) {
+							update.temp = std::move(this->value);
+							this->value = std::move(update.storage);
+							update.storage = std::move(update.temp);
 						}
 						else if constexpr (has_rt_value_run<T, S>) {
 							update.run(this->value);
@@ -73,6 +84,10 @@ namespace te
 				this->addUpdate(Send{ std::forward<T>(t) });
 			}
 
+			void swap(T&& t) {
+				this->addUpdate(Swap{ .storage = std::forward<T>(t) });
+			}
+
 			void send(T const& t) {
 				this->addUpdate(Send{ t });
 			}
@@ -84,11 +99,11 @@ namespace te
 			using process_tag = void;
 			void processUpdates(std::vector<Update>& updates) {
 				for (auto& update : updates) {
-					te::visit(update, [this]<class S_>(S_ && update) {
+					te::visit(update, [this]<class S_>(S_&& update) {
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Retrieve>) {
-							this->value = update.storage;
+							this->value = std::move(update.storage);
 						}
 					});
 				}
@@ -98,6 +113,6 @@ namespace te
 
 	template<class T, class... Extended>
 	inline void rt_value<T, Extended...>::nonrt::clear() {
-		this->addUpdate(Send());
+		this->addUpdate(Swap{});
 	}
 }

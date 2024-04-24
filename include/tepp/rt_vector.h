@@ -161,7 +161,7 @@ namespace te
 						using S = std::remove_cvref_t<S_>;
 
 						if constexpr (std::same_as<S, Add>) {
-							this->data.push_back(std::move(update.datum));
+							this->data.add_back(std::move(update.datum));
 						}
 						else if constexpr (std::same_as<S, Swap>) {
 							assert(update.to < this->data.size);
