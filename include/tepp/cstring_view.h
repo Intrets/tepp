@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <string>
 #include <string_view>
 
 namespace te
@@ -69,3 +70,5 @@ namespace te
 	using cstring_view = const_string_view<char>;
 	using cu8string_view = const_string_view<char8_t>;
 }
+
+bool operator==(te::cstring_view left, std::string const& right);

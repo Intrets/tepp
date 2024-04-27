@@ -35,7 +35,12 @@ namespace te
 			T temp{};
 		};
 
-		using Update = te::variant<Retrieve, Send, Swap, Extended...>;
+		struct Copy
+		{
+			T storage{};
+		};
+
+		using Update = te::variant<Retrieve, Send, Swap, Copy, Extended...>;
 
 		struct rt
 		{
@@ -56,6 +61,14 @@ namespace te
 							update.temp = std::move(this->value);
 							this->value = std::move(update.storage);
 							update.storage = std::move(update.temp);
+						}
+						else if constexpr (std::same_as<S, Copy>) {
+							if constexpr (std::copyable<T>) {
+								update.storage = this->value;
+							}
+							else {
+								assert(0);
+							}
 						}
 						else if constexpr (has_rt_value_run<T, S>) {
 							update.run(this->value);
@@ -92,6 +105,10 @@ namespace te
 				this->addUpdate(Send{ t });
 			}
 
+			void copy() {
+				this->addUpdate(Copy{});
+			}
+
 			void retrieve() {
 				this->addUpdate(Retrieve{});
 			}
@@ -104,6 +121,14 @@ namespace te
 
 						if constexpr (std::same_as<S, Retrieve>) {
 							this->value = std::move(update.storage);
+						}
+						else if constexpr (std::same_as<S, Copy>) {
+							if constexpr (std::copyable<T>) {
+								this->value = update.storage;
+							}
+							else {
+								assert(0);
+							}
 						}
 					});
 				}
