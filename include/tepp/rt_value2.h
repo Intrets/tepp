@@ -29,7 +29,7 @@ namespace te
 
 			void run_rt(rt& rt) {
 				this->temp = std::move(rt.value);
-				rt.value = std::move(rt.value);
+				rt.value = std::move(this->storage);
 				this->storage = std::move(this->temp);
 			}
 		};
@@ -64,6 +64,18 @@ namespace te
 				this->storage = std::move(rt.value);
 			}
 		};
+
+		T& get_rt_value() {
+			return this->get_rt().value;
+		}
+
+		T& get_non_rt_value() {
+			return this->get_non_rt().value;
+		}
+
+		void swap(T&& value) {
+			this->addOperation(Swap{ .storage = std::forward<T>(value) });
+		}
 
 		void clear() override {
 			this->addOperation(Swap{});

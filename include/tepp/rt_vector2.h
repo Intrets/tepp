@@ -59,8 +59,6 @@ namespace te
 
 				std::swap(rt.data, this->storage);
 			}
-			void run_non_rt(non_rt& nonrt) {
-			}
 		};
 
 		struct Swap
@@ -76,8 +74,6 @@ namespace te
 				rt.data[this->from] = std::move(rt.data[this->to]);
 				rt.data[this->to] = std::move(this->storage);
 			}
-			void run_non_rt(non_rt& nonrt) {
-			}
 		};
 
 		struct Pop
@@ -86,9 +82,7 @@ namespace te
 
 			void run_rt(rt& rt) {
 				assert(rt.data.size > 0);
-				this->storage = std::move(rt.data[rt.data.size - 1]);
-			}
-			void run_non_rt(non_rt& nonrt) {
+				this->storage = std::move(rt.data.pop());
 			}
 		};
 
@@ -103,8 +97,6 @@ namespace te
 			void run_rt(rt& rt) {
 				std::swap(this->storage, rt.data);
 			}
-			void run_non_rt(non_rt& nonrt) {
-			}
 		};
 
 		struct OverwriteClear
@@ -112,9 +104,32 @@ namespace te
 			void run_rt(rt& rt) {
 				rt.data.size = 0;
 			}
-			void run_non_rt(non_rt& rt) {
+		};
+
+		struct Set
+		{
+			simple_vector<T> storage;
+
+			Set(simple_vector<T>&& storage_)
+			    : storage(std::move(storage_)) {
+			}
+
+			void run_rt(rt& rt) {
+				std::swap(rt.data, this->storage);
 			}
 		};
+
+		simple_vector<T>& get_rt_data() {
+			return this->get_rt().data;
+		}
+
+		int64_t& get_non_rt_size() {
+			return this->get_non_rt().size;
+		}
+
+		int64_t& get_non_rt_capacity() {
+			return this->get_non_rt().capacity;
+		}
 
 		void add(T&& value) {
 			auto& non_rt = this->get_non_rt();
@@ -127,16 +142,23 @@ namespace te
 		}
 
 		void swap(int64_t from, int64_t to) {
-			assert(from < this->get_non_rt().size);
-			assert(to < this->get_non_rt().size);
+			assert(from < this->get_non_rt_size());
+			assert(to < this->get_non_rt_size());
 			assert(from >= 0);
 			assert(to >= 0);
 			this->addOperation(Swap{ .from = from, .to = to });
 		}
 
 		void pop() {
-			assert(this->get_non_rt().size > 0);
+			assert(this->get_non_rt_size() > 0);
+			this->get_non_rt_size()--;
 			this->addOperation(Pop{});
+		}
+
+		void set(simple_vector<T>&& v) {
+			this->get_non_rt_size() = v.size;
+			this->get_non_rt_capacity() = v.capacity;
+			this->addOperation(Set(std::forward<simple_vector<T>>(v)));
 		}
 
 		void clear() {
