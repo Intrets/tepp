@@ -37,7 +37,6 @@ namespace te
 		auto& nonrtAccess();
 
 		[[nodiscard]] std::optional<intrusive_list_owned<Updates>> handleCleanup();
-		void clean();
 		void sendQueue();
 		void clear();
 
@@ -83,11 +82,6 @@ namespace te
 			);
 			return std::make_optional<intrusive_list_owned<typename rt_aggregate<Enum, Args...>::Updates>>(ptr);
 		}
-	}
-
-	template<class Enum, class... Args>
-	inline void rt_aggregate<Enum, Args...>::clean() {
-		delete this->cleanup.exchange(nullptr);
 	}
 
 	template<class Enum, class... Args>
