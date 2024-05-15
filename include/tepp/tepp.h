@@ -570,6 +570,9 @@ namespace te
 	template<class T, class L>
 	concept member_of = contains_v<L, T>;
 
+	template<class T, class... Args>
+	concept member_of2 = contains_v<te::list_type<Args...>, T>;
+
 	template<class T>
 	struct is_std_fun;
 

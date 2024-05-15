@@ -47,5 +47,9 @@ make_module(
 		pmr_container
 		ring_buffer
 		hash
+		polyant
 	CXX_STANDARD 23
 )
+
+add_executable(polyanttest polyanttest.cpp)
+target_link_libraries(polyanttest PUBLIC tepp)
