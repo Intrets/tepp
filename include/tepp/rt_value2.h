@@ -55,6 +55,15 @@ namespace te
 					assert(0);
 				}
 			}
+
+			void run_non_rt(rt& rt) {
+				if constexpr (std::copyable<T>) {
+					rt.value = this->storage;
+				}
+				else {
+					assert(0);
+				}
+			}
 		};
 		struct Retrieve
 		{
@@ -62,6 +71,10 @@ namespace te
 
 			void run_rt(rt& rt) {
 				this->storage = std::move(rt.value);
+			}
+
+			void run_non_rt(rt& rt) {
+				rt.value = std::move(this->storage);
 			}
 		};
 
