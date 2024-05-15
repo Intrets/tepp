@@ -151,7 +151,123 @@ namespace te
 	constexpr auto Value_function = value_function_t<F>();
 
 	template<class... Args>
-	using list_type = std::tuple<Args...>;
+	struct list_type
+	{
+	};
+
+	template<int64_t I, class L>
+	struct list_element;
+
+	template<template<class...> class L, class Arg0, class... Args>
+	struct list_element<0, L<Arg0, Args...>>
+	{
+		using type = Arg0;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class... Args>
+	struct list_element<1, L<Arg0, Arg1, Args...>>
+	{
+		using type = Arg1;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class... Args>
+	struct list_element<2, L<Arg0, Arg1, Arg2, Args...>>
+	{
+		using type = Arg2;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class... Args>
+	struct list_element<3, L<Arg0, Arg1, Arg2, Arg3, Args...>>
+	{
+		using type = Arg3;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class... Args>
+	struct list_element<4, L<Arg0, Arg1, Arg2, Arg3, Arg4, Args...>>
+	{
+		using type = Arg4;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class... Args>
+	struct list_element<5, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Args...>>
+	{
+		using type = Arg5;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class... Args>
+	struct list_element<6, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Args...>>
+	{
+		using type = Arg6;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class... Args>
+	struct list_element<7, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Args...>>
+	{
+		using type = Arg7;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class... Args>
+	struct list_element<8, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Args...>>
+	{
+		using type = Arg8;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class... Args>
+	struct list_element<9, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Args...>>
+	{
+		using type = Arg9;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class... Args>
+	struct list_element<10, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Args...>>
+	{
+		using type = Arg10;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class... Args>
+	struct list_element<11, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Args...>>
+	{
+		using type = Arg11;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class... Args>
+	struct list_element<12, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Args...>>
+	{
+		using type = Arg12;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class... Args>
+	struct list_element<13, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Args...>>
+	{
+		using type = Arg13;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class Arg14, class... Args>
+	struct list_element<14, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Args...>>
+	{
+		using type = Arg14;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class Arg14, class Arg15, class... Args>
+	struct list_element<15, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Args...>>
+	{
+		using type = Arg15;
+	};
+
+	template<template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class Arg14, class Arg15, class Arg16, class... Args>
+	struct list_element<16, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Args...>>
+	{
+		using type = Arg16;
+	};
+
+	template<int64_t, template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class Arg14, class Arg15, class Arg16, class... Args>
+	struct list_element<I, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Args...>>
+	{
+		using type = list_element<I - 16, L<Args...>>::type;
+	};
+
+	template<int64_t I, class L>
+	using list_element_t = list_element<I, L>::type;
 
 	template<class... Args>
 	constexpr auto List = Type<te::list_type<Args...>>;
@@ -268,6 +384,18 @@ namespace te
 
 	template<type_function_c To, list L>
 	using convert_to_t = typename detail::convert_list<L, To>::type;
+
+	template<template<class...> class To, list From>
+	struct convert_list_type;
+
+	template<template<class...> class To, template<class...> class From, class... Args>
+	struct convert_list_type<To, From<Args...>>
+	{
+		using type = To<Args...>;
+	};
+
+	template<template<class...> class To, list From>
+	using convert_list_type_t = convert_list_type<To, From>::type;
 
 	constexpr auto convert_to = []<type_function_c To, list List>(Type_t<To>, Type_t<List>) {
 		return Type<convert_to_t<To, List>>;
