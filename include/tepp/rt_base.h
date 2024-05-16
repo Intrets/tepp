@@ -6,7 +6,7 @@ namespace te
 {
 	struct rt_aggregate_dynamic;
 
-	struct alignas(std::hardware_destructive_interference_size) rt_base
+	struct rt_base
 	{
 		rt_aggregate_dynamic* aggregate = nullptr;
 		int64_t aggregateIndex = -1;
@@ -25,10 +25,10 @@ namespace te
 	};
 
 	template<class T, class non_rt, class rt>
-	struct rt_base_template : rt_base
+	struct alignas(std::hardware_destructive_interference_size) rt_base_template : rt_base
 	{
-		rt rtStorage{};
-		non_rt non_rtStorage{};
+		alignas(std::hardware_destructive_interference_size) rt rtStorage{};
+		alignas(std::hardware_destructive_interference_size) non_rt non_rtStorage{};
 
 		rt& get_rt() {
 			return this->rtStorage;
