@@ -34,8 +34,6 @@ namespace te
 			void run_rt(rt& rt) {
 				rt.data.add_back(std::move(this->datum));
 			}
-			void run_non_rt(non_rt& nonrt) {
-			}
 		};
 
 		struct ReplaceStorage

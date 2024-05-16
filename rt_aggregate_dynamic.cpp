@@ -22,7 +22,7 @@ namespace te
 			current = new te::intrusive_list<Updates>(std::move(this->queue));
 		}
 		else {
-			current = current->back().insert_after(std::move(this->queue));
+			current->back().insert_after(std::move(this->queue));
 		}
 
 		[[maybe_unused]] auto old = this->updates.exchange(current);
