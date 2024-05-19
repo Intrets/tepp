@@ -3,10 +3,10 @@
 namespace te
 {
 	void rt_aggregate_dynamic::handleCleanup(void* context) {
-		auto current = this->cleanup.exchange(nullptr);
+		auto current = te::intrusive_list_owned(this->cleanup.exchange(nullptr));
 
-		if (current != nullptr) {
-			current->for_each_forward([&](Updates& updates) {
+		if (current.data != nullptr) {
+			current.data->for_each_forward([&](Updates& updates) {
 				for (auto& update : updates) {
 					update.operation->runnonrt_impl(context, *this->elements[update.index]);
 				}
