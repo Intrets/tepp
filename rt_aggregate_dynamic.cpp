@@ -5,8 +5,8 @@ namespace te
 	void rt_aggregate_dynamic::handleCleanup(void* context) {
 		auto current = te::intrusive_list_owned(this->cleanup.exchange(nullptr));
 
-		if (current.data != nullptr) {
-			current.data->for_each_forward([&](Updates& updates) {
+		if (!current.empty()) {
+			current->for_each_forward([&](Updates& updates) {
 				for (auto& update : updates) {
 					update.operation->runnonrt_impl(context, *this->elements[update.index]);
 				}
