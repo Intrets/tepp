@@ -2,13 +2,13 @@
 
 namespace te
 {
-	void rt_aggregate_dynamic::handleCleanup() {
+	void rt_aggregate_dynamic::handleCleanup(void* context) {
 		auto current = this->cleanup.exchange(nullptr);
 
 		if (current != nullptr) {
 			current->for_each_forward([&](Updates& updates) {
 				for (auto& update : updates) {
-					update.operation->runnonrt_impl(*this->elements[update.index]);
+					update.operation->runnonrt_impl(context, *this->elements[update.index]);
 				}
 				this->inTransit--;
 			});

@@ -21,7 +21,7 @@ namespace te
 		int inTransit = 0;
 		std::atomic<intrusive_list<Updates>*> cleanup{};
 
-		void handleCleanup();
+		void handleCleanup(void* context);
 		void sendQueue();
 		void clear();
 
