@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tepp/polyant.h"
 #include "tepp/rt_aggregate_dynamic.h"
 #include "tepp/rt_base.h"
 #include "tepp/simple_vector.h"

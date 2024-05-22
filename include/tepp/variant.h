@@ -3,6 +3,8 @@
 #include <optional>
 #include <variant>
 
+#include "tepp/tepp.h"
+
 namespace te
 {
 	template<class... Ts>
@@ -24,11 +26,11 @@ namespace te
 		return std::visit(detail::overloaded{ std::forward<Visitors>(visitors)... }, std::forward<V>(v));
 	}
 
-	template<class T, class V, class Visitor>
+	template<class V, class Visitor, class T = te::head_t<te::arguments_list_t<Visitor>>>
 	constexpr auto visit_if(V&& v, Visitor&& visitor) {
-		using Return = std::invoke_result_t<Visitor, T&>;
+		using Return = std::invoke_result_t<Visitor, T>;
 
-		if (auto ptr = std::get_if<T>(&v)) {
+		if (auto ptr = std::get_if<std::remove_cvref_t<T>>(&v)) {
 			if constexpr (std::same_as<Return, void>) {
 				visitor(*ptr);
 			}

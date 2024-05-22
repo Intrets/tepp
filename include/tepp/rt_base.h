@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tepp/polyant.h>
+#include "tepp/tepp.h"
 
 namespace te
 {
