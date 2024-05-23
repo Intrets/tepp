@@ -93,7 +93,8 @@ namespace te
 
 			rt_ring_export_access() = delete;
 			~rt_ring_export_access() {
-				this->parent.reset_buffer(this->endIndex);
+				this->parent.readI.store(-1);
+				this->parent.currentlyAccessed = false;
 			};
 
 			NO_COPY_MOVE(rt_ring_export_access);
@@ -118,11 +119,11 @@ namespace te
 			}
 
 			int64_t size() const noexcept {
-				if (this->endIndex > this->beginIndex) {
+				if (this->endIndex >= this->beginIndex) {
 					return this->endIndex - this->beginIndex;
 				}
 				else {
-					return this->parent.getBufferSize() - (this->endIndex - this->beginIndex);
+					return this->parent.getBufferSize() - (this->beginIndex - this->endIndex);
 				}
 			}
 
@@ -133,9 +134,8 @@ namespace te
 
 	private:
 		std::vector<T> data{};
-		int64_t batchWriteIndex = 1;
 		std::atomic<int64_t> writeI = 1;
-		std::atomic<int64_t> readI{};
+		std::atomic<int64_t> readI = -1;
 		bool currentlyAccessed = false;
 
 		int64_t mod(int64_t i) {
@@ -165,37 +165,15 @@ namespace te
 			auto writeIndex = this->writeI.load();
 			auto readIndex = this->readI.load();
 
-			if (writeIndex == readIndex + this->getBufferSize()) {
+			if (writeIndex == readIndex) {
 				return false;
 			}
 
-			this->data[this->mod(writeIndex)] = val;
-
-			this->writeI.store(writeIndex + 1);
+			this->data[this->mod(writeIndex)] = val; 
+			this->writeI.store(this->mod(writeIndex + 1));
 
 			return true;
 		};
-
-		bool batchWrite(T const& val) noexcept {
-			auto readIndex = this->readI.load();
-
-			if (this->batchWriteIndex == readIndex + this->getBufferSize()) {
-				return false;
-			}
-
-			this->data[this->mod(this->batchWriteIndex)] = val;
-
-			this->batchWriteIndex++;
-
-			return true;
-		}
-
-		void sendBatch() noexcept {
-			this->writeI.store(this->batchWriteIndex);
-			if (this->batchWriteIndex > this->getBufferSize() * 2) {
-				this->batchWriteIndex -= this->getBufferSize();
-			}
-		}
 
 		T const& peek() const noexcept {
 			// can do this when writeI always starts out as at least 1
@@ -203,33 +181,16 @@ namespace te
 			return this->data[i];
 		}
 
-		T const& peekBatch() const noexcept {
-			// can do this when writeI always starts out as at least 1
-			auto const i = this->mod(this->batchWriteIndex - 1);
-			return this->data[i];
-		}
-
-		rt_ring_export<T, type>::rt_ring_export_access consume_buffer() {
+		rt_ring_export<T, type>::rt_ring_export_access access_buffer(int64_t size) {
 			assert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
-			auto begin = this->readI.load();
 			auto end = this->writeI.load();
+			auto begin = this->mod(end + this->getBufferSize() - size);
+
+			this->readI.store(begin);
 
 			return rt_ring_export_access(begin, end, *this);
-		}
-
-		void reset_buffer(int64_t newBegin) {
-			assert(this->currentlyAccessed);
-			this->currentlyAccessed = false;
-
-			if (newBegin > this->getBufferSize() * 2) {
-				this->readI.store(newBegin - this->getBufferSize());
-				this->writeI.fetch_sub(this->getBufferSize());
-			}
-			else {
-				this->readI.store(newBegin);
-			}
 		}
 
 		int64_t getCurrentSize() const {
@@ -244,8 +205,7 @@ namespace te
 			}
 		}
 
-		bool
-		empty() const {
+		bool empty() const {
 			return this->getCurrentSize() == 0;
 		}
 
