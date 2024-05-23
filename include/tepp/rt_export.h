@@ -159,6 +159,15 @@ namespace te
 				return const_iterator(this->parent, (this->beginIndex + this->endIndex) / 2);
 			}
 
+			int64_t size() const noexcept {
+				if (this->endIndex > this->beginIndex) {
+					return this->endIndex - this->beginIndex;
+				}
+				else {
+					return this->parent.getBufferSize() - (this->endIndex - this->beginIndex);
+				}
+			}
+
 			bool empty() const noexcept {
 				return this->beginIndex == this->endIndex;
 			}
