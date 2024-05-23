@@ -1,6 +1,3 @@
-// tepp - A template library for C++
-// Copyright (C) 2021 intrets
-
 #pragma once
 
 #include <atomic>
@@ -14,7 +11,7 @@
 namespace te
 {
 	template<class T, rt_export_size::type type = rt_export_size::type::normal>
-	struct rt_export
+	struct rt_ring_export
 	{
 		struct const_iterator
 		{
@@ -26,10 +23,10 @@ namespace te
 
 		private:
 			int64_t index;
-			rt_export& parent;
+			rt_ring_export& parent;
 
 		public:
-			const_iterator(rt_export& parent_, int64_t index_) noexcept
+			const_iterator(rt_ring_export& parent_, int64_t index_) noexcept
 			    : index(index_),
 			      parent(parent_) {
 			}
@@ -86,26 +83,26 @@ namespace te
 			}
 		};
 
-		struct rt_export_access
+		struct rt_ring_export_access
 		{
-			rt_export_access(int64_t begin_, int64_t end_, rt_export& parent_)
+			rt_ring_export_access(int64_t begin_, int64_t end_, rt_ring_export& parent_)
 			    : beginIndex(begin_),
 			      endIndex(end_),
 			      parent(parent_) {
 			}
 
-			rt_export_access() = delete;
-			~rt_export_access() {
+			rt_ring_export_access() = delete;
+			~rt_ring_export_access() {
 				this->parent.reset_buffer(this->endIndex);
 			};
 
-			NO_COPY_MOVE(rt_export_access);
+			NO_COPY_MOVE(rt_ring_export_access);
 
 		private:
 			int64_t beginIndex;
 			int64_t endIndex;
 
-			rt_export& parent;
+			rt_ring_export& parent;
 
 		public:
 			const_iterator begin() const noexcept {
@@ -151,11 +148,11 @@ namespace te
 		}
 
 	public:
-		rt_export(rt_export_size::normal size)
+		rt_ring_export(rt_export_size::normal size)
 		    : data(size.size) {
 		}
 
-		rt_export(rt_export_size::power_of_two size)
+		rt_ring_export(rt_export_size::power_of_two size)
 		    : data(size.getSize()) {
 		}
 
@@ -212,14 +209,14 @@ namespace te
 			return this->data[i];
 		}
 
-		rt_export<T, type>::rt_export_access consume_buffer() {
+		rt_ring_export<T, type>::rt_ring_export_access consume_buffer() {
 			assert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
 			auto begin = this->readI.load();
 			auto end = this->writeI.load();
 
-			return rt_export_access(begin, end, *this);
+			return rt_ring_export_access(begin, end, *this);
 		}
 
 		void reset_buffer(int64_t newBegin) {
@@ -240,7 +237,7 @@ namespace te
 			auto readIndex = this->readI.load();
 
 			if (writeIndex > readIndex) {
-				return writeIndex - readIndex;
+				return writeIndex = readIndex;
 			}
 			else {
 				return this->getBufferSize() - (writeIndex - readIndex);
@@ -252,14 +249,14 @@ namespace te
 			return this->getCurrentSize() == 0;
 		}
 
-		~rt_export() {
+		~rt_ring_export() {
 			assert(!this->currentlyAccessed);
 		}
 	};
 
 	template<class T>
-	rt_export(rt_export_size::normal) -> rt_export<T, rt_export_size::type::normal>;
+	rt_ring_export(rt_export_size::normal) -> rt_ring_export<T, rt_export_size::type::normal>;
 
 	template<class T>
-	rt_export(rt_export_size::power_of_two) -> rt_export<T, rt_export_size::type::restricted>;
+	rt_ring_export(rt_export_size::power_of_two) -> rt_ring_export<T, rt_export_size::type::restricted>;
 }

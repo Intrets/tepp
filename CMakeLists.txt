@@ -14,6 +14,8 @@ make_module(
 		enum_array
 		enum_bitflags
 		rt_export
+		rt_export_size
+		rt_ring_export
 		numeric_type
 		angle
 		heap_object
