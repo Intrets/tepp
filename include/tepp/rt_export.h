@@ -239,16 +239,10 @@ namespace te
 			auto writeIndex = this->writeI.load();
 			auto readIndex = this->readI.load();
 
-			if (writeIndex > readIndex) {
-				return writeIndex - readIndex;
-			}
-			else {
-				return this->getBufferSize() - (writeIndex - readIndex);
-			}
+			return writeIndex - readIndex;
 		}
 
-		bool
-		empty() const {
+		bool empty() const {
 			return this->getCurrentSize() == 0;
 		}
 
