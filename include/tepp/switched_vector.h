@@ -13,12 +13,15 @@ namespace te
 	private:
 		std::vector<T> data{};
 
-		size_t index = 0;
+		int64_t index = 0;
 
 	public:
-		switched_vector() = delete;
+		switched_vector() = default;
 		switched_vector(std::vector<T>&& es) {
 			this->data = std::move(es);
+		}
+		switched_vector(std::vector<T> const& es) {
+			this->data = es;
 		}
 		switched_vector(std::initializer_list<T> init)
 		    : data{ init } {
@@ -45,8 +48,8 @@ namespace te
 			this->data.push_back(std::forward<T>(e));
 		}
 
-		auto size() const {
-			return this->data.size();
+		int64_t size() const {
+			return static_cast<int64_t>(this->data.size());
 		}
 
 		bool empty() const {
@@ -78,7 +81,7 @@ namespace te
 			}
 		}
 
-		auto get_selected_index() const {
+		int64_t get_selected_index() const {
 			return this->index;
 		}
 
