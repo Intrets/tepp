@@ -232,6 +232,36 @@ namespace te
 			return rt_export_access(begin, end, *this);
 		}
 
+		void write_into(std::vector<T>& destination) {
+			assert(!this->currentlyAccessed);
+			this->currentlyAccessed = true;
+
+			auto begin = this->readI.load();
+			auto end = this->writeI.load();
+
+			auto size = end - begin;
+
+			if (std::cmp_less(destination.capacity(), size)) {
+				destination.reserve(size * 2);
+			}
+			destination.resize(size);
+
+			if (size != 0) {
+				auto beginModded = this->mod(begin);
+				auto endModded = this->mod(end);
+
+				if (beginModded < endModded) {
+					std::ranges::copy(this->data.begin() + beginModded, this->data.begin() + endModded, destination.begin());
+				}
+				else {
+					auto it = std::ranges::copy(this->data.begin() + beginModded, this->data.end(), destination.begin());
+					std::ranges::copy(this->data.begin(), this->data.begin() + endModded, it.out);
+				}
+			}
+
+			this->reset_buffer(end);
+		}
+
 		void reset_buffer(int64_t newBegin) {
 			assert(this->currentlyAccessed);
 			this->currentlyAccessed = false;
