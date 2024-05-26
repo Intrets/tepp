@@ -179,6 +179,16 @@ namespace te
 			return true;
 		};
 
+		void batchTrim(int64_t size) noexcept {
+			auto currentSize = this->batchWriteIndex - this->readI.load();
+			auto difference = currentSize - size;
+
+			if (difference > 0) {
+				this->writeI.fetch_add(difference);
+				this->readI.fetch_add(difference);
+			}
+		}
+
 		bool batchWrite(T const& val) noexcept {
 			auto readIndex = this->readI.load();
 
