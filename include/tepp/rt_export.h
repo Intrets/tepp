@@ -244,9 +244,13 @@ namespace te
 			if (std::cmp_less(destination.capacity(), size)) {
 				destination.reserve(size * 2);
 			}
-			destination.resize(size);
 
-			if (size != 0) {
+			if (size == 0) {
+				destination.resize(size);
+			}
+			else if (size > 0) {
+				destination.resize(size);
+
 				auto beginModded = this->mod(begin);
 				auto endModded = this->mod(end);
 
@@ -257,6 +261,9 @@ namespace te
 					auto it = std::ranges::copy(this->data.begin() + beginModded, this->data.end(), destination.begin());
 					std::ranges::copy(this->data.begin(), this->data.begin() + endModded, it.out);
 				}
+			}
+			else {
+				assert(0);
 			}
 
 			this->reset_buffer(end);
