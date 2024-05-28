@@ -297,10 +297,4 @@ namespace te
 			assert(!this->currentlyAccessed);
 		}
 	};
-
-	template<class T>
-	rt_export(rt_export_size::normal) -> rt_export<T, rt_export_size::type::normal>;
-
-	template<class T>
-	rt_export(rt_export_size::power_of_two) -> rt_export<T, rt_export_size::type::restricted>;
 }

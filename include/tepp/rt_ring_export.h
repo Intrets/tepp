@@ -81,6 +81,11 @@ namespace te
 				this->index = other.index;
 				return *this;
 			}
+
+			const_iterator(const_iterator const& other)
+			    : parent(other.parent) {
+				this->index = other.index;
+			}
 		};
 
 		struct rt_ring_export_access
@@ -169,7 +174,7 @@ namespace te
 				return false;
 			}
 
-			this->data[this->mod(writeIndex)] = val; 
+			this->data[this->mod(writeIndex)] = val;
 			this->writeI.store(this->mod(writeIndex + 1));
 
 			return true;
@@ -213,10 +218,4 @@ namespace te
 			assert(!this->currentlyAccessed);
 		}
 	};
-
-	template<class T>
-	rt_ring_export(rt_export_size::normal) -> rt_ring_export<T, rt_export_size::type::normal>;
-
-	template<class T>
-	rt_ring_export(rt_export_size::power_of_two) -> rt_ring_export<T, rt_export_size::type::restricted>;
 }
