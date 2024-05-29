@@ -75,10 +75,14 @@ namespace te
 			return false;
 		}
 
-		void select(std::integral auto i) {
+		bool select(std::integral auto i) {
 			if (i < this->size()) {
+				bool changed = this->index != i;
 				this->index = i;
+				return changed;
 			}
+
+			return false;
 		}
 
 		int64_t get_selected_index() const {
