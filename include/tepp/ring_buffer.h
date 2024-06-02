@@ -59,6 +59,9 @@ namespace te
 		int64_t beginIndex{};
 		int64_t endIndex{};
 
+		auto& back() {
+			return this->data[this->modIndex(this->endIndex - 1 + this->data.size())];
+		}
 
 		auto begin() {
 			return iterator<T>(this->beginIndex, *this);
