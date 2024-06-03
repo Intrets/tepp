@@ -28,7 +28,9 @@ namespace te
 	}
 
 	bool uuid::operator==(uuid const& other) const {
-		return data == other.data;
+		static_assert(sizeof(other.data) == 16);
+		static_assert(sizeof(this->data) == 16);
+		return std::memcmp(this->data.data(), other.data.data(), 16) == 0;
 	}
 
 	uint64_t uuid::getLower() const {
