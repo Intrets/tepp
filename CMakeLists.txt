@@ -62,6 +62,7 @@ make_module(
 		ring_buffer
 		hash
 		polyant
+		unique_object
 	CXX_STANDARD 23
 )
 
