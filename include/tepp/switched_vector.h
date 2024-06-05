@@ -45,7 +45,7 @@ namespace te
 		}
 
 		void add(T&& e) {
-			this->data.push_back(std::forward<T>(e));
+			this->data.push_back(std::move(e));
 		}
 
 		int64_t size() const {
@@ -99,7 +99,7 @@ namespace te
 		}
 
 		auto end() const {
-			return this->data.begin();
+			return this->data.end();
 		}
 
 		auto begin() {
@@ -107,7 +107,7 @@ namespace te
 		}
 
 		auto end() {
-			return this->data.begin();
+			return this->data.end();
 		}
 
 		auto const& operator[](std::integral auto i) const {
@@ -124,6 +124,11 @@ namespace te
 			}
 
 			return *this;
+		}
+
+		void clear() {
+			this->data.clear();
+			this->index = 0;
 		}
 	};
 }
