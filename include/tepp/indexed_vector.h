@@ -9,7 +9,7 @@
 
 namespace te
 {
-	template<string_literal name, class T = size_t>
+	template<string_literal name, class T = int64_t>
 	struct index
 	{
 		T value = 0;
