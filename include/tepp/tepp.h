@@ -993,8 +993,8 @@ namespace te
 		template<class F, class T, class IS>
 		struct for_each;
 
-		template<class F, class T, size_t... I>
-		struct for_each<F, T, std::index_sequence<I...>>
+		template<class F, class T, int64_t... I>
+		struct for_each<F, T, std::integer_sequence<int64_t, I...>>
 		{
 			constexpr static auto apply(F&& f, T&& t) {
 				(f(std::get<I>(t)), ...);
@@ -1004,8 +1004,8 @@ namespace te
 		template<class IS, class F>
 		struct for_iota;
 
-		template<class F, size_t... I>
-		struct for_iota<std::index_sequence<I...>, F>
+		template<class F, int64_t... I>
+		struct for_iota<std::integer_sequence<int64_t, I...>, F>
 		{
 			constexpr static auto apply(F&& f) {
 				(std::invoke(std::forward<F>(f), te::Value<I>), ...);
@@ -1015,14 +1015,14 @@ namespace te
 
 	template<class F, class Tuple>
 	constexpr static auto tuple_for_each(F&& f, Tuple&& t) {
-		constexpr size_t size = std::tuple_size_v<std::remove_cvref_t<Tuple>>;
+		constexpr int64_t size = static_cast<int64_t>(std::tuple_size_v<std::remove_cvref_t<Tuple>>);
 
-		detail::for_each<F, Tuple, std::make_index_sequence<size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
+		detail::for_each<F, Tuple, std::make_integer_sequence<int64_t, size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
 	}
 
-	template<size_t I, class F>
+	template<int64_t I, class F>
 	constexpr static auto for_iota(F&& f) {
-		detail::for_iota<std::make_index_sequence<I>, F>::apply(std::forward<F>(f));
+		detail::for_iota<std::make_integer_sequence<int64_t, I>, F>::apply(std::forward<F>(f));
 	}
 
 	constexpr static auto for_each(auto&& f, auto&&... args) {
