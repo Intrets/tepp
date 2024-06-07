@@ -82,8 +82,8 @@ namespace te
 		{
 			T value{};
 
-			size_t capacity = 10;
-			size_t size = 0;
+			int64_t capacity = 10;
+			int64_t size = 0;
 
 			std::vector<Update>* queue{};
 			void clear();

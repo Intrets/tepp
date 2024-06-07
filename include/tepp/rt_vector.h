@@ -29,7 +29,7 @@ namespace te
 	template<class T, rt_vector_tag tag>
 	concept has_rt_vector_tag = requires(T t) { T::tag; } && (T::tag == tag);
 
-	template<class T, class IndexType = size_t, class... Extended>
+	template<class T, class IndexType = int64_t, class... Extended>
 	struct rt_vector
 	{
 		struct Swap
@@ -62,7 +62,7 @@ namespace te
 
 			simple_vector<T> storage;
 
-			ReplaceStorage(size_t size)
+			ReplaceStorage(int64_t size)
 			    : storage(size) {
 			}
 		};
@@ -84,7 +84,7 @@ namespace te
 
 			simple_vector<T> storage;
 
-			Clear(size_t size)
+			Clear(int64_t size)
 			    : storage(size) {
 			}
 		};
@@ -100,7 +100,7 @@ namespace te
 
 			simple_vector<T> storage;
 
-			Copy(size_t size)
+			Copy(int64_t size)
 			    : storage(size) {
 			}
 		};
@@ -109,8 +109,8 @@ namespace te
 
 		struct nonrt
 		{
-			size_t capacity = 10;
-			size_t size = 0;
+			int64_t capacity = 10;
+			int64_t size = 0;
 
 			std::vector<Update>* queue{};
 			void add(T&& value);

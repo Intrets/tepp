@@ -11,30 +11,30 @@
 
 namespace te
 {
-	template<class EnumType, class T, size_t size = static_cast<size_t>(EnumType::MAX)>
+	template<class EnumType, class T, int64_t size = static_cast<int64_t>(EnumType::MAX)>
 	struct enum_array
 	{
 		using enum_type = EnumType;
 
 		std::array<T, size> data{};
 
-		size_t getSize() const noexcept {
+		int64_t getSize() const noexcept {
 			return size;
 		}
 
 		constexpr T& operator[](EnumType i) {
-			assert(static_cast<size_t>(i) < size);
-			return this->data[static_cast<size_t>(i)];
+			assert(static_cast<int64_t>(i) < size);
+			return this->data[static_cast<int64_t>(i)];
 		}
 
 		constexpr T const& operator[](EnumType i) const {
-			assert(static_cast<size_t>(i) < size);
-			return this->data[static_cast<size_t>(i)];
+			assert(static_cast<int64_t>(i) < size);
+			return this->data[static_cast<int64_t>(i)];
 		}
 
 		template<class S>
 		std::optional<EnumType> getEnum(S&& value) const {
-			for (size_t i = 0; i < size; i++) {
+			for (int64_t i = 0; i < size; i++) {
 				auto e = static_cast<EnumType>(i);
 
 				if (this->operator[](e) == value) {
@@ -59,7 +59,7 @@ namespace te
 		}
 
 		constexpr enum_array(std::initializer_list<T> init) {
-			size_t i = 0;
+			int64_t i = 0;
 			for (auto val : init) {
 				this->data[i] = val;
 
@@ -71,7 +71,7 @@ namespace te
 		using const_iterator = typename A::const_iterator;
 		using iterator = typename A::iterator;
 
-		template<EnumType start, size_t N>
+		template<EnumType start, int64_t N>
 		constexpr void write(std::span<T, N> values) {
 			if constexpr (N == std::dynamic_extent) {
 				constexpr auto end = std::min(size, N);
@@ -80,7 +80,7 @@ namespace te
 				std::copy(values.begin(), values.begin() + end, this->data.begin());
 			}
 			else {
-				static_assert(static_cast<size_t>(start) + N <= size, "Too many values in span");
+				static_assert(static_cast<int64_t>(start) + N <= size, "Too many values in span");
 
 				std::copy(values.begin(), values.end(), this->data.begin());
 			}
@@ -88,8 +88,8 @@ namespace te
 
 		template<EnumType begin, EnumType end>
 		constexpr auto getSpan() {
-			constexpr auto beginI = static_cast<size_t>(begin);
-			constexpr auto endI = static_cast<size_t>(end) + 1;
+			constexpr auto beginI = static_cast<int64_t>(begin);
+			constexpr auto endI = static_cast<int64_t>(end) + 1;
 			constexpr auto N = endI - beginI;
 			static_assert(N > 0);
 			static_assert(N <= size);
@@ -98,8 +98,8 @@ namespace te
 		}
 
 		template<EnumType begin>
-		constexpr auto getSpan(size_t N) {
-			constexpr auto beginI = static_cast<size_t>(begin);
+		constexpr auto getSpan(int64_t N) {
+			constexpr auto beginI = static_cast<int64_t>(begin);
 			auto endI = beginI + N;
 			assert(N <= size);
 
@@ -128,7 +128,7 @@ namespace te
 
 		template<class F>
 		constexpr void forEach(F&& f) const {
-			for (size_t i = 0; i < size; i++) {
+			for (int64_t i = 0; i < size; i++) {
 				auto e = static_cast<EnumType>(i);
 
 				f(e, this->operator[](e));
@@ -137,7 +137,7 @@ namespace te
 
 		template<class F>
 		constexpr void forEach(F&& f) {
-			for (size_t i = 0; i < size; i++) {
+			for (int64_t i = 0; i < size; i++) {
 				auto e = static_cast<EnumType>(i);
 
 				f(e, this->operator[](e));

@@ -42,7 +42,7 @@ namespace te
 
 	namespace detail
 	{
-		template<class T, size_t size, size_t align, te::member_of<te::list_type<trivial_destructor, custom_destructor, automatic_destructor>> destructor>
+		template<class T, int64_t size, int64_t align, te::member_of<te::list_type<trivial_destructor, custom_destructor, automatic_destructor>> destructor>
 		struct is_valid_storage
 		{
 			inline constexpr static bool valid_alignnment_and_size = [] {
@@ -61,10 +61,10 @@ namespace te
 		};
 	}
 
-	template<class T, size_t size, size_t align, class destructor>
+	template<class T, int64_t size, int64_t align, class destructor>
 	concept valid_storage = detail::is_valid_storage<T, size, align, destructor>::value;
 
-	template <size_t size, size_t align, class destructor = trivial_destructor>
+	template <int64_t size, int64_t align, class destructor = trivial_destructor>
 	struct cheated_storage : destructor
 	{
 		alignas(align) std::byte storage[size];

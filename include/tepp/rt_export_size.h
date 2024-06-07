@@ -6,14 +6,14 @@ namespace te
 	{
 		struct normal
 		{
-			size_t size;
+			int64_t size;
 		};
 
 		struct power_of_two
 		{
-			size_t power;
+			int64_t power;
 
-			size_t getSize() {
+			int64_t getSize() {
 				assert(power < 64);
 				return 1ULL << power;
 			}
@@ -23,7 +23,7 @@ namespace te
 					return { 0 };
 				}
 
-				size_t power = 0;
+				int64_t power = 0;
 
 				size--;
 

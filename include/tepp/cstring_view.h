@@ -11,7 +11,7 @@ namespace te
 	{
 	private:
 		T const* data{};
-		size_t size{};
+		int64_t size{};
 
 	public:
 		bool empty() const {
@@ -31,7 +31,7 @@ namespace te
 			}
 		}
 
-		template<class S, size_t N>
+		template<class S, int64_t N>
 		constexpr const_string_view(S const (&str)[N])
 		    : data(str),
 		      size(N) {
@@ -46,7 +46,7 @@ namespace te
 		      size(str.size()) {
 		}
 
-		const_string_view(char const* str, size_t size_)
+		const_string_view(char const* str, int64_t size_)
 		    : data(str),
 		      size(size_) {
 			assert(str[size_] == '\0');

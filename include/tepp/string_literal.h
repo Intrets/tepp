@@ -7,7 +7,7 @@
 
 namespace te
 {
-	template<size_t N>
+	template<int64_t N>
 	struct string_literal
 	{
 		char val[N];

@@ -29,10 +29,10 @@ namespace te
 		T data;
 	};
 
-	template<class T, size_t size_, class IndexType = size_t, class... Extended>
+	template<class T, int64_t size_, class IndexType = int64_t, class... Extended>
 	struct rt_storage
 	{
-		static constexpr size_t size = size_;
+		static constexpr int64_t size = size_;
 
 		struct FreeMemory
 		{
@@ -154,7 +154,7 @@ namespace te
 							assert(retrieveFrees.frees.empty());
 							retrieveFrees.frees.data = this->freeMemoryQueue.release();
 						}, [this](Clear) {
-							for (size_t i = 0; i < size; i++) {
+							for (int64_t i = 0; i < size; i++) {
 								auto& entry = this->data[i];
 								entry.qualifier = {};
 								auto free = this->freeMemory[i];
