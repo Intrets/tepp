@@ -3,8 +3,8 @@
 #if DEBUG_BUILD
 namespace te::debug
 {
-	int& typeCounter() {
-		static int counter = 0;
+	int64_t& typeCounter() {
+		static int64_t counter = 0;
 		return counter;
 	}
 }

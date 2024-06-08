@@ -14,15 +14,15 @@
 
 namespace te::debug
 {
-	int& typeCounter();
+	int64_t& typeCounter();
 
 	template<class T>
-	static int getTypeIndex() {
+	static int64_t getTypeIndex() {
 		static std::mutex mutex;
 
 		auto lock = std::scoped_lock(mutex);
 
-		static int typeIndex = typeCounter()++;
+		static int64_t typeIndex = typeCounter()++;
 		return typeIndex;
 	}
 }
@@ -70,7 +70,7 @@ namespace te
 		alignas(align) std::byte storage[size];
 
 #if DEBUG_BUILD
-		int typeIndex = debug::getTypeIndex<void>();
+		int64_t typeIndex = debug::getTypeIndex<void>();
 #endif // DEBUG_BUILD
 
 		template<te::valid_storage<size, align, destructor> T, class... Args>

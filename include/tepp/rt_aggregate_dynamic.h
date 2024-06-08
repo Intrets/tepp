@@ -18,7 +18,7 @@ namespace te
 		Updates queue{};
 
 		// non-rt
-		int inTransit = 0;
+		int64_t inTransit = 0;
 		std::atomic<intrusive_list<Updates>*> cleanup{};
 
 		void handleCleanup(void* context);

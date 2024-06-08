@@ -29,7 +29,7 @@ namespace te
 
 		// non-rt
 		Updates queue;
-		int inQueueCount = 0;
+		int64_t inQueueCount = 0;
 		std::atomic<intrusive_list<Updates>*> cleanup;
 		std::tuple<typename Args::nonrt...> nonrt_objects;
 

@@ -51,7 +51,7 @@ namespace te
 				return *this;
 			}
 
-			const_iterator& operator+=(int inc) noexcept {
+			const_iterator& operator+=(int64_t inc) noexcept {
 				this->index += inc;
 				return *this;
 			}
