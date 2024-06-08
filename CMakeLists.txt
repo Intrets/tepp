@@ -8,6 +8,7 @@ make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
 		misc
+		temp_format
 		defer
 		tepp
 		dest
