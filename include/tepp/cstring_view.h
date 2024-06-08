@@ -72,3 +72,17 @@ namespace te
 }
 
 bool operator==(te::cstring_view left, std::string const& right);
+
+template<>
+struct std::formatter<te::cstring_view, char>
+{
+	template<class ParseContext>
+	constexpr ParseContext::iterator parse(ParseContext& ctx) {
+		return std::formatter<std::string_view, char>{}.parse(ctx);
+	}
+
+	template<class FmtContext>
+	FmtContext::iterator format(te::cstring_view s, FmtContext& ctx) const {
+		return std::formatter<std::string_view, char>{}.format(s.string_view(), ctx);
+	}
+};
