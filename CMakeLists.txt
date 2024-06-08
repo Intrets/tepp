@@ -19,24 +19,15 @@ make_module(
 		numeric_type
 		angle
 		heap_object
-		rt_vector
 		rt_vector2
-		rt_aggregate
 		rt_aggregate_dynamic
 		rt_base
-		rt_value
 		rt_value2
-		rt_move_value
 		rt_move_value2
-		rt_queue
 		rt_queue2
-		rt_storage
 		cached_heap_object
 		bi_map
-		rt_move_value
-		rt_queue
 		rt_queue2
-		rt_storage
 		cached_heap_object
 		bi_map
 		optional_ref
