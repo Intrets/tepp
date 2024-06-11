@@ -89,7 +89,7 @@ namespace te
 			}
 		};
 
-		static BufferAccess getBuffer() {
+		[[maybe_unused]] static BufferAccess getBuffer() {
 			thread_local BufferPool bufferPool{};
 			return BufferAccess(bufferPool);
 		}
