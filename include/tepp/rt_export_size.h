@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <cassert>
+
 namespace te
 {
 	namespace rt_export_size

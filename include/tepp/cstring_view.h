@@ -3,6 +3,7 @@
 #include <cassert>
 #include <string>
 #include <string_view>
+#include <format>
 
 namespace te
 {
@@ -72,12 +73,6 @@ namespace te
 }
 
 bool operator==(te::cstring_view left, std::string const& right);
-
-namespace std
-{
-	template<class, class>
-	struct formatter;
-}
 
 template<>
 struct std::formatter<te::cstring_view, char>
