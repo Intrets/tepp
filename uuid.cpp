@@ -2,6 +2,7 @@
 
 #include <ranges>
 #include <sstream>
+#include <cassert>
 
 namespace te
 {
@@ -14,15 +15,16 @@ namespace te
 
 		uuid result{};
 
-		for (int i = 0; auto s : str | std::views::filter([](auto c) { return c != '-'; }) | std::views::chunk(2)) {
-			std::stringstream byte{};
-			for (auto c : s) {
-				result.data[i] <<= 4;
-				result.data[i] += parseChar(c);
-			}
-
-			i++;
-		}
+        assert(0);
+//		for (int i = 0; auto s : str | std::views::filter([](auto c) { return c != '-'; }) | std::views::chunk(2)) {
+//			std::stringstream byte{};
+//			for (auto c : s) {
+//				result.data[i] <<= 4;
+//				result.data[i] += parseChar(c);
+//			}
+//
+//			i++;
+//		}
 
 		return result;
 	}
@@ -97,15 +99,15 @@ namespace te
 
 	std::size_t uuid::getHash() const {
 		// FNV-1
-		constexpr size_t prime = 1099511628211ULL;
-		constexpr size_t offset = 14695981039346656037ULL;
+		constexpr uint64_t prime = 1099511628211ULL;
+		constexpr uint64_t offset = 14695981039346656037ULL;
 
-		size_t hash = offset;
+		uint64_t hash = offset;
 		for (auto byte : this->data) {
 			hash *= prime;
 			hash ^= byte;
 		}
 
-		return hash;
+		return static_cast<size_t>(hash);
 	}
 }

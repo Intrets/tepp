@@ -2,6 +2,15 @@
 
 #include "tepp/tepp.h"
 
+#include <cassert>
+
+#ifdef ANDROID
+#define ALIGN_CORE_AUDIO_DATA
+#else
+#define ALIGN_CORE_AUDIO_DATA alignas(std::hardware_destructive_interference_size)
+#endif
+
+
 namespace te
 {
 	struct rt_aggregate_dynamic;
@@ -18,17 +27,18 @@ namespace te
 
 		template<class T>
 		void addOperation(T&& operation) {
-			this->getAggregate().addOperation(this->aggregateIndex, std::forward<T>(operation));
+            assert(0); // needs refactoring, probably just merge rt_base and rt_aggregate_dynamic files
+//			this->getAggregate().addOperation(this->aggregateIndex, std::forward<T>(operation));
 		}
 
 		virtual void clear() = 0;
 	};
 
 	template<class T, class non_rt, class rt>
-	struct alignas(std::hardware_destructive_interference_size) rt_base_template : rt_base
+	struct ALIGN_CORE_AUDIO_DATA rt_base_template : rt_base
 	{
-		alignas(std::hardware_destructive_interference_size) rt rtStorage{};
-		alignas(std::hardware_destructive_interference_size) non_rt non_rtStorage{};
+		ALIGN_CORE_AUDIO_DATA rt rtStorage{};
+		ALIGN_CORE_AUDIO_DATA non_rt non_rtStorage{};
 
 		rt& get_rt() {
 			return this->rtStorage;

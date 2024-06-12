@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <utility>
+#include <span>
 
 namespace te
 {

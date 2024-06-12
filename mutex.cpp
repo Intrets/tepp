@@ -3,7 +3,9 @@
 
 #include "tepp/mutex.h"
 
+#if USE_WINDOWS
 #include <Windows.h>
+#endif
 
 namespace te
 {
