@@ -1,8 +1,8 @@
 #include "tepp/uuid.h"
 
+#include <cassert>
 #include <ranges>
 #include <sstream>
-#include <cassert>
 
 namespace te
 {
@@ -15,16 +15,24 @@ namespace te
 
 		uuid result{};
 
-        assert(0);
-//		for (int i = 0; auto s : str | std::views::filter([](auto c) { return c != '-'; }) | std::views::chunk(2)) {
-//			std::stringstream byte{};
-//			for (auto c : s) {
-//				result.data[i] <<= 4;
-//				result.data[i] += parseChar(c);
-//			}
-//
-//			i++;
-//		}
+		int i = 0;
+		bool first = true;
+		for (auto c : str) {
+			if (c == '-') {
+				continue;
+			}
+
+			result.data[i] <<= 4;
+			result.data[i] += parseChar(c);
+
+			if (!first) {
+				i++;
+				first = true;
+			}
+			else {
+				first = false;
+			}
+		}
 
 		return result;
 	}
