@@ -10,7 +10,6 @@
 #define ALIGN_CORE_AUDIO_DATA alignas(std::hardware_destructive_interference_size)
 #endif
 
-
 namespace te
 {
 	struct rt_aggregate_dynamic;
@@ -27,8 +26,8 @@ namespace te
 
 		template<class T>
 		void addOperation(T&& operation) {
-            assert(0); // needs refactoring, probably just merge rt_base and rt_aggregate_dynamic files
-//			this->getAggregate().addOperation(this->aggregateIndex, std::forward<T>(operation));
+			assert(0); // needs refactoring, probably just merge rt_base and rt_aggregate_dynamic files
+			           //			this->getAggregate().addOperation(this->aggregateIndex, std::forward<T>(operation));
 		}
 
 		virtual void clear() = 0;
@@ -52,15 +51,18 @@ namespace te
 			this->rtPointer = &this->rtStorage;
 			this->nonrtPointer = &this->non_rtStorage;
 		}
+
 		~rt_base_template() = default;
 	};
 
 	struct rt_base_operation
 	{
 		virtual void runrt_impl(rt_base& base) = 0;
+
 		virtual void runnonrt_impl(void* context, rt_base& base) = 0;
 
 		rt_base_operation() = default;
+
 		virtual ~rt_base_operation() = default;
 	};
 
@@ -99,7 +101,9 @@ namespace te
 				if constexpr (te::list_size_v<arg_list> == 1) {
 					using nonrt_type = std::remove_cvref_t<te::list_element_t<0, arg_list>>;
 
-					auto nonrt_pointer = std::launder(reinterpret_cast<nonrt_type*>(base.nonrtPointer));
+					auto nonrt_pointer = std::launder(
+					    reinterpret_cast<nonrt_type*>(base.nonrtPointer)
+					);
 
 					this->operation.run_non_rt(*nonrt_pointer);
 				}
@@ -108,7 +112,9 @@ namespace te
 					using nonrt_type = std::remove_cvref_t<te::list_element_t<1, arg_list>>;
 
 					auto context_pointer = reinterpret_cast<context_type*>(context);
-					auto nonrt_pointer = std::launder(reinterpret_cast<nonrt_type*>(base.nonrtPointer));
+					auto nonrt_pointer = std::launder(
+					    reinterpret_cast<nonrt_type*>(base.nonrtPointer)
+					);
 
 					this->operation.run_non_rt(*context_pointer, *nonrt_pointer);
 				}
@@ -117,7 +123,9 @@ namespace te
 
 		rt_type_erased_operation(T&& operation_)
 		    : operation(std::move(operation_)){};
+
 		rt_type_erased_operation() = delete;
+
 		virtual ~rt_type_erased_operation() = default;
 	};
 }
