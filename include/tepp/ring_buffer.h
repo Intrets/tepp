@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iterator>
+#include <vector>
 
 namespace te
 {

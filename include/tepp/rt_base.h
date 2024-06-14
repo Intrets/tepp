@@ -4,6 +4,8 @@
 #include "tepp/tepp.h"
 
 #include <cassert>
+#include <cstdint>
+#include <memory>
 
 #ifdef ANDROID
 #define ALIGN_CORE_AUDIO_DATA

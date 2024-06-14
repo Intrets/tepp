@@ -2,6 +2,7 @@
 
 #include <format>
 #include <vector>
+#include <optional>
 
 #include "tepp/cstring_view.h"
 #include "tepp/misc.h"

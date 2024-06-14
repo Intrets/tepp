@@ -1,6 +1,8 @@
 #pragma once
 
+#include <bit>
 #include <span>
+
 #include <tepp/tepp.h>
 
 namespace te
