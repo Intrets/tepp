@@ -62,7 +62,7 @@ namespace te
 		{
 			int64_t from;
 			int64_t to;
-			T storage;
+			T storage{};
 
 			void run_rt(rt& rt) {
 				assert(this->from < rt.data.size);

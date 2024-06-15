@@ -18,10 +18,10 @@ namespace te
 	{
 		size_t operator()(T const&... data) const {
 			// FNV-1
-			constexpr size_t prime = 1099511628211ULL;
-			constexpr size_t offset = 14695981039346656037ULL;
+			constexpr uint64_t prime = 1099511628211ULL;
+			constexpr uint64_t offset = 14695981039346656037ULL;
 
-			size_t hash = offset;
+			uint64_t hash = offset;
 
 			te::for_each(
 			    [&hash](auto const& data) {
@@ -30,13 +30,13 @@ namespace te
 
 				    for (auto byte : std::span<std::byte const>(raw, byteSize)) {
 					    hash *= prime;
-					    hash ^= static_cast<size_t>(std::bit_cast<uint8_t>(byte));
+					    hash ^= static_cast<uint64_t>(std::bit_cast<uint8_t>(byte));
 				    }
 			    },
 			    data...
 			);
 
-			return hash;
+			return static_cast<size_t>(hash);
 		}
 	};
 
