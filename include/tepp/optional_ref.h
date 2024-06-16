@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cassert>
+#include <optional>
 
 namespace te
 {
@@ -63,6 +64,17 @@ namespace te
 			this->ptr = nullptr;
 
 			return *this;
+		}
+
+		template<class F>
+		auto transform(F&& f) {
+			using Return = decltype(f(this->value()));
+			if (this->has_value()) {
+				return std::make_optional(f(this->value()));
+			}
+			else {
+				return std::optional<Return>(std::nullopt);
+			}
 		}
 
 		optional_ref() = default;
