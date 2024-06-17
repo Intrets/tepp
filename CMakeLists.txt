@@ -8,6 +8,7 @@ make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
         enumerate
+		integers
 		misc
 		temp_format
 		defer

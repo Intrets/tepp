@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include <tepp/integers.h>
+
 #pragma once
 
 #define DEFAULT_COPY(T) \
@@ -22,7 +24,7 @@
 
 namespace te
 {
-	inline int64_t isize(auto&& a) {
-		return static_cast<int64_t>(a.size());
+	inline integer_t isize(auto&& a) {
+		return static_cast<integer_t>(a.size());
 	}
 }
