@@ -10,8 +10,8 @@ namespace te
 {
 	struct rt_vector2_non_rt
 	{
-		int64_t capacity = 10;
-		int64_t size = 0;
+		integer_t capacity = 10;
+		integer_t size = 0;
 	};
 
 	template<class T>
@@ -39,7 +39,7 @@ namespace te
 		{
 			simple_vector<T> storage;
 
-			ReplaceStorage(int64_t size)
+			ReplaceStorage(integer_t size)
 			    : storage(size) {
 			}
 
@@ -60,8 +60,8 @@ namespace te
 
 		struct Swap
 		{
-			int64_t from;
-			int64_t to;
+			integer_t from;
+			integer_t to;
 			T storage{};
 
 			void run_rt(rt& rt) {
@@ -87,7 +87,7 @@ namespace te
 		{
 			simple_vector<T> storage;
 
-			Clear(int64_t size)
+			Clear(integer_t size)
 			    : storage(size) {
 			}
 
@@ -120,11 +120,11 @@ namespace te
 			return this->get_rt().data;
 		}
 
-		int64_t& get_non_rt_size() {
+		integer_t& get_non_rt_size() {
 			return this->get_non_rt().size;
 		}
 
-		int64_t& get_non_rt_capacity() {
+		integer_t& get_non_rt_capacity() {
 			return this->get_non_rt().capacity;
 		}
 
@@ -138,7 +138,7 @@ namespace te
 			this->addOperation(Add{ .datum = std::forward<T>(value) });
 		}
 
-		void swap(int64_t from, int64_t to) {
+		void swap(integer_t from, integer_t to) {
 			assert(from < this->get_non_rt_size());
 			assert(to < this->get_non_rt_size());
 			assert(from >= 0);

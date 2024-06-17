@@ -5,15 +5,17 @@
 
 #include <algorithm>
 
+#include "tepp/integers.h"
+
 namespace te
 {
-	template<int64_t N>
+	template<integer_t N>
 	struct string_literal
 	{
 		char val[N];
 		static constexpr auto size = N;
 
-		constexpr string_literal(char const(&str)[N]) {
+		constexpr string_literal(char const (&str)[N]) {
 			std::copy_n(str, N, this->val);
 		}
 	};

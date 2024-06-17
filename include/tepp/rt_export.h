@@ -26,11 +26,11 @@ namespace te
 			using reference = T const&;
 
 		private:
-			int64_t index;
+			integer_t index;
 			rt_export& parent;
 
 		public:
-			const_iterator(rt_export& parent_, int64_t index_) noexcept
+			const_iterator(rt_export& parent_, integer_t index_) noexcept
 			    : index(index_),
 			      parent(parent_) {
 			}
@@ -55,7 +55,7 @@ namespace te
 				return *this;
 			}
 
-			const_iterator& operator+=(int64_t inc) noexcept {
+			const_iterator& operator+=(integer_t inc) noexcept {
 				this->index += inc;
 				return *this;
 			}
@@ -89,7 +89,7 @@ namespace te
 
 		struct rt_export_access
 		{
-			rt_export_access(int64_t begin_, int64_t end_, rt_export& parent_)
+			rt_export_access(integer_t begin_, integer_t end_, rt_export& parent_)
 			    : beginIndex(begin_),
 			      endIndex(end_),
 			      parent(parent_) {
@@ -103,8 +103,8 @@ namespace te
 			NO_COPY_MOVE(rt_export_access);
 
 		private:
-			int64_t beginIndex;
-			int64_t endIndex;
+			integer_t beginIndex;
+			integer_t endIndex;
 
 			rt_export& parent;
 
@@ -121,7 +121,7 @@ namespace te
 				return const_iterator(this->parent, (this->beginIndex + this->endIndex) / 2);
 			}
 
-			int64_t size() const noexcept {
+			integer_t size() const noexcept {
 				if (this->endIndex > this->beginIndex) {
 					return this->endIndex - this->beginIndex;
 				}
@@ -137,12 +137,12 @@ namespace te
 
 	private:
 		std::vector<T> data{};
-		int64_t batchWriteIndex = 1;
-		std::atomic<int64_t> writeI = 1;
-		std::atomic<int64_t> readI{};
+		integer_t batchWriteIndex = 1;
+		std::atomic<integer_t> writeI = 1;
+		std::atomic<integer_t> readI{};
 		bool currentlyAccessed = false;
 
-		int64_t mod(int64_t i) {
+		integer_t mod(integer_t i) {
 			if constexpr (type == rt_export_size::type::normal) {
 				return i % this->getBufferSize();
 			}
@@ -160,8 +160,8 @@ namespace te
 		    : data(size.getSize()) {
 		}
 
-		int64_t getBufferSize() const noexcept {
-			return static_cast<int64_t>(this->data.size());
+		integer_t getBufferSize() const noexcept {
+			return isize(this->data);
 		}
 
 		// Silently fails on writing to full buffer
@@ -180,7 +180,7 @@ namespace te
 			return true;
 		};
 
-		void batchTrim(int64_t size) noexcept {
+		void batchTrim(integer_t size) noexcept {
 			auto currentSize = this->batchWriteIndex - this->readI.load();
 			auto difference = currentSize - size;
 
@@ -270,7 +270,7 @@ namespace te
 			this->reset_buffer(end);
 		}
 
-		void reset_buffer(int64_t newBegin) {
+		void reset_buffer(integer_t newBegin) {
 			assert(this->currentlyAccessed);
 			this->currentlyAccessed = false;
 
@@ -283,7 +283,7 @@ namespace te
 			}
 		}
 
-		int64_t getCurrentSize() const {
+		integer_t getCurrentSize() const {
 			auto writeIndex = this->writeI.load();
 			auto readIndex = this->readI.load();
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cstdint>
+#include "tepp/integers.h"
+
 #include <cassert>
 
 namespace te
@@ -9,24 +10,24 @@ namespace te
 	{
 		struct normal
 		{
-			int64_t size;
+			integer_t size;
 		};
 
 		struct power_of_two
 		{
-			int64_t power;
+			integer_t power;
 
-			int64_t getSize() {
+			integer_t getSize() {
 				assert(power < 64);
 				return 1ULL << power;
 			}
 
-			static constexpr power_of_two at_least(int64_t size) {
+			static constexpr power_of_two at_least(integer_t size) {
 				if (size <= 0) {
 					return { 0 };
 				}
 
-				int64_t power = 0;
+				integer_t power = 0;
 
 				size--;
 

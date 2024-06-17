@@ -10,7 +10,7 @@ namespace te
 	namespace detail
 	{
 		template<class T, class Arg, class... Args>
-		constexpr int64_t argumentIndex() {
+		constexpr integer_t argumentIndex() {
 			if constexpr (std::same_as<T, Arg>) {
 				return 0;
 			}
@@ -24,16 +24,16 @@ namespace te
 	{
 		static_assert(sizeof...(Args) > 0);
 
-		static constexpr int64_t storage_size = te::max_v<sizeof(Args)...>;
-		static constexpr int64_t alignment = te::max_v<alignof(Args)...>;
+		static constexpr integer_t storage_size = te::max_v<sizeof(Args)...>;
+		static constexpr integer_t alignment = te::max_v<alignof(Args)...>;
 
 		using First = te::head_t<te::list_type<Args...>>;
 
 		alignas(alignment) std::byte storage[storage_size];
-		int64_t type = -1;
+		integer_t type = -1;
 
 		template<te::member_of2<Args...> T>
-		static consteval int64_t getType() {
+		static consteval integer_t getType() {
 			return detail::argumentIndex<T, Args...>();
 		}
 

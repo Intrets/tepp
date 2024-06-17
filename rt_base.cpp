@@ -66,13 +66,13 @@ namespace te
         return true;
     }
 
-    void rt_aggregate_dynamic::addUpdate(int64_t index, std::unique_ptr<rt_base_operation> operation) {
+    void rt_aggregate_dynamic::addUpdate(integer_t index, std::unique_ptr<rt_base_operation> operation) {
         this->queue.push_back({ .index = index, .operation = std::move(operation) });
     }
 
     void rt_aggregate_dynamic::register_rt(rt_base& base) {
         base.aggregate = this;
-        base.aggregateIndex = static_cast<int64_t>(this->elements.size());
+        base.aggregateIndex = isize(this->elements);
         this->elements.push_back(&base);
     }
 	rt_aggregate_dynamic& rt_base::getAggregate() {

@@ -5,6 +5,8 @@
 
 #include <vector>
 
+#include "tepp/integers.h"
+
 namespace te
 {
 	template<class T>
@@ -13,7 +15,7 @@ namespace te
 	private:
 		std::vector<T> data{};
 
-		int64_t index = 0;
+		integer_t index = 0;
 
 	public:
 		switched_vector() = default;
@@ -48,8 +50,8 @@ namespace te
 			this->data.push_back(std::move(e));
 		}
 
-		int64_t size() const {
-			return static_cast<int64_t>(this->data.size());
+		integer_t size() const {
+			return isize(this->data);
 		}
 
 		bool empty() const {
@@ -85,13 +87,13 @@ namespace te
 			return false;
 		}
 
-		int64_t get_selected_index() const {
+		integer_t get_selected_index() const {
 			return this->index;
 		}
 
 		void selectLast() {
 			assert(this->data.size() > 0);
-			this->index = this->data.size() - 1;
+			this->index = isize(this->data) - 1;
 		}
 
 		auto begin() const {

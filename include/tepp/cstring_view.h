@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "tepp/integers.h"
+
 namespace te
 {
 	template<class T>
@@ -12,7 +14,7 @@ namespace te
 	{
 	private:
 		T const* data{};
-		int64_t size{};
+		integer_t size{};
 
 	public:
 		bool empty() const {
@@ -36,7 +38,7 @@ namespace te
 			}
 		}
 
-		template<class S, int64_t N>
+		template<class S, integer_t N>
 		constexpr const_string_view(S const (&str)[N])
 		    : data(str),
 		      size(N) {
@@ -51,7 +53,7 @@ namespace te
 		      size(str.size() + 1) {
 		}
 
-		const_string_view(char const* str, int64_t size_)
+		const_string_view(char const* str, integer_t size_)
 		    : data(str),
 		      size(size_) {
 			assert(str[size_] == '\0');

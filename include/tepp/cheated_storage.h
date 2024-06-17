@@ -14,15 +14,15 @@
 
 namespace te::debug
 {
-	int64_t& typeCounter();
+	integer_t& typeCounter();
 
 	template<class T>
-	static int64_t getTypeIndex() {
+	static integer_t getTypeIndex() {
 		static std::mutex mutex;
 
 		auto lock = std::scoped_lock(mutex);
 
-		static int64_t typeIndex = typeCounter()++;
+		static integer_t typeIndex = typeCounter()++;
 		return typeIndex;
 	}
 }
@@ -42,7 +42,7 @@ namespace te
 
 	namespace detail
 	{
-		template<class T, int64_t size, int64_t align, te::member_of<te::list_type<trivial_destructor, custom_destructor, automatic_destructor>> destructor>
+		template<class T, integer_t size, integer_t align, te::member_of<te::list_type<trivial_destructor, custom_destructor, automatic_destructor>> destructor>
 		struct is_valid_storage
 		{
 			inline constexpr static bool valid_alignnment_and_size = [] {
@@ -61,16 +61,16 @@ namespace te
 		};
 	}
 
-	template<class T, int64_t size, int64_t align, class destructor>
+	template<class T, integer_t size, integer_t align, class destructor>
 	concept valid_storage = detail::is_valid_storage<T, size, align, destructor>::value;
 
-	template <int64_t size, int64_t align, class destructor = trivial_destructor>
+	template <integer_t size, integer_t align, class destructor = trivial_destructor>
 	struct cheated_storage : destructor
 	{
 		alignas(align) std::byte storage[size];
 
 #if DEBUG_BUILD
-		int64_t typeIndex = debug::getTypeIndex<void>();
+		integer_t typeIndex = debug::getTypeIndex<void>();
 #endif // DEBUG_BUILD
 
 		template<te::valid_storage<size, align, destructor> T, class... Args>

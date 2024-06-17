@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <cassert>
-#include <utility>
 #include <span>
+#include <utility>
+
+#include "tepp/integers.h"
 
 namespace te
 {
@@ -14,10 +16,10 @@ namespace te
 	struct simple_vector
 	{
 		T* data = nullptr;
-		int64_t capacity = 0;
-		int64_t size = 0;
+		integer_t capacity = 0;
+		integer_t size = 0;
 
-		inline T& operator[](int64_t i) {
+		inline T& operator[](integer_t i) {
 			assert(i >= 0);
 			assert(i < this->size);
 
@@ -60,12 +62,12 @@ namespace te
 	private:
 		inline void ensure_capacity() {
 			if (this->size == this->capacity) {
-				this->capacity = std::max(int64_t(1), this->capacity * 2);
+				this->capacity = std::max(1_i, this->capacity * 2);
 				auto newBuffer = new T[this->capacity];
 
 				auto it = this->data;
 				auto jt = newBuffer;
-				for (int64_t i = 0; i < this->size; i++, it++, jt++) {
+				for (integer_t i = 0; i < this->size; i++, it++, jt++) {
 					*jt = std::move(*it);
 				}
 				delete[] this->data;
@@ -153,7 +155,7 @@ namespace te
 		simple_vector& operator=(simple_vector const& other) = delete;
 
 		simple_vector() = default;
-		simple_vector(int64_t capacity_) {
+		simple_vector(integer_t capacity_) {
 			this->capacity = capacity_;
 			this->data = new T[capacity];
 		}

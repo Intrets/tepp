@@ -20,7 +20,7 @@ namespace te
 
 	struct rt_update
 	{
-		int64_t index{};
+		integer_t index{};
 		std::unique_ptr<rt_base_operation> operation{};
 	};
 
@@ -31,7 +31,7 @@ namespace te
 		Updates queue{};
 
 		// non-rt
-		int64_t inTransit = 0;
+		integer_t inTransit = 0;
 		std::atomic<intrusive_list<Updates>*> cleanup{};
 
 		void handleCleanup(void* context);
@@ -43,17 +43,17 @@ namespace te
 
 		bool processOperations();
 
-		void addUpdate(int64_t index, std::unique_ptr<rt_base_operation> operation);
+		void addUpdate(integer_t index, std::unique_ptr<rt_base_operation> operation);
 		void register_rt(rt_base& base);
 
 		template<class T>
-		void addOperation(int64_t index, T&& operation);
+		void addOperation(integer_t index, T&& operation);
 	};
 
 	struct rt_base
 	{
 		rt_aggregate_dynamic* aggregate = nullptr;
-		int64_t aggregateIndex = -1;
+		integer_t aggregateIndex = -1;
 
 		void* rtPointer = nullptr;
 		void* nonrtPointer = nullptr;
@@ -165,7 +165,7 @@ namespace te
 	};
 
 	template<class T>
-	inline void rt_aggregate_dynamic::addOperation(int64_t index, T&& operation) {
+	inline void rt_aggregate_dynamic::addOperation(integer_t index, T&& operation) {
 		this->addUpdate(index, std::make_unique<rt_type_erased_operation<T>>(std::move(operation)));
 	}
 }

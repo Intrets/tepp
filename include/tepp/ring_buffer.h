@@ -3,6 +3,8 @@
 #include <iterator>
 #include <vector>
 
+#include "tepp/integers.h"
+
 namespace te
 {
 	template<class T>
@@ -18,11 +20,11 @@ namespace te
 			using reference = value_type&;
 
 		private:
-			int64_t index{};
+			integer_t index{};
 			ring_buffer<T>& buffer{};
 
 		public:
-			iterator(int64_t index_, ring_buffer<T>& buffer_)
+			iterator(integer_t index_, ring_buffer<T>& buffer_)
 			    : index(index_),
 			      buffer(buffer_) {
 			}
@@ -59,8 +61,8 @@ namespace te
 		};
 
 		std::vector<T> data{};
-		int64_t beginIndex{};
-		int64_t endIndex{};
+		integer_t beginIndex{};
+		integer_t endIndex{};
 
 		auto& back() {
 			return this->data[this->modIndex(this->endIndex - 1 + this->data.size())];
@@ -99,15 +101,15 @@ namespace te
 		}
 
 	private:
-		int64_t modIndex(int64_t index) {
-			return index % static_cast<int64_t>(this->data.size());
+		integer_t modIndex(integer_t index) {
+			return index % static_cast<integer_t>(this->data.size());
 		}
 
-		void advanceIndex(int64_t& index) {
+		void advanceIndex(integer_t& index) {
 			index = this->modIndex(index + 1);
 		}
 
-		void calculateIndex(int64_t& index, int64_t offset) {
+		void calculateIndex(integer_t& index, integer_t offset) {
 			index = this->modIndex(index + offset);
 		}
 	};

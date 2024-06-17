@@ -7,6 +7,8 @@
 #include <tuple>
 #include <type_traits>
 
+#include "tepp/integers.h"
+
 namespace te
 {
 	namespace detail
@@ -155,7 +157,7 @@ namespace te
 	{
 	};
 
-	template<int64_t I, class L>
+	template<integer_t I, class L>
 	struct list_element;
 
 	template<template<class...> class L, class Arg0, class... Args>
@@ -260,13 +262,13 @@ namespace te
 		using type = Arg16;
 	};
 
-	template<int64_t I, template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class Arg14, class Arg15, class Arg16, class... Args>
+	template<integer_t I, template<class...> class L, class Arg0, class Arg1, class Arg2, class Arg3, class Arg4, class Arg5, class Arg6, class Arg7, class Arg8, class Arg9, class Arg10, class Arg11, class Arg12, class Arg13, class Arg14, class Arg15, class Arg16, class... Args>
 	struct list_element<I, L<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Args...>>
 	{
 		using type = list_element<I - 16, L<Args...>>::type;
 	};
 
-	template<int64_t I, class L>
+	template<integer_t I, class L>
 	using list_element_t = list_element<I, L>::type;
 
 	template<class... Args>
@@ -993,8 +995,8 @@ namespace te
 		template<class F, class T, class IS>
 		struct for_each;
 
-		template<class F, class T, int64_t... I>
-		struct for_each<F, T, std::integer_sequence<int64_t, I...>>
+		template<class F, class T, integer_t... I>
+		struct for_each<F, T, std::integer_sequence<integer_t, I...>>
 		{
 			constexpr static auto apply(F&& f, T&& t) {
 				(f(std::get<I>(t)), ...);
@@ -1004,8 +1006,8 @@ namespace te
 		template<class IS, class F>
 		struct for_iota;
 
-		template<class F, int64_t... I>
-		struct for_iota<std::integer_sequence<int64_t, I...>, F>
+		template<class F, integer_t... I>
+		struct for_iota<std::integer_sequence<integer_t, I...>, F>
 		{
 			constexpr static auto apply(F&& f) {
 				(std::invoke(std::forward<F>(f), te::Value<I>), ...);
@@ -1015,14 +1017,14 @@ namespace te
 
 	template<class F, class Tuple>
 	constexpr static auto tuple_for_each(F&& f, Tuple&& t) {
-		constexpr int64_t size = static_cast<int64_t>(std::tuple_size_v<std::remove_cvref_t<Tuple>>);
+		constexpr integer_t size = static_cast<integer_t>(std::tuple_size_v<std::remove_cvref_t<Tuple>>);
 
-		detail::for_each<F, Tuple, std::make_integer_sequence<int64_t, size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
+		detail::for_each<F, Tuple, std::make_integer_sequence<integer_t, size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
 	}
 
-	template<int64_t I, class F>
+	template<integer_t I, class F>
 	constexpr static auto for_iota(F&& f) {
-		detail::for_iota<std::make_integer_sequence<int64_t, I>, F>::apply(std::forward<F>(f));
+		detail::for_iota<std::make_integer_sequence<integer_t, I>, F>::apply(std::forward<F>(f));
 	}
 
 	constexpr static auto for_each(auto&& f, auto&&... args) {
