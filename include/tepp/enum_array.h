@@ -144,6 +144,18 @@ namespace te
 			}
 		}
 
+		constexpr std::optional<EnumType> find(T const& value) const {
+			for (int64_t i = 0; i < size; i++) {
+				auto e = static_cast<EnumType>(i);
+
+				if (this->operator[](e) == value) {
+					return e;
+				};
+			}
+
+			return std::nullopt;
+		}
+
 		auto getRawPtr() noexcept {
 			return this->data.data();
 		}

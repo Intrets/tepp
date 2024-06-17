@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cassert>
+#include <format>
 #include <string>
 #include <string_view>
-#include <format>
 
 namespace te
 {
@@ -17,6 +17,10 @@ namespace te
 	public:
 		bool empty() const {
 			return this->size == 0;
+		}
+
+		constexpr bool operator==(te::const_string_view<T> other) const {
+			return this->size == other.size && std::memcmp(this->data, other.data, this->size * sizeof(T)) == 0;
 		}
 
 		std::string_view string_view() const {
@@ -44,7 +48,7 @@ namespace te
 
 		const_string_view(std::string const& str)
 		    : data(str.data()),
-		      size(str.size()) {
+		      size(str.size() + 1) {
 		}
 
 		const_string_view(char const* str, int64_t size_)
