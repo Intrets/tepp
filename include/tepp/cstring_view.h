@@ -17,7 +17,7 @@ namespace te
 		integer_t size{};
 
 	public:
-		bool empty() const {
+		constexpr bool empty() const {
 			return this->size == 0;
 		}
 
