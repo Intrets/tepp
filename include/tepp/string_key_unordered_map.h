@@ -27,4 +27,7 @@ namespace te
 
 	template<class T>
 	using string_key_unordered_map = std::unordered_map<std::string, T, string_key_hasher, std::equal_to<>>;
+
+	template<class T>
+	using string_key_unordered_multimap = std::unordered_multimap<std::string, T, string_key_hasher, std::equal_to<>>;
 }

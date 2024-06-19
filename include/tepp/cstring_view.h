@@ -93,3 +93,5 @@ struct std::formatter<te::cstring_view, char>
 		return std::formatter<std::string_view, char>{}.format(s.string_view(), ctx);
 	}
 };
+
+te::cstring_view operator""_csv(char const* text, size_t size);
