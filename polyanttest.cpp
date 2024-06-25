@@ -1,5 +1,6 @@
 #include <iostream>
 #include <tepp/polyant.h>
+#include <tepp/rc_object.h>
 
 struct Base
 {
@@ -27,8 +28,12 @@ struct Two : Base
 		return "Two";
 	}
 
-	Two() = default;
-	~Two() = default;
+	Two() {
+		std::cout << "construct\n";
+	}
+	~Two() {
+		std::cout << "destruct\n";
+	}
 	Two(Two&& other) {
 		std::cout << "two move construct\n";
 	}
@@ -44,18 +49,13 @@ struct Two : Base
 };
 
 int main() {
-	using T = te::polyant<Base, One, Two>;
-	T polyant{};
-
-	std::cout << polyant->bar() << "\n";
-	polyant = Two();
-
-	std::cout << polyant->bar() << "\n";
-	if (auto one = polyant.getIf<One>()) {
-		std::cout << "found one\n";
+	te::rc_object<Two> object{};
+	{
+		//te::rc_object<Two> test = object;
+		//test->foo();
 	}
-	if (auto two = polyant.getIf<Two>()) {
-		std::cout << "found two\n";
-	}
+
+	te::rc_object_ref<Two> ref = object;
+	auto access = ref.access();
 	rand();
 }
