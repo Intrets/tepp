@@ -139,6 +139,7 @@ namespace te
 
 	private:
 		std::vector<T> data{};
+		integer_t writeJ = 1;
 		std::atomic<integer_t> writeI = 1;
 		std::atomic<integer_t> readI = -1;
 		bool currentlyAccessed = false;
@@ -179,6 +180,24 @@ namespace te
 
 			return true;
 		};
+
+		bool writeBuffered(T const& val) noexcept {
+			auto writeIndex = this->writeJ;
+			auto readIndex = this->readI.load();
+
+			if (writeIndex == readIndex) {
+				return false;
+			}
+
+			this->data[this->mod(writeIndex)] = val;
+			this->writeJ = this->mod(writeIndex + 1);
+
+			return true;
+		};
+
+		void sendBuffer() noexcept {
+			this->writeI.store(this->writeJ);
+		}
 
 		T const& peek() const noexcept {
 			// can do this when writeI always starts out as at least 1

@@ -70,6 +70,10 @@ namespace te
 				return te::cstring_view(this->buffer->buffer.data(), isize(this->buffer->buffer) - 1);
 			}
 
+			te::cstring_view sv() const {
+				return *this;
+			}
+
 			operator char const*() const {
 				assert(this->buffer.has_value());
 				return this->buffer->buffer.data();
