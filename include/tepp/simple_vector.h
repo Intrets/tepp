@@ -26,6 +26,10 @@ namespace te
 			return data[i];
 		}
 
+		bool empty() const {
+			return this->size == 0;
+		}
+
 		auto begin() {
 			return &data[0];
 		}
