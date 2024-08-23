@@ -64,8 +64,22 @@ namespace te
 		integer_t beginIndex{};
 		integer_t endIndex{};
 
+		integer_t size() const {
+			auto d = this->endIndex - this->beginIndex;
+			if (d >= 0) {
+				return d;
+			}
+			else {
+				return isize(this->data) + d;
+			}
+		}
+
 		auto& back() {
 			return this->data[this->modIndex(this->endIndex - 1 + this->data.size())];
+		}
+
+		auto& front() {
+			return this->data[this->beginIndex];
 		}
 
 		auto begin() {
