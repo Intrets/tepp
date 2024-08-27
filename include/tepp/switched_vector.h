@@ -62,6 +62,17 @@ namespace te
 			return !this->empty();
 		}
 
+		void swap(integer_t i, integer_t j) {
+			if (this->get_selected_index() == i) {
+				this->select(j);
+			}
+			else if (this->get_selected_index() == j) {
+				this->select(i);
+			}
+
+			std::swap(this->data[i], this->data[j]);
+		}
+
 		template<class F>
 		bool select_if(F&& f) {
 			auto i = 0;
