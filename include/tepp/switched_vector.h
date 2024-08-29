@@ -73,6 +73,14 @@ namespace te
 			std::swap(this->data[i], this->data[j]);
 		}
 
+		void erase(integer_t i) {
+			this->data.erase(this->data.begin() + i);
+			assert(this->data.size() != 0);
+			if (this->index == this->size() - 1) {
+				this->index--;
+			}
+		}
+
 		template<class F>
 		bool select_if(F&& f) {
 			auto i = 0;
