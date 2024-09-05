@@ -81,6 +81,19 @@ namespace te
 			}
 		}
 
+		T extract(integer_t i) {
+			auto result = std::move(this->data[i]);
+			this->erase(i);
+			return result;
+		}
+
+		void insert(integer_t i, T&& object) {
+			if (this->index >= i) {
+				this->index++;
+			}
+			this->data.insert(this->data.begin() + i, std::forward<T>(object));
+		}
+
 		template<class F>
 		bool select_if(F&& f) {
 			auto i = 0;
