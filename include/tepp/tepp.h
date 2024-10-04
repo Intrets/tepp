@@ -1031,11 +1031,33 @@ namespace te
 		(f(std::forward<decltype(args)>(args)), ...);
 	}
 
+	namespace detail
+	{
+		template<class Is>
+		struct repeat_t;
+
+		template<integer_t... I>
+		struct repeat_t<std::integer_sequence<integer_t, I...>>
+		{
+			template<integer_t, class F>
+			constexpr static void applyHelper(F& f) {
+				std::invoke(f);
+			}
+
+			template<class F>
+			constexpr static void apply(F&& f) {
+				(applyHelper<I>(f), ...);
+			}
+		};
+
+		template<integer_t I>
+		using repeat = repeat_t<std::make_integer_sequence<integer_t, I>>;
+	}
+
 	template<size_t I, class F>
 	constexpr static void repeat(F&& f) {
 		if constexpr (I != 0) {
-			std::invoke(f);
-			repeat<I - 1>(std::forward<F>(f));
+			detail::repeat<I>::apply(std::forward<F>(f));
 		}
 	}
 
