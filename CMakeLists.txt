@@ -7,6 +7,7 @@ project(${MODULE_NAME} LANGUAGES CXX)
 make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
+		safety_cast
 		assert
 		rc_object
         enumerate
