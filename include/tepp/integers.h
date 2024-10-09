@@ -3,10 +3,13 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <tepp/safety_cast.h>
+
 using integer_t = std::ptrdiff_t;
 using qualifier_t = int64_t;
 
-inline integer_t isize(auto&& a) {
+template<class I = integer_t>
+inline I isize(auto&& a) {
 	return static_cast<integer_t>(a.size());
 }
 
