@@ -90,27 +90,53 @@ namespace te
 
 		struct rt_ring_export_access
 		{
-			rt_ring_export_access(integer_t begin_, integer_t end_, rt_ring_export& parent_)
+			rt_ring_export_access(integer_t begin_, integer_t end_, rt_ring_export& parent_, std::optional<integer_t> setEnd_ = std::nullopt)
 			    : beginIndex(begin_),
 			      endIndex(end_),
-			      parent(parent_) {
+			      parent(parent_),
+			      setEnd(setEnd_) {
 			}
 
 			rt_ring_export_access() = delete;
 			~rt_ring_export_access() {
-				this->parent.readI.store(-1);
-				this->parent.currentlyAccessed = false;
+				if (this->lifetime) {
+					if (this->setEnd.has_value()) {
+						this->parent.readI.store(this->setEnd.value());
+					}
+					this->parent.currentlyAccessed = false;
+					this->lifetime = false;
+				}
 			};
 
-			NO_COPY_MOVE(rt_ring_export_access);
+			NO_COPY(rt_ring_export_access);
+
+			rt_ring_export_access& operator=(rt_ring_export_access&&) = delete;
+			rt_ring_export_access(rt_ring_export_access&& other) noexcept
+			    : rt_ring_export_access(
+			          other.beginIndex,
+			          other.endIndex,
+			          other.parent,
+			          other.setEnd
+			      ) {
+				this->lifetime = other.lifetime;
+				other.lifetime = false;
+			}
 
 		private:
 			integer_t beginIndex;
 			integer_t endIndex;
+			std::optional<integer_t> setEnd{};
 
 			rt_ring_export& parent;
 
+			bool lifetime = true;
+
 		public:
+			const_iterator offset_from_end(integer_t count) const noexcept {
+				count = std::min(this->size(), count);
+				return const_iterator(this->parent, this->parent.mod(this->endIndex - count + this->parent.getBufferSize()));
+			}
+
 			const_iterator begin() const noexcept {
 				return const_iterator(this->parent, this->beginIndex);
 			}
@@ -141,10 +167,10 @@ namespace te
 		std::vector<T> data{};
 		integer_t writeJ = 1;
 		std::atomic<integer_t> writeI = 1;
-		std::atomic<integer_t> readI = -1;
+		std::atomic<integer_t> readI = 0;
 		bool currentlyAccessed = false;
 
-		integer_t mod(integer_t i) {
+		integer_t mod(integer_t i) const {
 			if constexpr (type == rt_export_size::type::normal) {
 				return i % this->getBufferSize();
 			}
@@ -164,6 +190,11 @@ namespace te
 
 		integer_t getBufferSize() const noexcept {
 			return isize(this->data);
+		}
+
+		void reset() {
+			this->writeI.store(1);
+			this->readI.store(0);
 		}
 
 		// Silently fails on writing to full buffer
@@ -215,6 +246,16 @@ namespace te
 			this->readI.store(begin);
 
 			return rt_ring_export_access(begin, end, *this);
+		}
+
+		rt_ring_export<T, type>::rt_ring_export_access access_buffer_from_end(integer_t size) {
+			assert(!this->currentlyAccessed);
+			this->currentlyAccessed = true;
+
+			auto begin = std::max(0_i, this->readI.load());
+			auto end = this->mod(begin + size);
+
+			return rt_ring_export_access(begin, end, *this, this->writeI.load());
 		}
 
 		integer_t getCurrentSize() const {
