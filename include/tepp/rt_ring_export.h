@@ -6,6 +6,7 @@
 
 #include "misc.h"
 
+#include "tepp/optional_ref.h"
 #include "tepp/rt_export_size.h"
 
 namespace te
@@ -188,6 +189,13 @@ namespace te
 		    : data(size.getSize()) {
 		}
 
+		template<class F>
+		void for_each(F&& f) {
+			for (auto& e : this->data) {
+				f(e);
+			}
+		}
+
 		integer_t getBufferSize() const noexcept {
 			return isize(this->data);
 		}
@@ -211,6 +219,48 @@ namespace te
 
 			return true;
 		};
+
+		te::optional_ref<T> getWrite() noexcept {
+			auto writeIndex = this->writeI.load();
+			auto readIndex = this->readI.load();
+
+			if (writeIndex == readIndex) {
+				return te::nullopt;
+			}
+			else {
+				return this->data[writeIndex];
+			}
+		}
+
+		bool advanceWrite() noexcept {
+			auto readIndex = this->readI.load();
+			auto writeIndex = this->writeI.load();
+
+			if (readIndex == writeIndex) {
+				return false;
+			}
+
+			this->writeI.store(this->mod(writeIndex + 1));
+
+			return true;
+		}
+
+		void consumeRead(integer_t margin = 0) {
+			auto readIndex = this->readI.load();
+			auto writeIndex = this->writeI.load();
+
+			if (writeIndex <= readIndex) {
+				writeIndex += this->getBufferSize();
+			}
+
+			auto newReadIndex = std::max(readIndex, writeIndex - margin);
+
+			this->readI.store(this->mod(newReadIndex));
+		}
+
+		T& getRead() noexcept {
+			return this->data[this->readI.load()];
+		}
 
 		bool writeBuffered(T const& val) noexcept {
 			auto writeIndex = this->writeJ;

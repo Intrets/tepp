@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #ifdef OS_WIN
 #include <intrin.h>
 #define BREAK __debugbreak()
@@ -12,6 +14,20 @@
 	do { \
 		if (!(B)) [[unlikely]] { \
 			BREAK; \
+		} \
+	} while (0)
+#else
+#define tassert(...) ((void)0)
+#endif
+
+#ifdef DEBUG_BUILD
+#define tassertonce(B, ...) \
+	do { \
+		if (!(B)) [[unlikely]] { \
+			static std::atomic<bool> flag = false; \
+			if (!flag.exchange(true)) { \
+				BREAK; \
+			} \
 		} \
 	} while (0)
 #else

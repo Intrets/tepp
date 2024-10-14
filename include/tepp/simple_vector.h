@@ -66,17 +66,7 @@ namespace te
 	private:
 		inline void ensure_capacity() {
 			if (this->size == this->capacity) {
-				this->capacity = std::max(1_i, this->capacity * 2);
-				auto newBuffer = new T[this->capacity];
-
-				auto it = this->data;
-				auto jt = newBuffer;
-				for (integer_t i = 0; i < this->size; i++, it++, jt++) {
-					*jt = std::move(*it);
-				}
-				delete[] this->data;
-
-				this->data = newBuffer;
+				this->reserve(std::max(1_i, this->capacity * 2));
 			}
 		}
 
@@ -107,6 +97,17 @@ namespace te
 			this->add_back(std::forward<T>(v));
 		}
 
+		inline bool try_push_back(T&& v) {
+			if (this->size == this->capacity) {
+				return false;
+			}
+			else {
+				this->add_back(std::forward<T>(v));
+
+				return true;
+			}
+		}
+
 		inline void fill(T const& t) {
 			std::fill(this->data, this->data + this->size, t);
 		}
@@ -126,6 +127,33 @@ namespace te
 
 		inline void clear() {
 			this->size = 0;
+		}
+
+		inline void reserve(integer_t size_) {
+			if (size_ <= this->capacity) {
+				tassert(0);
+				return;
+			}
+
+			this->capacity = size_;
+
+			auto newBuffer = new T[this->capacity];
+
+			if constexpr (std::is_trivially_copyable_v<T[]>) {
+				auto sourceSpan = std::span(this->data, this->size);
+				auto destinationSpan = std::span(newBuffer, size_);
+
+				std::memcpy(destinationSpan.data(), sourceSpan.data(), sourceSpan.size_bytes());
+			}
+			else {
+				auto it = this->data;
+				auto jt = newBuffer;
+				for (integer_t i = 0; i < this->size; i++, it++, jt++) {
+					*jt = std::move(*it);
+				}
+			}
+
+			this->data = newBuffer;
 		}
 
 		simple_vector(simple_vector&& other) noexcept {
