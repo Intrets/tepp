@@ -8,6 +8,7 @@ make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
 		in_interval
+		format_exception
 		safety_cast
 		assert
 		rc_object
