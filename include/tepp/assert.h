@@ -31,5 +31,5 @@
 		} \
 	} while (0)
 #else
-#define tassert(...) ((void)0)
+#define tassertonce(...) ((void)0)
 #endif
