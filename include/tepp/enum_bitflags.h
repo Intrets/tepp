@@ -1,22 +1,28 @@
-// tepp - A template library for C++
-// Copyright (C) 2021 intrets
-
 #pragma once
 
 #include <bit>
+#include <bitset>
 #include <concepts>
 #include <cstdint>
 #include <type_traits>
 
+#include <tepp/integers.h>
+
 namespace te
 {
 	template<class Enum>
+	concept has_max = requires(Enum) { Enum::MAX; };
+
+	template<has_max Enum>
 	struct enum_bitflags
 	{
 	private:
-		using value_type = std::underlying_type_t<Enum>;
+		static constexpr integer_t N = static_cast<integer_t>(Enum::MAX);
+
+		using value_type = std::bitset<N>;
 
 		value_type data{};
+
 		constexpr explicit enum_bitflags(value_type data_)
 		    : data(data_){};
 
@@ -24,8 +30,8 @@ namespace te
 		constexpr enum_bitflags() = default;
 
 		template<std::same_as<Enum>... Enums>
-		constexpr enum_bitflags(Enums... e)
-		    : enum_bitflags(((static_cast<value_type>(1) << static_cast<value_type>(e)) | ...)) {
+		constexpr enum_bitflags(Enums... e) {
+			(this->data.set(static_cast<integer_t>(e)), ...);
 		}
 
 		~enum_bitflags() = default;
@@ -70,15 +76,15 @@ namespace te
 		}
 
 		constexpr bool empty() const {
-			return this->data == value_type{};
+			return this->data.none();
 		}
 
 		constexpr bool test(enum_bitflags other) const {
-			return this->data & other.data;
+			return (this->data & other.data).any();
 		}
 
 		constexpr void set(Enum d) {
-			*this |= enum_bitflags(d);
+			this->data.set(static_cast<integer_t>(d), true);
 		}
 
 		constexpr void set(Enum d, bool b) {
@@ -91,25 +97,11 @@ namespace te
 		}
 
 		constexpr void clear(Enum d) {
-			*this &= ~enum_bitflags(d);
+			this->data.set(static_cast<integer_t>(d), false);
 		}
 
 		constexpr value_type getData() const {
 			return this->data;
-		}
-
-		template<class R>
-		static enum_bitflags bit_cast(R data_) {
-			return enum_bitflags(std::bit_cast<value_type>(data_));
-		}
-
-		template<class F>
-		constexpr void for_each(F&& f) {
-			for (value_type i = 0; i < static_cast<value_type>(Enum::MAX); i++) {
-				if (this->data & (1 << i)) {
-					f(static_cast<Enum>(i));
-				}
-			}
 		}
 	};
 
