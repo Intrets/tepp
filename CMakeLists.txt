@@ -14,7 +14,6 @@ make_module(
 		format_exception
 		safety_cast
 		assert
-		rc_object
         enumerate
 		integers
 		misc
