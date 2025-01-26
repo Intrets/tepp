@@ -2,6 +2,8 @@
 
 #include <atomic>
 
+#include "integers.h"
+
 namespace te
 {
 	template<class T, class index_type = integer_t>

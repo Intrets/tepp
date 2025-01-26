@@ -1,6 +1,5 @@
 #include <iostream>
 #include <tepp/polyant.h>
-#include <tepp/rc_object.h>
 
 struct Base
 {

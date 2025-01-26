@@ -954,7 +954,7 @@ namespace te
 	concept number_of_arguments_is =
 	    impl::number_arguments_test<T, replicate_t<I, impl::nothing>>::value ||
 	    ((requires(T t) { &T::operator(); }) && te::arguments_list_t<decltype(&T::operator())>::size == I) ||
-	    ((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>)&&te::arguments_list_t<T>::size == I);
+	    ((te::is_c_fun_v<T> || te::is_lambda_fun_v<T>) && te::arguments_list_t<T>::size == I);
 
 	namespace detail
 	{
@@ -1111,4 +1111,10 @@ namespace te
 
 	template<auto... Xs>
 	constexpr static auto max_v = detail::max<Xs...>::value;
+
+	template<class T>
+	concept is_span = requires {
+		typename T::element_type;
+		typename T::extent;
+	} && std::same_as<std::remove_cvref_t<T>, std::span<typename T::element_type, T::extent>>;
 }

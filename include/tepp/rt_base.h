@@ -63,10 +63,10 @@ namespace te
 	};
 
 	template<class T, class non_rt, class rt>
-	struct alignas(std::hardware_destructive_interference_size) rt_base_template : rt_base
+	struct alignas(64) rt_base_template : rt_base
 	{
-		alignas(std::hardware_destructive_interference_size) rt rtStorage{};
-		alignas(std::hardware_destructive_interference_size) non_rt non_rtStorage{};
+		alignas(64) rt rtStorage{};
+		alignas(64) non_rt non_rtStorage{};
 
 		rt& get_rt() {
 			return this->rtStorage;

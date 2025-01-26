@@ -19,7 +19,7 @@ namespace te
 			*result.out = '\0';
 		}
 
-		virtual char const* what() const {
+		virtual char const* what() const noexcept override {
 			return message.data();
 		}
 	};

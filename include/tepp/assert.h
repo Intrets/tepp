@@ -5,6 +5,8 @@
 #ifdef OS_WIN
 #include <intrin.h>
 #define BREAK __debugbreak()
+#elifdef OS_UNIX
+#define BREAK raise(SIGTRAP)
 #else
 #error platform specific debug break statement not defined
 #endif
