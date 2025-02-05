@@ -52,6 +52,12 @@ namespace te
 			return *this;
 		}
 
+		optional_ref(std::optional<T>& object) {
+			if (object.has_value()) {
+				this->ptr = &object.value();
+			}
+		}
+
 		optional_ref(T& object) {
 			this->ptr = &object;
 		}
