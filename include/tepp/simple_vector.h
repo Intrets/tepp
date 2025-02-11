@@ -129,6 +129,13 @@ namespace te
 			this->size = 0;
 		}
 
+		inline void resize(integer_t size_) {
+			if (size_ != this->size) {
+				this->reserve(size_);
+				this->size = size_;
+			}
+		}
+
 		inline void reserve(integer_t size_) {
 			if (size_ <= this->capacity) {
 				tassert(0);
@@ -203,6 +210,12 @@ namespace te
 			if (this->data != nullptr) {
 				delete[] this->data;
 			}
+		}
+
+		static simple_vector make(integer_t size) {
+			simple_vector result{};
+			result.resize(size);
+			return result;
 		}
 	};
 }
