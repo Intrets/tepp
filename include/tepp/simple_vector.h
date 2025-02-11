@@ -34,7 +34,15 @@ namespace te
 			return &data[0];
 		}
 
+		auto begin() const {
+			return &data[0];
+		}
+
 		auto end() {
+			return &data[this->size];
+		}
+
+		auto end() const {
 			return &data[this->size];
 		}
 
