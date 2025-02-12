@@ -1,8 +1,8 @@
 #pragma once
 
 #include <format>
-#include <vector>
 #include <optional>
+#include <vector>
 
 #include "tepp/cstring_view.h"
 #include "tepp/misc.h"
@@ -62,12 +62,18 @@ namespace te
 			}
 
 			auto getInserter() {
+				this->buffer->buffer.pop_back();
 				return std::back_inserter(this->buffer->buffer);
 			}
 
 			operator te::cstring_view() const {
 				assert(this->buffer.has_value());
 				return te::cstring_view(this->buffer->buffer.data(), isize(this->buffer->buffer) - 1);
+			}
+
+			operator std::string_view() const {
+				assert(this->buffer.has_value());
+				return std::string_view(this->buffer->buffer.data(), isize(this->buffer->buffer) - 1);
 			}
 
 			te::cstring_view sv() const {
@@ -79,12 +85,24 @@ namespace te
 				return this->buffer->buffer.data();
 			}
 
+			template<class... Args>
+			void append(std::format_string<Args...> const fmt, Args&&... args) {
+				if constexpr (sizeof...(Args) == 0) {
+					std::ranges::copy(fmt.get(), this->getInserter());
+				}
+				else {
+					std::format_to(this->getInserter(), fmt, std::forward<Args>(args)...);
+				}
+				this->buffer->buffer.push_back('\0');
+			}
+
 			NO_COPY(BufferAccess);
 			DEFAULT_MOVE(BufferAccess);
 
 			BufferAccess(BufferPool& bufferPool_)
 			    : bufferPool(bufferPool_),
 			      buffer(bufferPool.get()) {
+				this->buffer->buffer.push_back('\0');
 			}
 
 			~BufferAccess() {
@@ -103,8 +121,7 @@ namespace te
 	template<class... Args>
 	static temp_format_buffer::BufferAccess temp_format(std::format_string<Args...> const fmt, Args&&... args) {
 		auto buffer = temp_format_buffer::getBuffer();
-		std::format_to(buffer.getInserter(), fmt, std::forward<Args>(args)...);
-		buffer->push_back('\0');
+		buffer.append(fmt, std::forward<Args>(args)...);
 		return buffer;
 	}
 }
