@@ -85,6 +85,11 @@ namespace te
 				return this->buffer->buffer.data();
 			}
 
+			void append(std::string_view str) {
+				std::ranges::copy(str, this->getInserter());
+				this->buffer->buffer.push_back('\0');
+			}
+
 			template<class... Args>
 			void append(std::format_string<Args...> const fmt, Args&&... args) {
 				if constexpr (sizeof...(Args) == 0) {
