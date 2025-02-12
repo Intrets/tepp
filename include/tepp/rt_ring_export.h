@@ -94,8 +94,8 @@ namespace te
 			rt_ring_export_access(integer_t begin_, integer_t end_, rt_ring_export& parent_, std::optional<integer_t> setEnd_ = std::nullopt)
 			    : beginIndex(begin_),
 			      endIndex(end_),
-			      parent(parent_),
-			      setEnd(setEnd_) {
+			      setEnd(setEnd_),
+			      parent(parent_) {
 			}
 
 			rt_ring_export_access() = delete;
