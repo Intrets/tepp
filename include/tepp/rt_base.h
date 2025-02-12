@@ -111,16 +111,24 @@ namespace te
 	concept has_run_non_rt = requires(T t) { &T::run_non_rt; };
 
 	template<class T>
+	concept has_no_arg_run_rt = requires(T t) { { &T::run_rt } -> std::same_as<void(T::*)()>; };
+
+	template<class T>
 	struct rt_type_erased_operation : rt_base_operation
 	{
 		T operation{};
 
 		void runrt_impl(rt_base& base) override {
-			using rt_type = detail::extract_first_arg_member_function<decltype(&T::run_rt)>::type;
+			if constexpr (has_no_arg_run_rt<T>) {
+				this->operation.run_rt();
+			}
+			else {
+				using rt_type = detail::extract_first_arg_member_function<decltype(&T::run_rt)>::type;
 
-			auto rt_pointer = std::launder(reinterpret_cast<rt_type*>(base.rtPointer));
+				auto rt_pointer = std::launder(reinterpret_cast<rt_type*>(base.rtPointer));
 
-			this->operation.run_rt(*rt_pointer);
+				this->operation.run_rt(*rt_pointer);
+			}
 		}
 
 		void runnonrt_impl(void* context, rt_base& base) override {
@@ -151,7 +159,7 @@ namespace te
 		}
 
 		rt_type_erased_operation(T&& operation_)
-		    : operation(std::move(operation_)){};
+		    : operation(std::move(operation_)) {};
 
 		rt_type_erased_operation() = delete;
 
