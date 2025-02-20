@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
 
 #ifdef OS_WIN
 #include <intrin.h>
@@ -11,11 +12,21 @@
 #error platform specific debug break statement not defined
 #endif
 
+bool isDebuggerPresent();
+
+#define DO_BREAK \
+	if (isDebuggerPresent()) { \
+		BREAK; \
+	} \
+	else { \
+		assert(0); \
+	}
+
 #ifdef DEBUG_BUILD
 #define tassert(B, ...) \
 	do { \
 		if (!(B)) [[unlikely]] { \
-			BREAK; \
+			DO_BREAK; \
 		} \
 	} while (0)
 #else
@@ -28,7 +39,7 @@
 		if (!(B)) [[unlikely]] { \
 			static std::atomic<bool> flag = false; \
 			if (!flag.exchange(true)) { \
-				BREAK; \
+				DO_BREAK; \
 			} \
 		} \
 	} while (0)
