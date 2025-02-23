@@ -127,7 +127,7 @@ namespace te
 	inline void bi_map<K1, K2, LeftType, RightType>::removeLeft(K1&& k1) {
 #ifdef DEBUG_BUILD
 		if (auto l = this->getLeft(std::forward<K1>(k1))) {
-			assert(this->right.contains(l.value()));
+			tassert(this->right.contains(l.value()));
 		}
 #endif
 
@@ -144,7 +144,7 @@ namespace te
 	inline void bi_map<K1, K2, LeftType, RightType>::removeRight(K2&& k2) {
 #ifdef DEBUG_BUILD
 		if (auto l = this->getRight(std::forward<K2>(k2))) {
-			assert(this->left.contains(l.value()));
+			tassert(this->left.contains(l.value()));
 		}
 #endif
 

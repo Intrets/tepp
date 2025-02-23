@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <optional>
 #include <ranges>
 
@@ -25,12 +24,12 @@ namespace te
 		}
 
 		constexpr T& operator[](EnumType i) {
-			assert(static_cast<integer_t>(i) < size);
+			tassert(static_cast<integer_t>(i) < size);
 			return this->data[static_cast<integer_t>(i)];
 		}
 
 		constexpr T const& operator[](EnumType i) const {
-			assert(static_cast<integer_t>(i) < size);
+			tassert(static_cast<integer_t>(i) < size);
 			return this->data[static_cast<integer_t>(i)];
 		}
 
@@ -77,7 +76,7 @@ namespace te
 		constexpr void write(std::span<T, N> values) {
 			if constexpr (N == std::dynamic_extent) {
 				constexpr auto end = std::min(size, N);
-				assert(end == N);
+				tassert(end == N);
 
 				std::copy(values.begin(), values.begin() + end, this->data.begin());
 			}
@@ -103,7 +102,7 @@ namespace te
 		constexpr auto getSpan(integer_t N) {
 			constexpr auto beginI = static_cast<integer_t>(begin);
 			auto endI = beginI + N;
-			assert(N <= size);
+			tassert(N <= size);
 
 			return std::span<T>{ this->data.begin() + beginI, this->data.begin() + endI };
 		}

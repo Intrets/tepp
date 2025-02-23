@@ -26,7 +26,7 @@ namespace te
         }
 
         [[maybe_unused]] auto old = this->updates.exchange(current);
-        assert(old == nullptr);
+        tassert(old == nullptr);
 
         this->inTransit++;
     }
@@ -61,7 +61,7 @@ namespace te
         }
 
         [[maybe_unused]] auto oldCleanup = this->cleanup.exchange(maybeCleanup);
-        assert(oldCleanup == nullptr);
+        tassert(oldCleanup == nullptr);
 
         return true;
     }

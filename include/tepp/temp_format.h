@@ -67,12 +67,12 @@ namespace te
 			}
 
 			operator te::cstring_view() const {
-				assert(this->buffer.has_value());
+				tassert(this->buffer.has_value());
 				return te::cstring_view(this->buffer->buffer.data(), isize(this->buffer->buffer) - 1);
 			}
 
 			operator std::string_view() const {
-				assert(this->buffer.has_value());
+				tassert(this->buffer.has_value());
 				return std::string_view(this->buffer->buffer.data(), isize(this->buffer->buffer) - 1);
 			}
 
@@ -81,7 +81,7 @@ namespace te
 			}
 
 			operator char const*() const {
-				assert(this->buffer.has_value());
+				tassert(this->buffer.has_value());
 				return this->buffer->buffer.data();
 			}
 

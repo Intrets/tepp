@@ -44,7 +44,7 @@ namespace te
 			}
 
 			void run_rt(rt& rt) {
-				assert(this->storage.capacity >= rt.data.capacity);
+				tassert(this->storage.capacity >= rt.data.capacity);
 				this->storage.size = rt.data.size;
 
 				if constexpr (std::copyable<T>) {
@@ -65,8 +65,8 @@ namespace te
 			T storage{};
 
 			void run_rt(rt& rt) {
-				assert(this->from < rt.data.size);
-				assert(this->to < rt.data.size);
+				tassert(this->from < rt.data.size);
+				tassert(this->to < rt.data.size);
 				this->storage = std::move(rt.data[this->from]);
 				rt.data[this->from] = std::move(rt.data[this->to]);
 				rt.data[this->to] = std::move(this->storage);
@@ -78,7 +78,7 @@ namespace te
 			T storage{};
 
 			void run_rt(rt& rt) {
-				assert(rt.data.size > 0);
+				tassert(rt.data.size > 0);
 				this->storage = std::move(rt.data.pop());
 			}
 		};
@@ -139,15 +139,15 @@ namespace te
 		}
 
 		void swap(integer_t from, integer_t to) {
-			assert(from < this->get_non_rt_size());
-			assert(to < this->get_non_rt_size());
-			assert(from >= 0);
-			assert(to >= 0);
+			tassert(from < this->get_non_rt_size());
+			tassert(to < this->get_non_rt_size());
+			tassert(from >= 0);
+			tassert(to >= 0);
 			this->addOperation(Swap{ .from = from, .to = to });
 		}
 
 		void pop() {
-			assert(this->get_non_rt_size() > 0);
+			tassert(this->get_non_rt_size() > 0);
 			this->get_non_rt_size()--;
 			this->addOperation(Pop{});
 		}

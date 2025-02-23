@@ -1,10 +1,8 @@
-// tepp - A template library for C++
-// Copyright (C) 2022 intrets
-
 #pragma once
 
-#include <cassert>
 #include <optional>
+
+#include "tepp/assert.h"
 
 namespace te
 {
@@ -19,7 +17,7 @@ namespace te
 		T* ptr = nullptr;
 
 		T& value() const {
-			assert(ptr != nullptr);
+			tassert(ptr != nullptr);
 			return *ptr;
 		}
 

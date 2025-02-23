@@ -52,7 +52,7 @@ namespace te
 					this->storage = rt.value;
 				}
 				else {
-					assert(0);
+					tassert(0);
 				}
 			}
 
@@ -61,7 +61,7 @@ namespace te
 					rt.value = this->storage;
 				}
 				else {
-					assert(0);
+					tassert(0);
 				}
 			}
 		};

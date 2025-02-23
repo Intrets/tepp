@@ -3,7 +3,6 @@
 #include "tepp/misc.h"
 
 #include <atomic>
-#include <cassert>
 #include <concepts>
 
 namespace te
@@ -44,7 +43,7 @@ namespace te
 		NO_COPY_MOVE(binary_semaphore);
 
 		binary_semaphore(unsigned char initial) : counter(initial) {
-			assert(initial == 0 || initial == 1);
+			tassert(initial == 0 || initial == 1);
 			static_assert(users_type == users::one_consumer__one_producer);
 		}
 		~binary_semaphore() = default;

@@ -4,7 +4,6 @@
 #pragma once
 
 #include <atomic>
-#include <cassert>
 #include <vector>
 #include <utility>
 
@@ -80,7 +79,7 @@ namespace te
 			}
 
 			const_iterator& operator=(const_iterator const& other) {
-				assert(&this->parent == &other.parent);
+				tassert(&this->parent == &other.parent);
 
 				this->index = other.index;
 				return *this;
@@ -224,7 +223,7 @@ namespace te
 		}
 
 		rt_export<T, type>::rt_export_access consume_buffer() {
-			assert(!this->currentlyAccessed);
+			tassert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
 			auto begin = this->readI.load();
@@ -234,7 +233,7 @@ namespace te
 		}
 
 		void write_into(std::vector<T>& destination) {
-			assert(!this->currentlyAccessed);
+			tassert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
 			auto begin = this->readI.load();
@@ -264,14 +263,14 @@ namespace te
 				}
 			}
 			else {
-				assert(0);
+				tassert(0);
 			}
 
 			this->reset_buffer(end);
 		}
 
 		void reset_buffer(integer_t newBegin) {
-			assert(this->currentlyAccessed);
+			tassert(this->currentlyAccessed);
 			this->currentlyAccessed = false;
 
 			if (newBegin > this->getBufferSize() * 2) {
@@ -295,7 +294,7 @@ namespace te
 		}
 
 		~rt_export() {
-			assert(!this->currentlyAccessed);
+			tassert(!this->currentlyAccessed);
 		}
 	};
 }

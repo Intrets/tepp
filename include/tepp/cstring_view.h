@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <format>
 #include <string>
 #include <string_view>
@@ -56,7 +55,7 @@ namespace te
 		const_string_view(char const* str, integer_t size_)
 		    : data(str),
 		      size(size_) {
-			assert(str[size_] == '\0');
+			tassert(str[size_] == '\0');
 		}
 
 		const_string_view& set(std::string const& str) {

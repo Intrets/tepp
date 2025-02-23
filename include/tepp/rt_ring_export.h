@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <cassert>
 #include <vector>
 
 #include "misc.h"
@@ -77,7 +76,7 @@ namespace te
 			}
 
 			const_iterator& operator=(const_iterator const& other) {
-				assert(&this->parent == &other.parent);
+				tassert(&this->parent == &other.parent);
 
 				this->index = other.index;
 				return *this;
@@ -287,7 +286,7 @@ namespace te
 		}
 
 		rt_ring_export<T, type>::rt_ring_export_access access_buffer(integer_t size) {
-			assert(!this->currentlyAccessed);
+			tassert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
 			auto end = this->writeI.load();
@@ -299,7 +298,7 @@ namespace te
 		}
 
 		rt_ring_export<T, type>::rt_ring_export_access access_buffer_from_end(integer_t size) {
-			assert(!this->currentlyAccessed);
+			tassert(!this->currentlyAccessed);
 			this->currentlyAccessed = true;
 
 			auto begin = std::max(0_i, this->readI.load());
@@ -325,7 +324,7 @@ namespace te
 		}
 
 		~rt_ring_export() {
-			assert(!this->currentlyAccessed);
+			tassert(!this->currentlyAccessed);
 		}
 	};
 }

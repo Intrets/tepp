@@ -3,7 +3,6 @@
 #include <type_traits>
 #include <functional>
 
-#include <cassert>
 #include <new>
 
 #include "tepp/misc.h"
@@ -77,7 +76,7 @@ namespace te
 			requires (!std::same_as<destructor, custom_destructor>)
 		void init(Args&&... args) {
 #if DEBUG_BUILD
-			assert(this->typeIndex == debug::getTypeIndex<void>());
+			tassert(this->typeIndex == debug::getTypeIndex<void>());
 			this->typeIndex = debug::getTypeIndex<T>();
 #endif // DEBUG_BUILD
 
@@ -94,7 +93,7 @@ namespace te
 			requires (std::same_as<destructor, custom_destructor>)
 		void init(F&& d, Args&&... args) {
 #if DEBUG_BUILD
-			assert(this->typeIndex == debug::getTypeIndex<void>());
+			tassert(this->typeIndex == debug::getTypeIndex<void>());
 			this->typeIndex = debug::getTypeIndex<T>();
 #endif // DEBUG_BUILD
 
@@ -108,7 +107,7 @@ namespace te
 		template<te::valid_storage<size, align, destructor> T>
 		T& access() {
 #if DEBUG_BUILD
-			assert(this->typeIndex == debug::getTypeIndex<T>());
+			tassert(this->typeIndex == debug::getTypeIndex<T>());
 #endif // DEBUG_BUILD
 
 			return *std::launder(reinterpret_cast<T*>(&this->storage));
@@ -117,7 +116,7 @@ namespace te
 		template<te::valid_storage<size, align, destructor> T>
 		T const& access() const {
 #if DEBUG_BUILD
-			assert(this->typeIndex == debug::getTypeIndex<T>());
+			tassert(this->typeIndex == debug::getTypeIndex<T>());
 #endif // DEBUG_BUILD
 
 			return *std::launder(reinterpret_cast<T const*>(&this->storage));
@@ -126,7 +125,7 @@ namespace te
 		cheated_storage() = default;
 		~cheated_storage() {
 #if DEBUG_BUILD
-			assert(this->typeIndex != debug::getTypeIndex<void>());
+			tassert(this->typeIndex != debug::getTypeIndex<void>());
 #endif // DEBUG_BUILD
 
 			if constexpr (std::same_as<destructor, automatic_destructor>) {

@@ -4,7 +4,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
 #include <span>
 #include <utility>
 
@@ -20,8 +19,8 @@ namespace te
 		integer_t size = 0;
 
 		inline T& operator[](integer_t i) {
-			assert(i >= 0);
-			assert(i < this->size);
+			tassert(i >= 0);
+			tassert(i < this->size);
 
 			return data[i];
 		}
@@ -55,17 +54,17 @@ namespace te
 		}
 
 		inline T const& front() const {
-			assert(this->size > 0);
+			tassert(this->size > 0);
 			return data[0];
 		}
 
 		inline T const& back() const {
-			assert(this->size > 0);
+			tassert(this->size > 0);
 			return data[this->size - 1];
 		}
 
 		inline T pop() {
-			assert(this->size > 0);
+			tassert(this->size > 0);
 			this->size--;
 			auto test = std::move(this->data[this->size]);
 			return test;
@@ -80,14 +79,14 @@ namespace te
 
 	public:
 		inline void add_back(T const& v) {
-			assert(this->size < this->capacity);
+			tassert(this->size < this->capacity);
 
 			data[this->size] = v;
 			this->size++;
 		}
 
 		inline void add_back(T&& v) {
-			assert(this->size < this->capacity);
+			tassert(this->size < this->capacity);
 
 			data[this->size] = std::move(v);
 			this->size++;
@@ -185,7 +184,7 @@ namespace te
 		simple_vector(simple_vector const& other) = delete;
 
 		simple_vector& operator=(simple_vector&& other) noexcept {
-			assert(this->data == nullptr);
+			tassert(this->data == nullptr);
 
 			this->data = other.data;
 			other.data = nullptr;

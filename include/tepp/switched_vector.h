@@ -75,7 +75,7 @@ namespace te
 
 		void erase(integer_t i) {
 			this->data.erase(this->data.begin() + i);
-			assert(this->data.size() != 0);
+			tassert(this->data.size() != 0);
 			if (this->index == this->size() - 1) {
 				this->index--;
 			}
@@ -124,7 +124,7 @@ namespace te
 		}
 
 		void selectLast() {
-			assert(this->data.size() > 0);
+			tassert(this->data.size() > 0);
 			this->index = isize(this->data) - 1;
 		}
 

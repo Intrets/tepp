@@ -1,6 +1,5 @@
 #include "tepp/uuid.h"
 
-#include <cassert>
 #include <ranges>
 #include <sstream>
 

@@ -3,7 +3,6 @@
 #include "tepp/intrusive_list.h"
 #include "tepp/tepp.h"
 
-#include <cassert>
 #include <cstdint>
 #include <memory>
 

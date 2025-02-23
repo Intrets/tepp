@@ -2,8 +2,6 @@
 
 #include "tepp/integers.h"
 
-#include <cassert>
-
 namespace te
 {
 	namespace rt_export_size
@@ -18,7 +16,7 @@ namespace te
 			integer_t power;
 
 			integer_t getSize() {
-				assert(power < 64);
+				tassert(power < 64);
 				return 1ULL << power;
 			}
 
