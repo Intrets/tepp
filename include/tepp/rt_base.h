@@ -3,6 +3,7 @@
 #include "tepp/intrusive_list.h"
 #include "tepp/tepp.h"
 
+#include <concepts>
 #include <cstdint>
 #include <memory>
 
@@ -61,9 +62,12 @@ namespace te
 		virtual void clear() = 0;
 	};
 
-	template<class T, class non_rt, class rt>
+	template<class T, class non_rt_, class rt_>
 	struct alignas(64) rt_base_template : rt_base
 	{
+		using rt = rt_;
+		using non_rt = non_rt_;
+
 		alignas(64) rt rtStorage{};
 		alignas(64) non_rt non_rtStorage{};
 
@@ -82,6 +86,44 @@ namespace te
 
 		~rt_base_template() = default;
 	};
+
+	struct context_flag
+	{
+	};
+	template<class T>
+	struct context
+	{
+		T* t;
+		T* operator->() {
+			return this->t;
+		}
+		T& operator*() {
+			return *this->t;
+		}
+		using type = T;
+		using flag = context_flag;
+	};
+	template<class T>
+	concept is_context = std::same_as<context_flag, typename T::flag>;
+
+	struct self_flag
+	{
+	};
+	template<class T>
+	struct self
+	{
+		T* t;
+		T* operator->() {
+			return this->t;
+		}
+		T& operator*() {
+			return *this->t;
+		}
+		using type = T;
+		using flag = self_flag;
+	};
+	template<class T>
+	concept is_self = std::same_as<self_flag, typename T::flag>;
 
 	struct rt_base_operation
 	{
@@ -144,15 +186,30 @@ namespace te
 					this->operation.run_non_rt(*nonrt_pointer);
 				}
 				else if constexpr (te::list_size_v<arg_list> == 2) {
-					using context_type = std::remove_cvref_t<te::list_element_t<0, arg_list>>;
+					using arg_type = std::remove_cvref_t<te::list_element_t<0, arg_list>>;
 					using nonrt_type = std::remove_cvref_t<te::list_element_t<1, arg_list>>;
 
-					auto context_pointer = reinterpret_cast<context_type*>(context);
 					auto nonrt_pointer = std::launder(
 					    reinterpret_cast<nonrt_type*>(base.nonrtPointer)
 					);
 
-					this->operation.run_non_rt(*context_pointer, *nonrt_pointer);
+					if constexpr (is_context<arg_type>) {
+						using context_type = arg_type::type;
+
+						auto context_pointer = reinterpret_cast<context_type*>(context);
+
+						this->operation.run_non_rt(arg_type{ context_pointer }, *nonrt_pointer);
+					}
+					else if constexpr (is_self<arg_type>) {
+						using self_type = arg_type::type;
+
+						auto self_pointer = reinterpret_cast<self_type*>(&base);
+
+						this->operation.run_non_rt(arg_type{ self_pointer }, *nonrt_pointer);
+					}
+					else {
+						tassert(0);
+					}
 				}
 			}
 		}
