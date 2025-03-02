@@ -58,6 +58,11 @@ namespace te
 			return data[0];
 		}
 
+		inline T& front() {
+			tassert(this->size > 0);
+			return data[0];
+		}
+
 		inline T const& back() const {
 			tassert(this->size > 0);
 			return data[this->size - 1];

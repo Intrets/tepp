@@ -22,9 +22,3 @@
 #define DEFAULT_COPY_MOVE(T) DEFAULT_COPY(T) DEFAULT_MOVE(T)
 #define NO_COPY_MOVE(T) NO_COPY(T) NO_MOVE(T)
 
-namespace te
-{
-	inline integer_t isize(auto&& a) {
-		return static_cast<integer_t>(a.size());
-	}
-}
