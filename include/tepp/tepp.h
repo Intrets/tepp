@@ -1004,14 +1004,14 @@ namespace te
 			}
 		};
 
-		template<class IS, class F>
+		template<integer_t I0, class IS, class F>
 		struct for_iota;
 
-		template<class F, integer_t... I>
-		struct for_iota<std::integer_sequence<integer_t, I...>, F>
+		template<class F, integer_t I0, integer_t... I>
+		struct for_iota<I0, std::integer_sequence<integer_t, I...>, F>
 		{
 			constexpr static auto apply(F&& f) {
-				(std::invoke(std::forward<F>(f), te::Value<I>), ...);
+				(f(te::Value<I0 + I>), ...);
 			}
 		};
 	}
@@ -1023,9 +1023,14 @@ namespace te
 		detail::for_each<F, Tuple, std::make_integer_sequence<integer_t, size>>::apply(std::forward<F>(f), std::forward<Tuple>(t));
 	}
 
+	template<integer_t I0, integer_t I, class F>
+	constexpr static auto for_iota(F&& f) {
+		detail::for_iota<I0, std::make_integer_sequence<integer_t, I - I0>, F>::apply(std::forward<F>(f));
+	}
+
 	template<integer_t I, class F>
 	constexpr static auto for_iota(F&& f) {
-		detail::for_iota<std::make_integer_sequence<integer_t, I>, F>::apply(std::forward<F>(f));
+		for_iota<0, I>(std::forward<F>(f));
 	}
 
 	constexpr static auto for_each(auto&& f, auto&&... args) {
