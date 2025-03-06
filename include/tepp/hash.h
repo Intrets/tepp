@@ -13,6 +13,8 @@ namespace te
 		concept no_padding = std::has_unique_object_representations_v<T>;
 	}
 
+	size_t hashBytes(std::span<std::byte> bytes);
+
 	template<detail::no_padding... T>
 	struct hash_struct
 	{
