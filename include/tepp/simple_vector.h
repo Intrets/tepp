@@ -68,6 +68,11 @@ namespace te
 			return data[this->size - 1];
 		}
 
+		inline T& back() {
+			tassert(this->size > 0);
+			return data[this->size - 1];
+		}
+
 		inline T pop() {
 			tassert(this->size > 0);
 			this->size--;

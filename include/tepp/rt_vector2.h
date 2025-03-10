@@ -35,6 +35,15 @@ namespace te
 			}
 		};
 
+		struct SwapVector
+		{
+			simple_vector<T> storage;
+
+			void run_rt(rt& rt) {
+				std::swap(rt.data, this->storage);
+			}
+		};
+
 		struct ReplaceStorage
 		{
 			simple_vector<T> storage;
@@ -136,6 +145,13 @@ namespace te
 			}
 			non_rt.size++;
 			this->addOperation(Add{ .datum = std::forward<T>(value) });
+		}
+
+		void swap_vector(simple_vector<T> data) {
+			this->get_non_rt().capacity = data.capacity;
+			this->get_non_rt().size = data.size;
+
+			this->addOperation(SwapVector{ .storage = std::move(data) });
 		}
 
 		void swap(integer_t from, integer_t to) {
