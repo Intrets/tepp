@@ -17,7 +17,7 @@ namespace te
 
 	public:
 		constexpr bool empty() const {
-			return this->size == 0;
+			return this->size <= 1;
 		}
 
 		constexpr bool operator==(te::const_string_view<T> other) const {
