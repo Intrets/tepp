@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <source_location>
 
 #ifdef OS_WIN
 #include <intrin.h>
@@ -13,13 +14,11 @@
 #endif
 
 bool isDebuggerPresent();
+bool waitForDebugger(std::source_location sourceLocation);
 
 #define DO_BREAK \
-	if (isDebuggerPresent()) { \
+	if (isDebuggerPresent() || waitForDebugger(std::source_location::current())) { \
 		BREAK; \
-	} \
-	else { \
-		assert(0); \
 	}
 
 #ifdef DEBUG_BUILD
@@ -31,18 +30,4 @@ bool isDebuggerPresent();
 	} while (0)
 #else
 #define tassert(...) ((void)0)
-#endif
-
-#ifdef DEBUG_BUILD
-#define tassertonce(B, ...) \
-	do { \
-		if (!(B)) [[unlikely]] { \
-			static std::atomic<bool> flag = false; \
-			if (!flag.exchange(true)) { \
-				DO_BREAK; \
-			} \
-		} \
-	} while (0)
-#else
-#define tassertonce(...) ((void)0)
 #endif
