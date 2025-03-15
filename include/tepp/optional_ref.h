@@ -81,6 +81,15 @@ namespace te
 			}
 		}
 
+		std::optional<T> to_optional() const {
+			if (this->has_value()) {
+				return std::make_optional(this->value());
+			}
+			else {
+				return std::nullopt;
+			}
+		}
+
 		optional_ref() = default;
 		optional_ref(te::nullopt_t) {
 		}

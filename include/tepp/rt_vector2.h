@@ -44,6 +44,16 @@ namespace te
 			}
 		};
 
+		struct SwapElement
+		{
+			integer_t i{};
+			T datum{};
+
+			void run_rt(rt& rt) {
+				std::swap(rt.data[i], this->datum);
+			}
+		};
+
 		struct ReplaceStorage
 		{
 			simple_vector<T> storage;
@@ -160,6 +170,10 @@ namespace te
 			tassert(from >= 0);
 			tassert(to >= 0);
 			this->addOperation(Swap{ .from = from, .to = to });
+		}
+
+		void swap_element(integer_t i, T&& value) {
+			this->addOperation(SwapElement{ .i = i, .datum = std::forward<T>(value) });
 		}
 
 		void pop() {
