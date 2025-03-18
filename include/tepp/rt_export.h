@@ -4,8 +4,8 @@
 #pragma once
 
 #include <atomic>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "misc.h"
 
@@ -274,8 +274,12 @@ namespace te
 			this->currentlyAccessed = false;
 
 			if (newBegin > this->getBufferSize() * 2) {
+				auto newRead = newBegin = this->getBufferSize();
 				this->readI.store(newBegin - this->getBufferSize());
-				this->writeI.fetch_sub(this->getBufferSize());
+				auto newWrite = this->writeI.fetch_sub(this->getBufferSize());
+				if (newWrite >= newRead) {
+					this->writeI.fetch_sub(this->getBufferSize());
+				}
 			}
 			else {
 				this->readI.store(newBegin);
