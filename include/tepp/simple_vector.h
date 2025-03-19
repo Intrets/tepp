@@ -25,6 +25,13 @@ namespace te
 			return data[i];
 		}
 
+		inline T const& operator[](integer_t i) const {
+			tassert(i >= 0);
+			tassert(i < this->size);
+
+			return data[i];
+		}
+
 		bool empty() const {
 			return this->size == 0;
 		}
@@ -112,6 +119,17 @@ namespace te
 			this->ensure_capacity();
 
 			this->add_back(std::forward<T>(v));
+		}
+
+		inline bool try_push_back(T const& v) {
+			if (this->size == this->capacity) {
+				return false;
+			}
+			else {
+				this->add_back(v);
+
+				return true;
+			}
 		}
 
 		inline bool try_push_back(T&& v) {
