@@ -17,8 +17,6 @@ bool waitForDebugger(std::source_location sourceLocation) {
 	auto message = std::format("Hit assert at {}({}:{}) `{}`", sourceLocation.file_name(), sourceLocation.line(), sourceLocation.column(), sourceLocation.function_name());
 #ifdef OS_WIN
 
-	PlaySoundW((LPCWSTR)SND_ALIAS_SYSTEMEXCLAMATION, NULL, SND_ALIAS_ID | SND_ASYNC);
-
 	auto fullMessage = std::format("{}\n\nCancel to abort, try again to debug.", message);
 	while (true) {
 		auto result = MessageBox(0, fullMessage.c_str(), "Break", MB_CANCELTRYCONTINUE);
