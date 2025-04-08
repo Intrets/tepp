@@ -7,6 +7,7 @@ project(${MODULE_NAME} LANGUAGES CXX)
 make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
+		golden_section_search
 		optional
 		any
 		name_thread
