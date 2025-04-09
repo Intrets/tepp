@@ -11,12 +11,12 @@ namespace te
 	namespace detail
 	{
 		template<class T>
-		concept no_padding = std::has_unique_object_representations_v<T>;
+		concept byte_hashable = std::has_unique_object_representations_v<T>;
 	}
 
 	size_t hashBytes(std::span<std::byte> bytes);
 
-	template<detail::no_padding... T>
+	template<detail::byte_hashable... T>
 	struct hash_struct
 	{
 		size_t operator()(T const&... data) const {
@@ -55,7 +55,7 @@ namespace te
 			return static_cast<size_t>(this->hash);
 		}
 
-		template<detail::no_padding T>
+		template<detail::byte_hashable T>
 		hasher& add(std::span<T> data) {
 			for (auto byte : std::as_bytes(data)) {
 				hash *= prime;
@@ -65,7 +65,22 @@ namespace te
 			return *this;
 		}
 
-		template<detail::no_padding... T>
+		hasher& add(float data) {
+			this->add(std::hash<float>()(data));
+
+			return *this;
+		}
+
+		template<class T>
+		hasher& add(std::optional<T> const& data) {
+			if (data.has_value()) {
+				this->add(data.value());
+			}
+
+			return *this;
+		}
+
+		template<detail::byte_hashable... T>
 		hasher& add(T const&... data) {
 			te::for_each(
 			    [&](auto const& data) {
@@ -84,7 +99,7 @@ namespace te
 		}
 	};
 
-	template<detail::no_padding... T>
+	template<detail::byte_hashable... T>
 	size_t hash(T const&... a) {
 		return hash_struct<T...>()(a...);
 	}
