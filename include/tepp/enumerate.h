@@ -4,8 +4,6 @@
 
 #include "tepp/integers.h"
 
-#include <iostream>
-
 namespace te
 {
 	inline constexpr auto enumerate_range = [](auto&& range) {
