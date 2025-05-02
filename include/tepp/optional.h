@@ -93,7 +93,7 @@ namespace te
 			return false;
 		}
 		if (!left.has_value()) {
-			return false;
+			return true;
 		}
 		return cmp(left.value(), right.value());
 	}
