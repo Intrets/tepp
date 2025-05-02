@@ -3,14 +3,10 @@
 #include <optional>
 
 #include "tepp/assert.h"
+#include "tepp/nullopt.h"
 
 namespace te
 {
-	struct nullopt_t
-	{
-	};
-	inline constexpr nullopt_t nullopt{};
-
 	template<class T>
 	struct optional_ref
 	{
