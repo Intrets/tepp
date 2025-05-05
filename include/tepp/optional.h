@@ -61,7 +61,7 @@ namespace te
 		};
 
 		template<class T_>
-		decltype(auto) wrap(T_&& t) {
+		decltype(auto) wrap(T_& t) {
 			using T = std::remove_cvref_t<T_>;
 
 			if constexpr (is_std_optional<T>) {
