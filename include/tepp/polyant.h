@@ -4,6 +4,7 @@
 
 #include <tepp/optional_ref.h>
 #include <tepp/tepp.h>
+#include <tepp/variant.h>
 
 namespace te
 {
@@ -31,6 +32,7 @@ namespace te
 
 		alignas(alignment) std::byte storage[storage_size];
 		integer_t type = -1;
+		te::variant<Args*...> pointerStorage{};
 
 		template<te::member_of2<Args...> T>
 		static consteval integer_t getType() {
@@ -43,12 +45,25 @@ namespace te
 			return std::launder(reinterpret_cast<T*>(this->storage));
 		}
 
+		template<class T>
+		T const* getImpl() const {
+			return std::launder(reinterpret_cast<T const*>(this->storage));
+		}
+
 	public:
 		B& getBase() {
 			return *this->getImpl<B>();
 		}
 
+		B const& getBase() const {
+			return *this->getImpl<B>();
+		}
+
 		B* operator->() {
+			return &this->getBase();
+		}
+
+		B const* operator->() const {
 			return &this->getBase();
 		}
 
@@ -62,10 +77,63 @@ namespace te
 			}
 		}
 
+		template<class... F>
+		auto visit(F&&... f) {
+			return te::visit(this->pointerStorage, [&](auto ptr) {
+				return detail::overloaded{ std::forward<F>(f)... }(*ptr);
+			});
+		}
+
+		template<class... F>
+		auto visit(F&&... f) const {
+			return te::visit(this->pointerStorage, [&](auto ptr) {
+				return detail::overloaded{ std::forward<F>(f)... }(*ptr);
+			});
+		}
+
+	private:
+		void move_from(polyant&& other) {
+			other.visit([&](auto& e) {
+				this->emplace<std::remove_cvref_t<decltype(e)>>(std::move(e));
+			});
+		}
+
+	public:
+		polyant(polyant&& other) {
+			this->move_from(std::move(other));
+		}
+
+		polyant& operator=(polyant&& other) {
+			this->clear();
+			this->move_from(std::move(other));
+
+			return *this;
+		}
+
+	private:
+		void copy_from(polyant const& other) {
+			other.visit([&](auto const& e) {
+				this->emplace<std::remove_cvref_t<decltype(e)>>(e);
+			});
+		}
+
+	public:
+		polyant(polyant const& other) {
+			this->copy_from(other);
+		}
+
+		polyant& operator=(polyant const& other) {
+			this->clear();
+			this->copy_from(other);
+
+			return *this;
+		}
+
 		template<te::member_of2<Args...> T, class... TArgs>
 		T& emplace(TArgs&&... targs) noexcept(noexcept(T(std::forward<TArgs>(targs)...))) {
 			this->clear();
 			auto ptr = new (this->storage) T(std::forward<TArgs>(targs)...);
+			this->pointerStorage = ptr;
 			this->type = getType<T>();
 			return *ptr;
 		}
