@@ -8,38 +8,13 @@
 
 namespace te
 {
-	namespace detail
+	template<class B, class First, class... Args>
+	struct polyant
 	{
-		template<class T, class Arg, class... Args>
-		constexpr integer_t argumentIndex() {
-			if constexpr (std::same_as<T, Arg>) {
-				return 0;
-			}
-			else {
-				return 1 + argumentIndex<T, Args...>();
-			}
-		}
-	}
-	template<class B, class... Args>
-	struct alignas(te::max_v<alignof(Args)...>) polyant
-	{
-		static_assert(sizeof...(Args) > 0);
-
-		static constexpr integer_t storage_size = te::max_v<sizeof(Args)...>;
-		static constexpr integer_t alignment = te::max_v<alignof(Args)...>;
-
-		using First = te::head_t<te::list_type<Args...>>;
-
-		alignas(alignment) std::byte storage[storage_size];
-		integer_t type = -1;
-		te::variant<Args*...> pointerStorage{};
-
-		template<te::member_of2<Args...> T>
-		static consteval integer_t getType() {
-			return detail::argumentIndex<T, Args...>();
-		}
-
 	private:
+		te::variant<First, Args...> storage{};
+		B* base = nullptr;
+
 		template<class T>
 		T* getImpl() {
 			return std::launder(reinterpret_cast<T*>(this->storage));
@@ -52,11 +27,11 @@ namespace te
 
 	public:
 		B& getBase() {
-			return *this->getImpl<B>();
+			return *this->base;
 		}
 
 		B const& getBase() const {
-			return *this->getImpl<B>();
+			return *this->base;
 		}
 
 		B* operator->() {
@@ -67,10 +42,10 @@ namespace te
 			return &this->getBase();
 		}
 
-		template<te::member_of2<Args...> T>
+		template<te::member_of2<First, Args...> T>
 		te::optional_ref<T> getIf() {
-			if (this->type == getType<T>()) {
-				return *this->getImpl<T>();
+			if (auto ptr = std::get_if<T>(&this->storage)) {
+				return *ptr;
 			}
 			else {
 				return te::nullopt;
@@ -79,23 +54,18 @@ namespace te
 
 		template<class... F>
 		auto visit(F&&... f) {
-			return te::visit(this->pointerStorage, [&](auto ptr) {
-				return detail::overloaded{ std::forward<F>(f)... }(*ptr);
-			});
+			return te::visit(this->storage, std::forward<F>(f)...);
 		}
 
 		template<class... F>
 		auto visit(F&&... f) const {
-			return te::visit(this->pointerStorage, [&](auto ptr) {
-				return detail::overloaded{ std::forward<F>(f)... }(*ptr);
-			});
+			return te::visit(this->storage, std::forward<F>(f)...);
 		}
 
 	private:
 		void move_from(polyant&& other) {
-			other.visit([&](auto& e) {
-				this->emplace<std::remove_cvref_t<decltype(e)>>(std::move(e));
-			});
+			this->storage = std::move(other.storage);
+			this->base = other.base;
 		}
 
 	public:
@@ -104,7 +74,6 @@ namespace te
 		}
 
 		polyant& operator=(polyant&& other) {
-			this->clear();
 			this->move_from(std::move(other));
 
 			return *this;
@@ -112,9 +81,8 @@ namespace te
 
 	private:
 		void copy_from(polyant const& other) {
-			other.visit([&](auto const& e) {
-				this->emplace<std::remove_cvref_t<decltype(e)>>(e);
-			});
+			this->storage = other.storage;
+			this->base = other.base;
 		}
 
 	public:
@@ -123,49 +91,39 @@ namespace te
 		}
 
 		polyant& operator=(polyant const& other) {
-			this->clear();
 			this->copy_from(other);
 
 			return *this;
 		}
 
-		template<te::member_of2<Args...> T, class... TArgs>
+		template<te::member_of2<First, Args...> T, class... TArgs>
 		T& emplace(TArgs&&... targs) noexcept(noexcept(T(std::forward<TArgs>(targs)...))) {
-			this->clear();
-			auto ptr = new (this->storage) T(std::forward<TArgs>(targs)...);
-			this->pointerStorage = ptr;
-			this->type = getType<T>();
-			return *ptr;
+			this->storage.emplace<T>(std::forward<TArgs>(targs)...);
+			T& object = std::get<T>(this->storage);
+			this->base = &object;
+
+			return object;
 		}
 
-		void clear() {
-			if (this->type != -1) {
-				this->getBase().~B();
-				this->type = -1;
-			}
-		}
-
-		template<te::member_of2<Args...> T>
+		template<te::member_of2<First, Args...> T>
 		polyant(T&& other) noexcept(noexcept(this->emplace<T>(std::forward<T>(other)))) {
 			this->emplace<T>(std::forward<T>(other));
 		}
 
-		template<te::member_of2<Args...> T>
+		template<te::member_of2<First, Args...> T>
 		polyant(T const& other) noexcept(noexcept(this->emplace<T>(other))) {
 			this->emplace<T>(other);
 		}
 
-		template<te::member_of2<Args...> T>
+		template<te::member_of2<First, Args...> T>
 		polyant& operator=(T&& other) {
-			this->clear();
 			this->emplace<T>(std::forward<T>(other));
 
 			return *this;
 		}
 
-		template<te::member_of2<Args...> T>
+		template<te::member_of2<First, Args...> T>
 		polyant& operator=(T const& other) {
-			this->clear();
 			this->emplace<T>(other);
 
 			return *this;
@@ -175,9 +133,6 @@ namespace te
 			this->emplace<First>();
 		}
 
-		~polyant() {
-			this->clear();
-		}
+		~polyant() = default;
 	};
-
 }
