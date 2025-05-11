@@ -15,14 +15,8 @@ namespace te
 		te::variant<First, Args...> storage{};
 		B* base = nullptr;
 
-		template<class T>
-		T* getImpl() {
-			return std::launder(reinterpret_cast<T*>(this->storage));
-		}
-
-		template<class T>
-		T const* getImpl() const {
-			return std::launder(reinterpret_cast<T const*>(this->storage));
+		B* getBaseImpl() {
+			return std::visit([](auto& v) { return static_cast<B*>(&v); }, this->storage);
 		}
 
 	public:
@@ -65,7 +59,7 @@ namespace te
 	private:
 		void move_from(polyant&& other) {
 			this->storage = std::move(other.storage);
-			this->base = other.base;
+			this->base = this->getBaseImpl();
 		}
 
 	public:
@@ -82,7 +76,7 @@ namespace te
 	private:
 		void copy_from(polyant const& other) {
 			this->storage = other.storage;
-			this->base = other.base;
+			this->base = this->getBaseImpl();
 		}
 
 	public:
