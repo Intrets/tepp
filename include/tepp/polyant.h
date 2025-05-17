@@ -92,7 +92,7 @@ namespace te
 
 		template<te::member_of2<First, Args...> T, class... TArgs>
 		T& emplace(TArgs&&... targs) noexcept(noexcept(T(std::forward<TArgs>(targs)...))) {
-			this->storage.emplace<T>(std::forward<TArgs>(targs)...);
+			this->storage.template emplace<T>(std::forward<TArgs>(targs)...);
 			T& object = std::get<T>(this->storage);
 			this->base = &object;
 

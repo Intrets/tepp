@@ -5,8 +5,14 @@
 #include "tepp/nullopt.h"
 
 #define UNWRAP_OPTIONAL(X, Y, Z) \
-	if (auto Y##optional123456789 = Z) \
-		for (X Y : te::detail::wrap(Y##optional123456789))
+	if (auto&& Y##optional123456789 = Z) \
+		for (X Y : te::detail::iterator_wrapper(Y##optional123456789))
+
+#define UNWRAP_OPTIONAL2(X, Y, Z) \
+	if (auto&& Y##optional123456789 = Z) { \
+		X Y = *Y##optional123456789;
+
+#define END_UNWRAP }
 
 namespace te
 {
@@ -15,9 +21,11 @@ namespace te
 		template<class T>
 		struct iterator_wrapper
 		{
-			std::optional<T>& data;
+			using value_type = typename T::value_type;
 
-			T const* begin() const {
+			T& data;
+
+			value_type const* begin() const {
 				if (this->data.has_value()) {
 					return &this->data.value();
 				}
@@ -26,7 +34,7 @@ namespace te
 				}
 			}
 
-			T const* end() const {
+			value_type const* end() const {
 				if (this->data.has_value()) {
 					return &this->data.value() + 1;
 				}
@@ -35,7 +43,7 @@ namespace te
 				}
 			}
 
-			T* begin() {
+			value_type* begin() {
 				if (this->data.has_value()) {
 					return &this->data.value();
 				}
@@ -44,7 +52,7 @@ namespace te
 				}
 			}
 
-			T* end() {
+			value_type* end() {
 				if (this->data.has_value()) {
 					return &this->data.value() + 1;
 				}
@@ -76,7 +84,25 @@ namespace te
 	template<class T>
 	struct optional
 	{
+		using value_type = T;
+
 		std::optional<T> data{};
+
+		T& operator*() {
+			return *this->data;
+		}
+
+		T const& operator*() const {
+			return *this->data;
+		}
+
+		T& value() {
+			return this->data.value();
+		}
+
+		T const& value() const {
+			return this->data.value();
+		}
 
 		operator bool() const {
 			return this->has_value();
