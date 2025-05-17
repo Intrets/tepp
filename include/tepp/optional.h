@@ -4,13 +4,13 @@
 
 #include "tepp/nullopt.h"
 
-#define UNWRAP_OPTIONAL(X, Y, Z) \
+#define UNWRAP_OPTIONAL(Y, Z) \
 	if (auto&& Y##optional123456789 = Z) \
-		for (X Y : te::detail::iterator_wrapper(Y##optional123456789))
+		for (auto& Y : te::detail::iterator_wrapper(Y##optional123456789))
 
-#define UNWRAP_OPTIONAL2(X, Y, Z) \
+#define UNWRAP_OPTIONAL2(Y, Z) \
 	if (auto&& Y##optional123456789 = Z) { \
-		X Y = *Y##optional123456789;
+		auto& Y = *Y##optional123456789;
 
 #define END_UNWRAP }
 
