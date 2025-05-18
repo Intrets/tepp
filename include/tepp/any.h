@@ -40,6 +40,29 @@ namespace te
 		}
 
 		NO_COPY(any);
+	private:
+		void move_from(any&& other) {
+			this->object = other.object;
+			this->type = other.type;
+			this->destructor = other.destructor;
+
+			other.object = nullptr;
+			other.type = {};
+			other.destructor = nullptr;
+		}
+
+	public:
+		any(any&& other) {
+			this->move_from(std::move(other));
+		}
+
+		any& operator=(any&& other) {
+			this->destruct();
+
+			this->move_from(std::move(other));
+
+			return *this;
+		}
 
 		void destruct() {
 			if (this->object != nullptr) {
@@ -49,6 +72,20 @@ namespace te
 
 			this->object = nullptr;
 			this->destructor = nullptr;
+		}
+
+		template<class T>
+		static any wrap(T&& object) {
+			any result{};
+			result.emplace<T>(std::forward<T>(object));
+			return result;
+		}
+
+		template<class T, class... Args>
+		static any make(Args&&... args) {
+			any result{};
+			result.emplace<T>(std::forward<Args>(args)...);
+			return result;
 		}
 
 		any() = default;

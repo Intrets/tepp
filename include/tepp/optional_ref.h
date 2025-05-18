@@ -10,6 +10,8 @@ namespace te
 	template<class T>
 	struct optional_ref
 	{
+		using value_type = T;
+
 		T* ptr = nullptr;
 
 		T& value() const {
@@ -39,6 +41,42 @@ namespace te
 
 		operator bool() const {
 			return this->has_value();
+		}
+
+		T* begin() {
+			if (this->has_value()) {
+				return this->ptr;
+			}
+			else {
+				return nullptr;
+			}
+		}
+
+		T* end() {
+			if (this->has_value()) {
+				return this->ptr + 1;
+			}
+			else {
+				return nullptr;
+			}
+		}
+
+		T const* begin() const {
+			if (this->has_value()) {
+				return this->ptr;
+			}
+			else {
+				return nullptr;
+			}
+		}
+
+		T const* end() const {
+			if (this->has_value()) {
+				return this->ptr + 1;
+			}
+			else {
+				return nullptr;
+			}
 		}
 
 		optional_ref& operator=(T& object) {
