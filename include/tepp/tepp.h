@@ -729,6 +729,13 @@ namespace te
 	struct is_c_fun;
 
 	template<class R, class... Args>
+	struct is_c_fun<R(Args...)> : std::true_type
+	{
+		using return_type = R;
+		using arguments_list = list_type<Args...>;
+	};
+
+	template<class R, class... Args>
 	struct is_c_fun<R (*)(Args...)> : std::true_type
 	{
 		using return_type = R;
