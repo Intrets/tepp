@@ -7,6 +7,8 @@ project(${MODULE_NAME} LANGUAGES CXX)
 make_module(
 	MODULE_NAME ${MODULE_NAME}
 	MODULE_FILES
+		ranges
+		in_range
 		span
 		pod_complex
 		iterator_span
