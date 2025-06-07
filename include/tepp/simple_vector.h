@@ -7,6 +7,7 @@
 #include <span>
 #include <utility>
 
+#include "tepp/assert.h"
 #include "tepp/integers.h"
 
 namespace te

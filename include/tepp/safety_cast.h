@@ -2,6 +2,9 @@
 
 #include "tepp/assert.h"
 
+#include <stdexcept>
+#include <typeinfo>
+#include <format>
 #include <utility>
 
 namespace te
@@ -19,7 +22,7 @@ namespace te
 	template<class To, class From>
 	To throw_cast(From const& from) {
 		if (!std::in_range<To>(from)) {
-			throw std::out_of_range();
+			throw std::out_of_range(std::format("Value {} of type {} out of range of type {}", from, typeid(From).name(), typeid(To).name()));
 		}
 
 		return static_cast<To>(from);
@@ -28,7 +31,7 @@ namespace te
 	template<class To, class From>
 	void throw_assign(To& to, From const& from) {
 		if (!std::in_range<To>(from)) {
-			throw std::out_of_range();
+			throw std::out_of_range(std::format("Value {} of type {} out of range of type {}", from, typeid(From).name(), typeid(To).name()));
 		}
 
 		to = static_cast<To>(from);

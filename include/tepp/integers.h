@@ -4,8 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <tepp/safety_cast.h>
-
 using integer_t = std::ptrdiff_t;
 using qualifier_t = int64_t;
 

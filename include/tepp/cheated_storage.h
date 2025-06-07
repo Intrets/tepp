@@ -1,10 +1,11 @@
 #pragma once
 
-#include <type_traits>
 #include <functional>
+#include <type_traits>
 
 #include <new>
 
+#include "tepp/assert.h"
 #include "tepp/misc.h"
 #include "tepp/tepp.h"
 
@@ -29,7 +30,9 @@ namespace te::debug
 
 namespace te
 {
-	struct trivial_destructor {};
+	struct trivial_destructor
+	{
+	};
 	struct custom_destructor
 	{
 		std::function<void(void*)> f;
@@ -63,7 +66,7 @@ namespace te
 	template<class T, integer_t size, integer_t align, class destructor>
 	concept valid_storage = detail::is_valid_storage<T, size, align, destructor>::value;
 
-	template <integer_t size, integer_t align, class destructor = trivial_destructor>
+	template<integer_t size, integer_t align, class destructor = trivial_destructor>
 	struct cheated_storage : destructor
 	{
 		alignas(align) std::byte storage[size];
@@ -73,7 +76,7 @@ namespace te
 #endif // DEBUG_BUILD
 
 		template<te::valid_storage<size, align, destructor> T, class... Args>
-			requires (!std::same_as<destructor, custom_destructor>)
+		requires(!std::same_as<destructor, custom_destructor>)
 		void init(Args&&... args) {
 #if DEBUG_BUILD
 			tassert(this->typeIndex == debug::getTypeIndex<void>());
@@ -86,11 +89,11 @@ namespace te
 				};
 			}
 
-			::new(&this->storage) T(std::forward<Args>(args)...);
+			::new (&this->storage) T(std::forward<Args>(args)...);
 		}
 
 		template<te::valid_storage<size, align, destructor> T, class F, class... Args>
-			requires (std::same_as<destructor, custom_destructor>)
+		requires(std::same_as<destructor, custom_destructor>)
 		void init(F&& d, Args&&... args) {
 #if DEBUG_BUILD
 			tassert(this->typeIndex == debug::getTypeIndex<void>());
@@ -101,7 +104,7 @@ namespace te
 				std::invoke(d, *reinterpret_cast<T*>(object));
 			};
 
-			::new(&this->storage) T(std::forward<Args>(args)...);
+			::new (&this->storage) T(std::forward<Args>(args)...);
 		}
 
 		template<te::valid_storage<size, align, destructor> T>

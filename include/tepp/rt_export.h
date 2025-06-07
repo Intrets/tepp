@@ -9,6 +9,7 @@
 
 #include "misc.h"
 
+#include "tepp/assert.h"
 #include "tepp/rt_export_size.h"
 
 namespace te

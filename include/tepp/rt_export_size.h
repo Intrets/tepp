@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tepp/assert.h"
 #include "tepp/integers.h"
 
 namespace te

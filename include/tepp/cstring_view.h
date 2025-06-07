@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 
+#include "tepp/assert.h"
 #include "tepp/integers.h"
 
 namespace te

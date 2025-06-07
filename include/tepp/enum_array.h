@@ -8,6 +8,7 @@
 #include <optional>
 #include <ranges>
 
+#include <tepp/assert.h>
 #include <tepp/integers.h>
 
 namespace te

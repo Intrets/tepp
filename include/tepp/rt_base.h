@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tepp/assert.h"
 #include "tepp/intrusive_list.h"
 #include "tepp/tepp.h"
 

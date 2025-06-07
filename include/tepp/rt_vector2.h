@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tepp/assert.h"
 #include "tepp/rt_aggregate_dynamic.h"
 #include "tepp/rt_base.h"
 #include "tepp/simple_vector.h"

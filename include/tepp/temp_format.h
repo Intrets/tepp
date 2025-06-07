@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 
+#include "tepp/assert.h"
 #include "tepp/cstring_view.h"
 #include "tepp/misc.h"
 

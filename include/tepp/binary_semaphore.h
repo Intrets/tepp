@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tepp/assert.h"
 #include "tepp/misc.h"
 
 #include <atomic>
@@ -25,7 +26,8 @@ namespace te
 
 		void acquire() noexcept {
 			if constexpr (blocking_type == blocking::spin) {
-				while (this->counter.load(std::memory_order_relaxed) == 0) {}
+				while (this->counter.load(std::memory_order_relaxed) == 0) {
+				}
 			}
 			else if constexpr (blocking_type == blocking::wait) {
 				this->counter.wait(0, std::memory_order_relaxed);
@@ -42,7 +44,8 @@ namespace te
 
 		NO_COPY_MOVE(binary_semaphore);
 
-		binary_semaphore(unsigned char initial) : counter(initial) {
+		binary_semaphore(unsigned char initial)
+		    : counter(initial) {
 			tassert(initial == 0 || initial == 1);
 			static_assert(users_type == users::one_consumer__one_producer);
 		}
