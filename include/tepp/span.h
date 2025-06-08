@@ -36,8 +36,15 @@ namespace te
 			return R();
 		}
 
-		start = imod(start, isize(span));
-		end = imod(start, isize(span));
+		if (start < 0) {
+			start += isize(span);
+		}
+		if (end < 0) {
+			end += isize(span);
+		}
+
+		start = std::clamp(start, 0_i, isize(span));
+		end = std::clamp(end, 0_i, isize(span));
 
 		if (end < start) {
 			return R();
