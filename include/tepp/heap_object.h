@@ -68,6 +68,18 @@ namespace te
 		    : object(new T(std::move(*other.object))) {
 		}
 
+		heap_object& operator=(T const& other) {
+			*this->object = other;
+
+			return *this;
+		}
+
+		heap_object& operator=(T&& other) {
+			*this->object = std::move(other);
+
+			return *this;
+		}
+
 		heap_object& operator=(heap_object const& other) {
 			*this->object = *other.object;
 
