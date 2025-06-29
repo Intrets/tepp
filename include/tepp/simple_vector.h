@@ -199,6 +199,15 @@ namespace te
 			this->data = newBuffer;
 		}
 
+		inline simple_vector copy() const {
+			simple_vector result{};
+			result.reserve(this->size);
+			for (auto const& e : *this) {
+				result.push_back(e);
+			}
+			return result;
+		}
+
 		simple_vector(simple_vector&& other) noexcept {
 			this->data = other.data;
 			other.data = nullptr;
