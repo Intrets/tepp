@@ -4,25 +4,31 @@
 
 namespace te
 {
-	namespace
+	struct bytes_number;
+
+	struct KB
 	{
-		struct KB
-		{
-			double value;
-		};
-		struct MB
-		{
-			double value;
-		};
-		struct GB
-		{
-			double value;
-		};
-		struct TB
-		{
-			double value;
-		};
-	}
+		double value;
+		operator bytes_number() const;
+	};
+
+	struct MB
+	{
+		double value;
+		operator bytes_number() const;
+	};
+
+	struct GB
+	{
+		double value;
+		operator bytes_number() const;
+	};
+
+	struct TB
+	{
+		double value;
+		operator bytes_number() const;
+	};
 
 	struct bytes_number
 	{
@@ -33,30 +39,17 @@ namespace te
 		static constexpr integer_t GB_factor = MB_factor * 1024;
 		static constexpr integer_t TB_factor = GB_factor * 1024;
 
-		KB KB() const {
-			return { this->value / static_cast<double>(kB_factor) };
-		}
+		KB KB() const;
+		MB MB() const;
+		GB GB() const;
+		TB TB() const;
 
-		MB MB() const {
-			return { this->value / static_cast<double>(MB_factor) };
-		}
+		auto operator<=>(bytes_number const& other) const = default;
 
-		GB GB() const {
-			return { this->value / static_cast<double>(GB_factor) };
-		}
-
-		TB TB() const {
-			return { this->value / static_cast<double>(TB_factor) };
-		}
-
-		bytes_number operator+(bytes_number other) const {
-			return { this->value + other.value };
-		}
-
-		bytes_number& operator+=(bytes_number other) {
-			this->value += other.value;
-			return *this;
-		}
+		bytes_number operator+(bytes_number other) const;
+		bytes_number& operator+=(bytes_number other);
+		bytes_number operator-(bytes_number other) const;
+		bytes_number& operator-=(bytes_number other);
 	};
 }
 
@@ -78,16 +71,16 @@ namespace std
 				return std::formatter<integer_t, C>{}.format(s.value, ctx);
 			}
 			else if (s.value < te::bytes_number::MB_factor) {
-				this->formatter.format(s.KB().value, ctx);
-				return std::ranges::copy(" KB", ctx.out()).out;
+				auto it = this->formatter.format(s.KB().value, ctx);
+				return std::format_to(it, " KB");
 			}
 			else if (s.value < te::bytes_number::GB_factor) {
-				this->formatter.format(s.MB().value, ctx);
-				return std::ranges::copy(" MB", ctx.out()).out;
+				auto it = this->formatter.format(s.MB().value, ctx);
+				return std::format_to(it, " MB");
 			}
 			else {
-				this->formatter.format(s.GB().value, ctx);
-				return std::ranges::copy(" GB", ctx.out()).out;
+				auto it = this->formatter.format(s.GB().value, ctx);
+				return std::format_to(it, " GB");
 			}
 		}
 	};
