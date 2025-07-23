@@ -173,8 +173,7 @@ namespace te
 		}
 
 		inline void reserve(integer_t size_) {
-			if (size_ <= this->capacity) {
-				tassert(0);
+			if (size_ < this->capacity) {
 				return;
 			}
 
