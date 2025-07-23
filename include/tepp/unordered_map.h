@@ -6,14 +6,29 @@
 
 namespace te
 {
-	template<class K, class T>
-	te::optional_ref<T const> lookup(std::unordered_map<K, T> const& map, K const& value) {
+	template<class T, class S>
+	auto lookup(T& map, S const& value) {
+		using R = optional_ref<typename T::mapped_type>;
+
 		auto it = map.find(value);
 		if (it == map.end()) {
-			return te::nullopt;
+			return R(te::nullopt);
 		}
 		else {
-			return it->second;
+			return R(it->second);
+		}
+	}
+
+	template<class T, class S>
+	auto lookup(T const& map, S const& value) {
+		using R = optional_ref<typename T::mapped_type const>;
+
+		auto it = map.find(value);
+		if (it == map.end()) {
+			return R(te::nullopt);
+		}
+		else {
+			return R(it->second);
 		}
 	}
 }

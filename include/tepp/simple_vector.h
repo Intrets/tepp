@@ -244,6 +244,14 @@ namespace te
 			this->data = new T[capacity];
 		}
 
+		simple_vector(std::initializer_list<T> init) {
+			this->reserve(init.size());
+
+			for (auto& e : init) {
+				this->push_back(e);
+			}
+		}
+
 		void delete_buffer() {
 			this->size = 0;
 			this->capacity = 0;

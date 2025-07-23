@@ -55,6 +55,12 @@ namespace te
 			return static_cast<size_t>(this->hash);
 		}
 
+		hasher& add(std::string_view const& str) {
+			this->add(std::span(str));
+
+			return *this;
+		}
+
 		template<detail::byte_hashable T>
 		hasher& add(std::span<T> data) {
 			for (auto byte : std::as_bytes(data)) {

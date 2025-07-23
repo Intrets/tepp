@@ -124,6 +124,10 @@ namespace te
 			}
 		}
 
+		operator optional_ref<T const>() {
+			return optional_ref<T const>(*this->ptr);
+		}
+
 		optional_ref() = default;
 		optional_ref(te::nullopt_t) {
 		}
