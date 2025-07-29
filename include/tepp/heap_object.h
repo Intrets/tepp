@@ -54,10 +54,8 @@ namespace te
 			return *this->object;
 		}
 
-		template<class... Args>
-		requires(std::constructible_from<T, Args...>)
-		heap_object(Args&&... args)
-		    : object(new T(std::forward<Args>(args)...)) {
+		heap_object()
+		    : object(new T()) {
 		}
 
 		heap_object(heap_object const& other)
@@ -66,6 +64,11 @@ namespace te
 
 		heap_object(heap_object&& other)
 		    : object(new T(std::move(*other.object))) {
+		}
+
+		template<class... Args>
+		heap_object(Args&&... args)
+		    : object(new T(std::forward<Args>(args)...)) {
 		}
 
 		heap_object& operator=(T const& other) {

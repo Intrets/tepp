@@ -56,7 +56,7 @@ namespace te
 namespace std
 {
 	template<class C>
-	struct std::formatter<te::bytes_number, C>
+	struct formatter<te::bytes_number, C>
 	{
 		std::formatter<double, C> formatter;
 
