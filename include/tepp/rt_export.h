@@ -11,6 +11,7 @@
 
 #include "tepp/assert.h"
 #include "tepp/rt_export_size.h"
+#include "tepp/span.h"
 
 namespace te
 {
@@ -301,5 +302,68 @@ namespace te
 		~rt_export() {
 			tassert(!this->currentlyAccessed);
 		}
+	};
+
+	template<class T>
+	struct rt_export2
+	{
+		std::vector<T> data{};
+		integer_t batchWriteI = 1;
+		std::atomic<integer_t> writeI = 1;
+		std::atomic<integer_t> readI{};
+
+		integer_t mod(integer_t index) const {
+			return index & (this->getBufferSize() - 1);
+		}
+
+		integer_t getBufferSize() const {
+			return isize(this->data);
+		}
+
+		bool write(T const& value) {
+			auto nextBatchWriteI = this->mod(this->batchWriteI + 1);
+			if (nextBatchWriteI != this->readI) {
+				this->data[this->batchWriteI] = value;
+				this->batchWriteI = nextBatchWriteI;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		void send() {
+			this->writeI.store(this->batchWriteI, std::memory_order_release);
+		}
+
+		bool empty() const {
+			return this->writeI.load(std::memory_order_acquire) == this->readI.load(std::memory_order_acquire);
+		}
+
+		void write_into(std::vector<T>& destination) {
+			auto const begin = this->readI.load(std::memory_order_acquire);
+			auto const end = this->writeI.load(std::memory_order_acquire);
+
+			if (begin <= end) {
+				destination.resize(end - begin);
+				std::ranges::copy(te::slice(std::span(this->data), begin, end), destination.begin());
+			}
+			else {
+				destination.resize(this->getBufferSize() - (begin - end));
+				auto span1 = te::slice(std::span(this->data), begin, {});
+				auto span2 = te::slice(std::span(this->data), {}, end);
+				std::ranges::copy(span1, destination.begin());
+				std::ranges::copy(span2, destination.begin() + isize(span1));
+			}
+
+			this->readI.store(end, std::memory_order_release);
+		}
+
+		rt_export2(rt_export_size::power_of_two size)
+		    : data(size.getSize()) {
+		}
+
+		rt_export2() = delete;
+		~rt_export2() = default;
 	};
 }
