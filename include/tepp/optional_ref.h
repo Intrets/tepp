@@ -104,14 +104,24 @@ namespace te
 			return *this;
 		}
 
+		optional_ref& operator=(std::nullopt_t) {
+			this->ptr = nullptr;
+
+			return *this;
+		}
+
 		template<class F>
 		auto transform(F&& f) {
-			using Return = decltype(f(this->value()));
+			using Return = decltype(std::invoke(std::forward<F>(f), this->value()));
+			constexpr bool is_reference = std::is_reference_v<Return>;
+			using Nullopt = std::conditional_t<is_reference, te::nullopt_t, std::nullopt_t>;
+			using Opt = std::conditional_t<is_reference, te::optional_ref<std::remove_reference_t<Return>>, std::optional<Return>>;
+
 			if (this->has_value()) {
-				return std::make_optional(f(this->value()));
+				return Opt(std::invoke(std::forward<F>(f), this->value()));
 			}
 			else {
-				return std::optional<Return>(std::nullopt);
+				return Opt{};
 			}
 		}
 
