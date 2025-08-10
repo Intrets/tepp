@@ -187,12 +187,15 @@ namespace te
 
 				std::memcpy(destinationSpan.data(), sourceSpan.data(), sourceSpan.size_bytes());
 			}
-			else {
+			else if constexpr (std::is_move_assignable_v<T>){
 				auto it = this->data;
 				auto jt = newBuffer;
 				for (integer_t i = 0; i < this->size; i++, it++, jt++) {
 					*jt = std::move(*it);
 				}
+			}
+			else {
+				tassert(this->size == 0);
 			}
 
 			this->data = newBuffer;

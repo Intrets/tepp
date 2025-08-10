@@ -84,7 +84,7 @@ namespace te
 			return *this;
 		}
 
-		optional_ref(std::optional<T>& object) {
+		optional_ref(std::optional<std::remove_const_t<T>>& object) {
 			if (object.has_value()) {
 				this->ptr = &object.value();
 			}
