@@ -343,9 +343,12 @@ namespace te
 		struct is_same_list_type;
 
 		template<template<class...> class T2, template<class...> class T1, class... Args>
+		concept is_same_list_type_concept = requires() { requires std::same_as<T1<Args...>, T2<Args...>>; };
+
+		template<template<class...> class T2, template<class...> class T1, class... Args>
 		struct is_same_list_type<T2, T1<Args...>>
 		{
-			constexpr static bool value = std::same_as<T1<Args...>, T2<Args...>>;
+			constexpr static bool value = is_same_list_type_concept<T1, T2, Args...>;
 		};
 
 		template<class T, list L>
