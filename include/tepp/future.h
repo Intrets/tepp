@@ -17,6 +17,7 @@ namespace te
 				f.get();
 				return true;
 			} catch (std::exception&) {
+				return false;
 			}
 		}
 		else {
