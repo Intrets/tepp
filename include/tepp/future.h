@@ -17,8 +17,6 @@ namespace te
 				f.get();
 				return true;
 			} catch (std::exception&) {
-				// catches broken promise
-				return false;
 			}
 		}
 		else {
@@ -32,7 +30,6 @@ namespace te
 			try {
 				return f.get();
 			} catch (std::exception&) {
-				// catches broken promise
 				return std::nullopt;
 			}
 		}
