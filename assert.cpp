@@ -8,6 +8,7 @@ bool isDebuggerPresent() {
 	return IsDebuggerPresent();
 }
 #else
+#include <signal.h>
 bool isDebuggerPresent() {
 	return true;
 }
@@ -42,7 +43,7 @@ bool waitForDebugger(std::source_location sourceLocation) {
 	while (true) {
 		std::cin.ignore();
 
-		if (IsDebuggerPresent()) {
+		if (isDebuggerPresent()) {
 			BREAK;
 			break;
 		}

@@ -3,6 +3,7 @@
 #include <format>
 #include <string>
 #include <string_view>
+#include <cstring>
 
 #include "tepp/assert.h"
 #include "tepp/integers.h"

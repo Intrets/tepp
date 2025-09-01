@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <span>
 #include <utility>
+#include <cstring>
 
 #include "tepp/assert.h"
 #include "tepp/integers.h"

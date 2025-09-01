@@ -2,6 +2,7 @@
 
 #include <ranges>
 #include <sstream>
+#include <cstring>
 
 namespace te
 {
