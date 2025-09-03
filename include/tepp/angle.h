@@ -28,18 +28,18 @@ namespace te
 	}
 }
 
-constexpr te::angle<float> operator "" _deg(long double angle) {
+constexpr te::angle<float> operator ""_deg(long double angle) {
 	return te::fromDegrees<float>(static_cast<float>(angle));
 }
 
-constexpr te::angle<float> operator "" _rad(long double angle) {
+constexpr te::angle<float> operator ""_rad(long double angle) {
 	return te::fromRadians<float>(static_cast<float>(angle));
 }
 
-constexpr te::angle<long double> operator "" _ddeg(long double angle) {
+constexpr te::angle<long double> operator ""_ddeg(long double angle) {
 	return te::fromDegrees<long double>(angle);
 }
 
-constexpr te::angle<long double> operator "" _drad(long double angle) {
+constexpr te::angle<long double> operator ""_drad(long double angle) {
 	return te::fromRadians<long double>(angle);
 }

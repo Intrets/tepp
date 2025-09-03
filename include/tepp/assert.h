@@ -8,6 +8,7 @@
 #include <intrin.h>
 #define BREAK __debugbreak()
 #elif defined(OS_UNIX)
+#include <signal.h>
 #define BREAK raise(SIGTRAP)
 #else
 #error platform specific debug break statement not defined
