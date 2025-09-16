@@ -48,5 +48,7 @@ bool waitForDebugger(std::source_location sourceLocation) {
 			break;
 		}
 	}
+
+	return true;
 #endif
 }
