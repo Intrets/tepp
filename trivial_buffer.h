@@ -56,7 +56,7 @@ namespace te
 #ifdef WIN32
 			this->data = std::launder(reinterpret_cast<T*>(_aligned_malloc(size_ * sizeof(T), alignment)));
 #else
-			this->data = std::launder(reinterpret_cast<T*>(std::aligned_alloc(size_ * sizeof(T), alignment)));
+			this->data = std::launder(reinterpret_cast<T*>(std::aligned_alloc(alignment, size_ * sizeof(T))));
 #endif
 
 			std::memset(this->data, 0, size_ * sizeof(T));
