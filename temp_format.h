@@ -51,7 +51,7 @@ namespace te
 
 		struct BufferAccess
 		{
-			BufferPool& bufferPool;
+			std::reference_wrapper<BufferPool> bufferPool;
 			std::optional<Buffer> buffer{};
 
 			std::vector<char>* operator*() {
@@ -107,13 +107,13 @@ namespace te
 
 			BufferAccess(BufferPool& bufferPool_)
 			    : bufferPool(bufferPool_),
-			      buffer(bufferPool.get()) {
+			      buffer(bufferPool.get().get()) {
 				this->buffer->buffer.push_back('\0');
 			}
 
 			~BufferAccess() {
 				if (this->buffer.has_value()) {
-					this->bufferPool.store(std::move(this->buffer.value()));
+					this->bufferPool.get().store(std::move(this->buffer.value()));
 				}
 			}
 		};
