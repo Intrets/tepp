@@ -125,6 +125,15 @@ namespace te
 			}
 		}
 
+		T& value_or(T& obj) {
+			if (this->has_value()) {
+				return this->value();
+			}
+			else {
+				return obj;
+			}
+		}
+
 		std::optional<T> to_optional() const {
 			if (this->has_value()) {
 				return std::make_optional(this->value());
