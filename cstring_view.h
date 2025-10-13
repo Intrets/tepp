@@ -15,15 +15,20 @@ namespace te
 	{
 	private:
 		T const* data{};
-		integer_t size{};
+		integer_t size_{};
 
 	public:
+		// does not include the null byte
+		constexpr integer_t size() const {
+			return std::max(0_i, this->size_ - 1);
+		}
+
 		constexpr bool empty() const {
-			return this->size <= 1;
+			return this->size_ <= 1;
 		}
 
 		constexpr bool operator==(te::const_string_view<T> other) const {
-			return this->size == other.size && std::memcmp(this->data, other.data, this->size * sizeof(T)) == 0;
+			return this->size_ == other.size_ && std::memcmp(this->data, other.data, this->size_ * sizeof(T)) == 0;
 		}
 
 		std::string_view string_view() const {
@@ -31,8 +36,8 @@ namespace te
 		}
 
 		operator std::string_view() const {
-			if (size > 0) {
-				return std::string_view(data, size - 1);
+			if (this->size_ > 0) {
+				return std::string_view(data, this->size_ - 1);
 			}
 			else {
 				return std::string_view{};
@@ -42,7 +47,7 @@ namespace te
 		template<class S, integer_t N>
 		constexpr const_string_view(S const (&str)[N])
 		    : data(str),
-		      size(N) {
+		      size_(N) {
 		}
 
 		std::string string() const {
@@ -51,18 +56,18 @@ namespace te
 
 		const_string_view(std::string const& str)
 		    : data(str.data()),
-		      size(str.size() + 1) {
+		      size_(str.size() + 1) {
 		}
 
 		const_string_view(char const* str, integer_t size_)
 		    : data(str),
-		      size(size_) {
+		      size_(size_) {
 			tassert(str[size_] == '\0');
 		}
 
 		const_string_view& set(std::string const& str) {
 			this->data = str.data();
-			this->size = str.size();
+			this->size_ = str.size();
 
 			return *this;
 		}
