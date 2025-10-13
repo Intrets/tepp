@@ -4,12 +4,12 @@
 #pragma once
 
 #include <algorithm>
-#include <span>
-#include <utility>
 #include <cstring>
+#include <utility>
 
 #include "tepp/assert.h"
 #include "tepp/integers.h"
+#include "tepp/span.h"
 
 namespace te
 {
@@ -52,14 +52,6 @@ namespace te
 
 		auto end() const {
 			return &data[this->size];
-		}
-
-		operator std::span<T>() {
-			return std::span(this->begin(), this->end());
-		}
-
-		operator std::span<T const>() const {
-			return std::span(this->begin(), this->end());
 		}
 
 		inline T const& front() const {
@@ -183,12 +175,12 @@ namespace te
 			auto newBuffer = new T[this->capacity];
 
 			if constexpr (std::is_trivially_copyable_v<T[]>) {
-				auto sourceSpan = std::span(this->data, this->size);
-				auto destinationSpan = std::span(newBuffer, size_);
+				auto sourceSpan = te::span<T>(this->data, this->size);
+				auto destinationSpan = te::span<T>(newBuffer, size_);
 
 				std::memcpy(destinationSpan.data(), sourceSpan.data(), sourceSpan.size_bytes());
 			}
-			else if constexpr (std::is_move_assignable_v<T>){
+			else if constexpr (std::is_move_assignable_v<T>) {
 				auto it = this->data;
 				auto jt = newBuffer;
 				for (integer_t i = 0; i < this->size; i++, it++, jt++) {

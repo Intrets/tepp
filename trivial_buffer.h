@@ -2,6 +2,7 @@
 
 #include <tepp/integers.h>
 #include <tepp/misc.h>
+#include <tepp/span.h>
 
 #include <cstdlib>
 
@@ -21,8 +22,8 @@ namespace te
 			return this->data[i];
 		}
 
-		std::span<T> getSpan() {
-			return std::span(this->data, this->data + size);
+		te::span<T> getSpan() {
+			return te::span(this->data, this->data + size);
 		}
 
 		void fill(T const& t) {

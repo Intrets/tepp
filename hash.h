@@ -1,10 +1,10 @@
 #pragma once
 
 #include <bit>
-#include <span>
 #include <type_traits>
 
-#include <tepp/tepp.h>
+#include "tepp/span.h"
+#include "tepp/tepp.h"
 
 namespace te
 {
@@ -14,7 +14,7 @@ namespace te
 		concept byte_hashable = std::has_unique_object_representations_v<T>;
 	}
 
-	size_t hashBytes(std::span<std::byte> bytes);
+	size_t hashBytes(te::span<std::byte> bytes);
 
 	template<detail::byte_hashable... T>
 	struct hash_struct
@@ -31,7 +31,7 @@ namespace te
 				    auto constexpr byteSize = sizeof(data);
 				    std::byte const* raw = reinterpret_cast<std::byte const*>(&data);
 
-				    for (auto byte : std::span<std::byte const>(raw, byteSize)) {
+				    for (auto byte : te::span<std::byte const>(raw, byteSize)) {
 					    hash *= prime;
 					    hash ^= static_cast<uint64_t>(std::bit_cast<uint8_t>(byte));
 				    }
@@ -56,14 +56,14 @@ namespace te
 		}
 
 		hasher& add(std::string_view const& str) {
-			this->add(std::span(str));
+			this->add(te::span(str));
 
 			return *this;
 		}
 
 		template<detail::byte_hashable T>
-		hasher& add(std::span<T> data) {
-			for (auto byte : std::as_bytes(data)) {
+		hasher& add(te::span<T> data) {
+			for (auto byte : te::as_bytes(data)) {
 				hash *= prime;
 				hash ^= static_cast<uint64_t>(std::bit_cast<uint8_t>(byte));
 			}
@@ -93,7 +93,7 @@ namespace te
 				    auto constexpr byteSize = sizeof(data);
 				    std::byte const* raw = reinterpret_cast<std::byte const*>(&data);
 
-				    for (auto byte : std::span<std::byte const>(raw, byteSize)) {
+				    for (auto byte : te::span<std::byte const>(raw, byteSize)) {
 					    this->hash *= prime;
 					    this->hash ^= static_cast<uint64_t>(std::bit_cast<uint8_t>(byte));
 				    }

@@ -346,12 +346,12 @@ namespace te
 
 			if (begin <= end) {
 				destination.resize(end - begin);
-				std::ranges::copy(te::slice(std::span(this->data), begin, end), destination.begin());
+				std::ranges::copy(te::slice(this->data, begin, end), destination.begin());
 			}
 			else {
 				destination.resize(this->getBufferSize() - (begin - end));
-				auto span1 = te::slice(std::span(this->data), begin, {});
-				auto span2 = te::slice(std::span(this->data), {}, end);
+				auto span1 = te::slice(this->data, begin, {});
+				auto span2 = te::slice(this->data, {}, end);
 				std::ranges::copy(span1, destination.begin());
 				std::ranges::copy(span2, destination.begin() + isize(span1));
 			}

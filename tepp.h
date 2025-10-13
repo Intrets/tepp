@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <span>
 #include <tuple>
 #include <type_traits>
 
@@ -1128,10 +1127,4 @@ namespace te
 
 	template<auto... Xs>
 	constexpr static auto max_v = detail::max<Xs...>::value;
-
-	template<class T>
-	concept is_span = requires {
-		typename T::element_type;
-		T::extent;
-	} && std::same_as<std::remove_cvref_t<T>, std::span<typename T::element_type, T::extent>>;
 }

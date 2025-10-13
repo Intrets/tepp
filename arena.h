@@ -3,9 +3,9 @@
 #include "tepp/integers.h"
 #include "tepp/misc.h"
 #include "tepp/optional_ref.h"
+#include "tepp/span.h"
 
 #include <memory>
-#include <span>
 
 namespace te
 {
@@ -84,7 +84,7 @@ namespace te
 		}
 
 		template<arena_safe T>
-		std::optional<std::span<T>> makeSpan(integer_t count) {
+		std::optional<te::span<T>> makeSpan(integer_t count) {
 			auto oldPtr = this->ptr;
 			auto oldRemaining = this->remaining;
 
@@ -110,7 +110,7 @@ namespace te
 
 			this->advancePtr(diff + spanSize);
 
-			return std::span(newPtr, count);
+			return te::span<T>(newPtr, count);
 		}
 
 		void reset();
