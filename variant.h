@@ -22,7 +22,7 @@ namespace te
 	}
 
 	template<class V, class... Visitors>
-	constexpr auto visit(V&& v, Visitors&&... visitors) {
+	constexpr decltype(auto) visit(V&& v, Visitors&&... visitors) {
 		return std::visit(detail::overloaded{ std::forward<Visitors>(visitors)... }, std::forward<V>(v));
 	}
 
