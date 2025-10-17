@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <cassert>
 #include <source_location>
 
@@ -32,3 +31,10 @@ bool waitForDebugger(std::source_location sourceLocation);
 #else
 #define tassert(...) ((void)0)
 #endif
+
+#define rassert(B, ...) \
+	do { \
+		if (!(B)) [[unlikely]] { \
+			DO_BREAK; \
+		} \
+	} while (0)
