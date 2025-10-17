@@ -29,7 +29,6 @@ bool isDebuggerPresent() {
 
 bool waitForDebugger(std::source_location sourceLocation) {
 	auto message = std::format("Hit assert at {}({}:{}) `{}`", sourceLocation.file_name(), sourceLocation.line(), sourceLocation.column(), sourceLocation.function_name());
-	std::cout << message << "\n";
 
 #ifdef OS_WIN
 	auto fullMessage = std::format("{}\n\nCancel to abort, try again to debug.", message);
@@ -51,6 +50,7 @@ bool waitForDebugger(std::source_location sourceLocation) {
 		}
 	}
 #else
+	std::cout << message << "\n";
 	std::cout << "Attach debugger and press enter\n";
 	while (true) {
 		std::cin.ignore();
