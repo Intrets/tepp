@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstdlib>
 #include <source_location>
 
 #ifdef OS_WIN
@@ -16,10 +17,14 @@
 bool isDebuggerPresent();
 bool waitForDebugger(std::source_location sourceLocation);
 
+#ifdef DEBUG_BUILD
 #define DO_BREAK \
 	if (isDebuggerPresent() || waitForDebugger(std::source_location::current())) { \
 		BREAK; \
 	}
+#else
+#define DO_BREAK std::abort();
+#endif
 
 #ifdef DEBUG_BUILD
 #define tassert(B, ...) \
