@@ -65,7 +65,7 @@ namespace te
 		void wait(T t) {
 			auto value_ = convertToValue(t);
 
-			while (__atomic_load_n(&this->value, __ATOMIC_SEQ_CST) == value_) {
+			while (__atomic_load_n(&this->value, __ATOMIC_ACQUIRE) == value_) {
 				auto res = syscall(SYS_futex, &this->value, FUTEX_WAIT_PRIVATE, value_, NULL);
 
 				if (res == -1 && errno != EAGAIN) {
@@ -78,7 +78,7 @@ namespace te
 		void store(T t) {
 			auto value_ = convertToValue(t);
 
-			__atomic_store_n(&this->value, value_, __ATOMIC_SEQ_CST);
+			__atomic_store_n(&this->value, value_, __ATOMIC_RELEASE);
 		}
 
 		void notify_all() {
