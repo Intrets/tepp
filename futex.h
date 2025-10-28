@@ -3,12 +3,6 @@
 #include "assert.h"
 #include "tepp/misc.h"
 
-namespace te
-{
-	template<class T>
-	using futex = std::atomic<T>;
-}
-
 #ifdef OS_UNIX
 #include <linux/futex.h> /* Definition of FUTEX_* constants */
 #include <sys/syscall.h> /* Definition of SYS_* constants */
@@ -89,9 +83,12 @@ namespace te
 	};
 }
 #else
+
+#include <atomic>
+
 namespace te
 {
 	template<class T>
-	using futex2 = futex<T>;
+	using futex2 = std::atomic<T>;
 }
 #endif
