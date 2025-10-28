@@ -16,9 +16,6 @@ namespace te
 namespace te
 {
 	template<class T>
-	using futex = std::atomic<T>;
-
-	template<class T>
 	struct futex2
 	{
 	private:
