@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstring>
 #include <format>
 #include <string>
 #include <string_view>
-#include <cstring>
 
 #include "tepp/assert.h"
 #include "tepp/integers.h"
@@ -78,6 +78,10 @@ namespace te
 		constexpr char const* getData() const {
 			return reinterpret_cast<char const*>(this->data);
 		};
+
+		static constexpr const_string_view from_c_str(T const* data) {
+			return const_string_view(data, std::strlen(data) + 1);
+		}
 	};
 
 	using cstring_view = const_string_view<char>;
