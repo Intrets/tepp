@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tepp/integers.h"
+#include <span>
 
 namespace te
 {
@@ -50,6 +51,10 @@ namespace te
 		bytes_number& operator+=(bytes_number other);
 		bytes_number operator-(bytes_number other) const;
 		bytes_number& operator-=(bytes_number other);
+
+		static bytes_number get_size(auto const& e) {
+			return { static_cast<integer_t>(std::span(e).size_bytes()) };
+		}
 	};
 }
 
