@@ -3,6 +3,8 @@
 #include "tepp/integers.h"
 #include <span>
 
+#include <format>
+
 namespace te
 {
 	struct bytes_number;
@@ -38,7 +40,9 @@ namespace te
 		static constexpr integer_t kB_factor = 1024;
 		static constexpr integer_t MB_factor = kB_factor * 1024;
 		static constexpr integer_t GB_factor = MB_factor * 1024;
+#if INTEGER_BITS >= 64
 		static constexpr integer_t TB_factor = GB_factor * 1024;
+#endif
 
 		KB KB() const;
 		MB MB() const;

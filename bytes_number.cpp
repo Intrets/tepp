@@ -15,7 +15,11 @@ namespace te
 	}
 
 	TB::operator bytes_number() const {
+#if INTEGER_BITS >= 64
 		return bytes_number{ static_cast<integer_t>(bytes_number::TB_factor * this->value) };
+#else
+        return bytes_number{0};
+#endif
 	}
 
 	KB bytes_number::KB() const {
@@ -31,7 +35,11 @@ namespace te
 	}
 
 	TB bytes_number::TB() const {
+#if INTEGER_BITS >= 64
 		return { this->value / static_cast<double>(TB_factor) };
+#else
+        return {};
+#endif
 	}
 
 	bytes_number bytes_number::operator+(bytes_number other) const {

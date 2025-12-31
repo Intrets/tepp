@@ -3,6 +3,8 @@
 #include <tepp/misc.h>
 #include <tepp/optional_ref.h>
 
+#include <typeinfo>
+
 namespace te
 {
 	struct any
