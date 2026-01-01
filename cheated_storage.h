@@ -48,7 +48,7 @@ namespace te
 		struct is_valid_storage
 		{
 			inline constexpr static bool valid_alignnment_and_size = [] {
-				return sizeof(T) <= size && alignof(T) == align;
+				return sizeof(T) <= size && alignof(T) <= align;
 			}();
 
 			inline constexpr static bool valid_destructor = [] {

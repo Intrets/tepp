@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory_resource>
+#include <new>
+#include <vector>
 
 #include "tepp/misc.h"
 

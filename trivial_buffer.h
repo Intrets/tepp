@@ -5,6 +5,7 @@
 #include <tepp/span.h>
 
 #include <cstdlib>
+#include <cstring>
 
 namespace te
 {
@@ -39,7 +40,7 @@ namespace te
 			other.size = 0;
 		}
 		trivial_buffer& operator=(trivial_buffer&& other) {
-			this->free();
+			this->free_();
 
 			this->data = other.data;
 			this->size = other.size;
@@ -57,26 +58,28 @@ namespace te
 #ifdef WIN32
 			this->data = std::launder(reinterpret_cast<T*>(_aligned_malloc(size_ * sizeof(T), alignment)));
 #else
-			this->data = std::launder(reinterpret_cast<T*>(std::aligned_alloc(alignment, size_ * sizeof(T))));
+			void* ptr;
+			posix_memalign(&ptr, alignment, size * sizeof(T));
+			this->data = std::launder(reinterpret_cast<T*>(ptr));
 #endif
 
 			std::memset(this->data, 0, size_ * sizeof(T));
 		}
 
 	private:
-		void free() {
+		void free_() {
 			if (this->data != nullptr && this->size != 0) {
 #ifdef WIN32
 				_aligned_free(this->data);
 #else
-				std::free(this->data);
+				free(this->data);
 #endif
 			}
 		}
 
 	public:
 		~trivial_buffer() {
-			this->free();
+			this->free_();
 		}
 	};
 }

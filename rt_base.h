@@ -4,6 +4,7 @@
 #include "tepp/intrusive_list.h"
 #include "tepp/tepp.h"
 
+#include <atomic>
 #include <concepts>
 #include <cstdint>
 #include <memory>

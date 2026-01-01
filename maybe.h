@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tepp/optional_ref.h"
+
+#include <functional>
 #include <optional>
 
 namespace te

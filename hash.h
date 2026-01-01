@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <type_traits>
+#include <string_view>
 
 #include "tepp/span.h"
 #include "tepp/tepp.h"

@@ -3,6 +3,7 @@
 #include <tepp/misc.h>
 #include <tepp/optional_ref.h>
 
+#include <new>
 #include <typeinfo>
 
 namespace te

@@ -1,5 +1,6 @@
 #include "tepp/assert.h"
 
+#include <fstream>
 #include <iostream>
 
 #ifdef OS_WIN

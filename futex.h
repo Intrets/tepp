@@ -3,10 +3,12 @@
 #include "assert.h"
 #include "tepp/misc.h"
 
+#include <bit>
+#include <climits>
 #include <cstring>
 #include <cerrno>
 
-#ifdef OS_UNIX
+#if defined(OS_UNIX) and !defined(ANDROID)
 #include <linux/futex.h> /* Definition of FUTEX_* constants */
 #include <sys/syscall.h> /* Definition of SYS_* constants */
 

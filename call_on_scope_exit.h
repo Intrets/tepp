@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <utility>
 
 #include "tepp/misc.h"
@@ -15,7 +16,9 @@ namespace te
 		NO_COPY_MOVE(call_on_scope_exit);
 
 		call_on_scope_exit() = delete;
-		call_on_scope_exit(F&& f_) : f(std::forward<F>(f_)) {}
+		call_on_scope_exit(F&& f_)
+		    : f(std::forward<F>(f_)) {
+		}
 		~call_on_scope_exit() {
 			std::invoke(this->f);
 		}
