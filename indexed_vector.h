@@ -4,6 +4,7 @@
 #pragma once
 
 #include "string_literal.h"
+#include "tepp/misc.h"
 
 #include <vector>
 
@@ -20,6 +21,8 @@ namespace te
 		}
 		~index() = default;
 
+		DEFAULT_COPY_MOVE(index);
+
 		operator T() const {
 			return this->value;
 		}
@@ -32,6 +35,14 @@ namespace te
 			return this->value < other.value;
 		}
 
+		index operator+(index right) {
+			return index{ this->value + right.value };
+		}
+
+		index operator-(index right) {
+			return index{ this->value - right.value };
+		}
+
 		index& operator++() {
 			++this->value;
 			return *this;
@@ -39,6 +50,15 @@ namespace te
 
 		index operator++(int) {
 			return index(this->value++);
+		}
+
+		index& operator--() {
+			--this->value;
+			return *this;
+		}
+
+		index operator--(int) {
+			return index(this->value--);
 		}
 	};
 
@@ -125,6 +145,9 @@ namespace te
 		data_type data{};
 
 	public:
+		using index_type = index<name>;
+		using value_type = T;
+
 		indexed_vector() = default;
 		template<class S>
 		indexed_vector(S const& other) {
@@ -135,6 +158,10 @@ namespace te
 			this->data.resize(other.size(), value);
 		}
 		~indexed_vector() = default;
+
+		void resize(integer_t size) {
+			this->data.resize(size);
+		}
 
 		indexed_vector empty_copy() const {
 			indexed_vector result{};
