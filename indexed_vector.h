@@ -16,9 +16,11 @@ namespace te
 		T value = 0;
 
 		index() = default;
+
 		explicit index(T v)
 		    : value(v) {
 		}
+
 		~index() = default;
 
 		DEFAULT_COPY_MOVE(index);
@@ -35,11 +37,11 @@ namespace te
 			return this->value < other.value;
 		}
 
-		index operator+(index right) {
+		index operator+(index right) const {
 			return index{ this->value + right.value };
 		}
 
-		index operator-(index right) {
+		index operator-(index right) const {
 			return index{ this->value - right.value };
 		}
 
@@ -149,14 +151,17 @@ namespace te
 		using value_type = T;
 
 		indexed_vector() = default;
+
 		template<class S>
 		indexed_vector(S const& other) {
 			this->data.resize(other.size());
 		}
+
 		template<class S>
 		indexed_vector(S const& other, T const& value) {
 			this->data.resize(other.size(), value);
 		}
+
 		~indexed_vector() = default;
 
 		void resize(integer_t size) {
@@ -167,6 +172,10 @@ namespace te
 			indexed_vector result{};
 			result.data.resize(this->size());
 			return result;
+		}
+
+		bool empty() const {
+			return this->data.empty();
 		}
 
 		T& operator[](index<name> index) {
@@ -195,6 +204,14 @@ namespace te
 
 		index<name> begin_index() const {
 			return te::index<name>(0);
+		}
+
+		auto& back() {
+			return this->data.back();
+		}
+
+		void pop_back() {
+			this->data.pop_back();
 		}
 
 		auto begin() {
