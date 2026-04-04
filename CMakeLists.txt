@@ -14,6 +14,7 @@ make_module(
 		ranges
 		in_range
 		span
+		mdspan
 		pod_complex
 		iterator_span
 		filesystem

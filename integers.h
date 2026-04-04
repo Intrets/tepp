@@ -14,7 +14,7 @@ concept has_size_function = requires(T t) {
 };
 
 template<class I = integer_t, class T>
-inline I isize(T const& a) {
+constexpr inline I isize(T const& a) {
 	if constexpr (has_size_function<T>) {
 		return static_cast<I>(a.size());
 	}

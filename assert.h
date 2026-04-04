@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <cstdlib>
 #include <source_location>
 

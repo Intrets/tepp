@@ -1,0 +1,5 @@
+#include "mdspan.h"
+
+namespace
+{
+}
