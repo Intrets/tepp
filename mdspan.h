@@ -38,22 +38,19 @@ namespace te
 			return result;
 		}
 
-		template<std::integral... Is>
-		constexpr integer_t calculate_offset(Is... is) const {
-			static_assert(sizeof...(Is) == N);
+		template<std::integral I, std::same_as<I>... Is>
+		constexpr integer_t calculate_offset(I i, Is... is) const {
+			static_assert(sizeof...(Is) + 1 == N);
 
 			integer_t index = 0;
 
-			integer_t i = 0;
-			te::for_each(
-			    [&](auto size) {
-				    index *= this->dims[i];
-				    index += static_cast<integer_t>(size);
+			integer_t n = N - 1;
 
-				    i++;
-			    },
-			    is...
-			);
+			for (auto s : std::array{ i, is... } | std::views::reverse) {
+				index *= this->dims[n];
+				index += static_cast<integer_t>(s);
+				n--;
+			}
 
 			return index;
 		}
