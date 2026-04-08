@@ -178,7 +178,9 @@ namespace te
 				auto sourceSpan = te::span<T>(this->data, this->size);
 				auto destinationSpan = te::span<T>(newBuffer, size_);
 
-				std::memcpy(destinationSpan.data(), sourceSpan.data(), sourceSpan.size_bytes());
+				if (this->size != 0) {
+					std::memcpy(destinationSpan.data(), sourceSpan.data(), sourceSpan.size_bytes());
+				}
 			}
 			else if constexpr (std::is_move_assignable_v<T>) {
 				auto it = this->data;
@@ -234,6 +236,7 @@ namespace te
 		simple_vector& operator=(simple_vector const& other) = delete;
 
 		simple_vector() = default;
+
 		simple_vector(integer_t capacity_) {
 			this->capacity = capacity_;
 			this->data = new T[capacity];

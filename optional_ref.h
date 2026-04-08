@@ -145,12 +145,19 @@ namespace te
 		}
 
 		operator optional_ref<T const>() {
-			return optional_ref<T const>(*this->ptr);
+			if (this->ptr == nullptr) {
+				return optional_ref<T const>(te::nullopt);
+			}
+			else {
+				return optional_ref<T const>(*this->ptr);
+			}
 		}
 
 		optional_ref() = default;
+
 		optional_ref(te::nullopt_t) {
 		}
+
 		~optional_ref() = default;
 	};
 }
