@@ -5,6 +5,7 @@
 #include "tepp.h"
 
 #include <array>
+#include <ranges>
 
 namespace te
 {
