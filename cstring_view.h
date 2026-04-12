@@ -80,7 +80,7 @@ namespace te
 		};
 
 		static constexpr const_string_view from_c_str(T const* data) {
-			return const_string_view(data, std::strlen(data) + 1);
+			return const_string_view(data, std::strlen(data));
 		}
 	};
 
