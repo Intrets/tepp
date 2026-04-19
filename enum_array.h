@@ -20,7 +20,7 @@ namespace te
 
 		std::array<T, size> data{};
 
-		integer_t getSize() const noexcept {
+		static constexpr integer_t getSize() noexcept {
 			return size;
 		}
 
