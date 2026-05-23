@@ -103,16 +103,23 @@ namespace te
 			this->size++;
 		}
 
-		inline void push_back(T const& v) {
+		T& emplace_back() {
+			this->push_back({});
+			return this->back();
+		}
+
+		inline T& push_back(T const& v) {
 			this->ensure_capacity();
 
 			this->add_back(v);
+			return this->back();
 		}
 
-		inline void push_back(T&& v) {
+		inline T& push_back(T&& v) {
 			this->ensure_capacity();
 
 			this->add_back(std::forward<T>(v));
+			return this->back();
 		}
 
 		inline bool try_push_back(T const& v) {
