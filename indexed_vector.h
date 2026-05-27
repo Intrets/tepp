@@ -10,9 +10,11 @@
 
 namespace te
 {
-	template<string_literal name, class T = integer_t>
+	template<string_literal name_, class T = integer_t>
 	struct index
 	{
+		static constexpr string_literal name = name_;
+
 		T value = 0;
 
 		index() = default;
@@ -29,13 +31,7 @@ namespace te
 			return this->value;
 		}
 
-		bool operator==(index other) const {
-			return this->value == other.value;
-		}
-
-		bool operator<(index other) const {
-			return this->value < other.value;
-		}
+		auto operator<=>(index const&) const = default;
 
 		index operator+(index right) const {
 			return index{ this->value + right.value };
@@ -184,6 +180,10 @@ namespace te
 
 		T const& operator[](index<name> index) const {
 			return this->data[index.value];
+		}
+
+		bool in_range(index<name> i) const{
+			return i >= 0 && i < isize(this->data);
 		}
 
 		index<name> size() const {

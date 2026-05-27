@@ -13,10 +13,20 @@ namespace te
 	{
 		template<class T>
 		concept has_size = requires(T t) { isize(t); };
+
+		template<class T, class I>
+		concept has_in_range = requires(T t, I i) {
+			{ t.in_range(i) } -> std::same_as<bool>;
+		};
 	}
 
 	bool in_range(integer_t index, detail::has_size auto&& range) {
 		return index >= 0 && index < isize(range);
+	}
+
+	template<class I>
+	bool in_range(I index, detail::has_in_range<I> auto&& range) {
+		return range.in_range(index);
 	}
 
 	integer_t clamp_in_range(integer_t index, detail::has_size auto&& range) {
