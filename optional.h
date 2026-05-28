@@ -13,6 +13,9 @@
 		auto& Y = *Y##optional123456789;
 
 #define END_UNWRAP }
+#define ELSE \
+	} \
+	else
 
 namespace te
 {
