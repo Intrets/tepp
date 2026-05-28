@@ -36,6 +36,8 @@ namespace te
 	template<class T>
 	struct span
 	{
+		using value_type = T;
+
 	private:
 		T* data_ = nullptr;
 		integer_t size_ = 0;
