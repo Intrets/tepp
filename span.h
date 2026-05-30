@@ -53,6 +53,10 @@ namespace te
 			return span(this->data() + offset, count);
 		}
 
+		operator std::span<T>() const {
+			return std::span<T>(this->data(), this->size());
+		}
+
 		bool empty() const {
 			return this->size() == 0;
 		}
