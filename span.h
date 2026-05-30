@@ -196,3 +196,9 @@ namespace te
 	}
 
 }
+
+template<class T>
+inline constexpr bool std::ranges::enable_borrowed_range<te::span<T>> = true;
+
+template<class T>
+inline constexpr bool std::ranges::enable_view<te::span<T>> = true;
