@@ -95,6 +95,18 @@ namespace te
 			return this->size_ * sizeof(T);
 		}
 
+		template<std::contiguous_iterator I1, std::sized_sentinel_for<I1> I2>
+		span(I1 i1, I2 i2) {
+			this->data_ = std::to_address(i1);
+			this->size_ = i2 - i1;
+		}
+
+		template<std::contiguous_iterator I1>
+		span(I1 i1, integer_t size) {
+			this->data_ = std::to_address(i1);
+			this->size_ = size;
+		}
+
 		span(T* data, T* data_end)
 		    : data_(data),
 		      size_(data_end - data) {
@@ -115,17 +127,6 @@ namespace te
 		template<can_dereference R>
 		span(R&& r)
 		    : span(isize(r) == 0 ? nullptr : &*r, isize(r)) {
-		}
-
-		template<class R1, class R2>
-		span(R1&& r1, R2&& r2) {
-			this->data_ = get_pointer(r1);
-			if constexpr (std::integral<std::remove_cvref_t<R2>>) {
-				this->size_ = r2;
-			}
-			else {
-				this->size_ = get_pointer(r2) - this->data_;
-			}
 		}
 
 		span() = default;
