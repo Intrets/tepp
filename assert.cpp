@@ -3,14 +3,21 @@
 #include <fstream>
 #include <iostream>
 
+#include <version>
+#ifdef __cpp_lib_stacktrace
+#include <stacktrace>
+#endif
+
 #ifdef OS_WIN
 #include <Windows.h>
+
 bool isDebuggerPresent() {
 	return IsDebuggerPresent();
 }
 #else
 #include <signal.h>
 #include <sys/ptrace.h>
+
 bool isDebuggerPresent() {
 	std::ifstream proc_self_status_f("/proc/self/status");
 	if (!proc_self_status_f) {
@@ -30,6 +37,9 @@ bool isDebuggerPresent() {
 
 bool waitForDebugger(std::source_location sourceLocation) {
 	auto message = std::format("Hit assert at {}({}:{}) `{}`", sourceLocation.file_name(), sourceLocation.line(), sourceLocation.column(), sourceLocation.function_name());
+#ifdef __cpp_lib_stacktrace
+	std::format_to(std::back_inserter(message), "\nstacktrace:\n{}", std::stacktrace::current());
+#endif
 
 #ifdef OS_WIN
 	auto fullMessage = std::format("{}\n\nCancel to abort, try again to debug.", message);
