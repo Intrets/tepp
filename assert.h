@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <print>
 #include <source_location>
 
 #ifdef OS_WIN
@@ -33,6 +34,7 @@ bool waitForDebugger(std::source_location sourceLocation);
 #define tassert(B, ...) \
 	do { \
 		if (!(B)) [[unlikely]] { \
+			__VA_OPT__(std::println("assert message: " __VA_ARGS__);) \
 			DO_BREAK; \
 		} \
 	} while (0)
@@ -43,6 +45,7 @@ bool waitForDebugger(std::source_location sourceLocation);
 #define rassert(B, ...) \
 	do { \
 		if (!(B)) [[unlikely]] { \
+			std::println(...); \
 			DO_BREAK; \
 		} \
 	} while (0)
