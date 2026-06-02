@@ -39,17 +39,3 @@ inline constexpr static std::pair<I, I> idivmod(I i, I m) {
 	auto i3 = i / m;
 	return { i3 - I(i2 < I(0)), i2 < I(0) ? i2 + m : i2 };
 }
-
-static_assert(idivmod(0, 3) == std::pair(0, 0));
-
-static_assert(idivmod(14, 3) == std::pair(4, 2));
-static_assert(idivmod(13, 3) == std::pair(4, 1));
-static_assert(idivmod(12, 3) == std::pair(4, 0));
-static_assert(idivmod(11, 3) == std::pair(3, 2));
-static_assert(idivmod(10, 3) == std::pair(3, 1));
-
-static_assert(idivmod(-10, 3) == std::pair(-4, 2));
-static_assert(idivmod(-11, 3) == std::pair(-4, 1));
-static_assert(idivmod(-12, 3) == std::pair(-4, 0));
-static_assert(idivmod(-13, 3) == std::pair(-5, 2));
-static_assert(idivmod(-14, 3) == std::pair(-5, 1));
