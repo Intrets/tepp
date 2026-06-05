@@ -103,6 +103,11 @@ namespace te
 			this->addOperation(Send{ .storage = value });
 		}
 
+		void set(T const& value) {
+			this->get_non_rt_value() = value;
+			this->addOperation(Send{ .storage = value });
+		}
+
 		void copy() {
 			this->addOperation(Copy{});
 		}
