@@ -24,8 +24,10 @@ bool isDebuggerPresent() {
 		return false;
 	}
 
-	std::string buffer(256, '\0');
-	proc_self_status_f.read(&buffer[0], 256);
+	std::array<char, 256> buffer_{ '\0' };
+	proc_self_status_f.read(&buffer_[0], buffer_.size());
+
+	std::string_view buffer(buffer_.data(), buffer_.size());
 	auto index = buffer.find("TracerPid:\t");
 	if (index == buffer.npos) {
 		return false;
