@@ -27,6 +27,10 @@ constexpr inline integer_t operator""_i(unsigned long long i) {
 	return static_cast<integer_t>(i);
 }
 
+constexpr inline integer_t operator""_u32(unsigned long long i) {
+	return static_cast<uint32_t>(i);
+}
+
 template<std::integral I>
 inline constexpr static I imod(I i, I m) {
 	auto i2 = i % m;

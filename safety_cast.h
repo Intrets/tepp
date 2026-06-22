@@ -2,9 +2,9 @@
 
 #include "tepp/assert.h"
 
+#include <format>
 #include <stdexcept>
 #include <typeinfo>
-#include <format>
 #include <utility>
 
 namespace te
@@ -17,6 +17,16 @@ namespace te
 		}
 
 		return static_cast<To>(from);
+	}
+
+	template<class To, class From>
+	To cast_or_default(From const& from, From const& default_) {
+		if (!std::in_range<To>(from)) {
+			return default_;
+		}
+		else {
+			return static_cast<To>(from);
+		}
 	}
 
 	template<class To, class From>
