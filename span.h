@@ -5,6 +5,8 @@
 #include "tepp/misc.h"
 #include "tepp/tepp.h"
 
+#include <span>
+
 namespace te
 {
 	template<class T>
@@ -196,6 +198,15 @@ namespace te
 		return span.subspan(start, end - start);
 	}
 
+	auto split_span(detail::can_be_converted_to_span auto&& span_, integer_t index) {
+		auto span = te::span(span_);
+		index = std::clamp(index, 0_i, isize(span));
+
+		auto head = span.subspan(0, index);
+		auto tail = span.subspan(index);
+
+		return std::make_tuple(head, tail);
+	}
 }
 
 template<class T>
