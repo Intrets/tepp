@@ -4,13 +4,14 @@
 #include "tepp/misc.h"
 
 #include <bit>
+#include <cerrno>
 #include <climits>
 #include <cstring>
-#include <cerrno>
 
 #if defined(OS_UNIX) and !defined(ANDROID)
 #include <linux/futex.h> /* Definition of FUTEX_* constants */
 #include <sys/syscall.h> /* Definition of SYS_* constants */
+#include <unistd.h>
 
 namespace te
 {
