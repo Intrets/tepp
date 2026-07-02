@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "tepp/thread_id.h"
+
 #include <version>
 #ifdef __cpp_lib_stacktrace
 #include <stacktrace>
@@ -19,6 +21,8 @@ bool isDebuggerPresent() {
 #include <sys/ptrace.h>
 
 bool isDebuggerPresent() {
+	auto bypass = te::scoped_thread_type(te::thread_types::bypassed);
+
 	std::ifstream proc_self_status_f("/proc/self/status");
 	if (!proc_self_status_f) {
 		return false;
@@ -38,6 +42,8 @@ bool isDebuggerPresent() {
 #endif
 
 bool waitForDebugger(std::source_location sourceLocation) {
+	auto bypass = te::scoped_thread_type(te::thread_types::bypassed);
+
 	auto message = std::format("Hit assert at {}({}:{}) `{}`", sourceLocation.file_name(), sourceLocation.line(), sourceLocation.column(), sourceLocation.function_name());
 #ifdef __cpp_lib_stacktrace
 	std::format_to(std::back_inserter(message), "\nstacktrace:\n{}", std::stacktrace::current());
