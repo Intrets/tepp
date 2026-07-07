@@ -70,7 +70,7 @@ namespace te
 template<>
 struct std::hash<te::uuid>
 {
-	std::size_t operator()(te::uuid const& uuid) {
+	std::size_t operator()(te::uuid const& uuid) const {
 		return uuid.getHash();
 	}
 };
