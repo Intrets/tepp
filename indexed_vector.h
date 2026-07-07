@@ -4,6 +4,7 @@
 #pragma once
 
 #include "string_literal.h"
+#include "tepp/assert.h"
 #include "tepp/misc.h"
 
 #include <vector>
@@ -182,7 +183,26 @@ namespace te
 			return this->data[index.value];
 		}
 
-		bool in_range(index<name> i) const{
+		void erase(index<name> i) {
+			if (this->in_range(i)) {
+				this->data.erase(this->data.begin() + i.value);
+			}
+			else {
+				tassert(0);
+			}
+		}
+
+		void insert(index<name> i, T && v) {
+			assert(i >= 0 && i <= isize(this->data));
+			this->data.insert(this->data.begin() + i.value, std::move(v));
+		}
+
+		void insert(index<name> i, T const& v) {
+			assert(i >= 0 && i <= isize(this->data));
+			this->data.insert(this->data.begin() + i.value, v);
+		}
+
+		bool in_range(index<name> i) const {
 			return i >= 0 && i < isize(this->data);
 		}
 
