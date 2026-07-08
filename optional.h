@@ -4,6 +4,10 @@
 
 #include "tepp/nullopt.h"
 
+#define UNWRAP_POINTER(Y, Z) \
+	if (auto&& Y##pointer123456789 = Z) \
+		for (auto& Y : te::span(&*Y##pointer123456789, 1))
+
 #define UNWRAP_OPTIONAL(Y, Z) \
 	if (auto&& Y##optional123456789 = Z) \
 		for (auto& Y : te::detail::iterator_wrapper(Y##optional123456789))
